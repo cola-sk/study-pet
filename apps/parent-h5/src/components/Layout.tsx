@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { SafeArea, NavBar, TabBar } from 'antd-mobile';
+import { SafeArea, TabBar } from 'antd-mobile';
 import {
   BellOutline,
   UnorderedListOutline,
@@ -14,6 +14,7 @@ import { OfflineNoticeBar } from './pwa/OfflineNoticeBar';
 import { InstallBanner } from './pwa/InstallBanner';
 import { IosInstallGuideModal } from './pwa/IosInstallGuideModal';
 import { UpdatePrompt } from './pwa/UpdatePrompt';
+import { IconPaw, IconDevice } from './Icons';
 
 import { ApprovalsPage } from '../views/Approvals';
 import { TasksPage } from '../views/Tasks';
@@ -31,29 +32,29 @@ export const Layout: React.FC = () => {
   const tabs = [
     {
       key: 'approvals',
-      title: '审批大厅',
+      title: '工作台',
       icon: <BellOutline />,
       badge: pendingApprovalsCount > 0 ? pendingApprovalsCount : undefined,
     },
     {
       key: 'tasks',
-      title: '任务管理',
+      title: '任务库',
       icon: <UnorderedListOutline />,
     },
     {
       key: 'pet',
-      title: '宠物金币',
+      title: '宠物资产',
       icon: <SmileOutline />,
     },
     {
       key: 'settings',
-      title: '我的与设备',
+      title: '终端设置',
       icon: <SetOutline />,
     },
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F7F5F0] text-[#2D2621] antialiased">
+    <div className="flex flex-col min-h-screen bg-[#F4F6F9] text-slate-900 antialiased">
       {/* 1. iPhone 刘海屏 / 灵动岛顶部安全区适配 */}
       <SafeArea position="top" />
 
@@ -69,18 +70,32 @@ export const Layout: React.FC = () => {
       {/* 5. Service Worker 版本更新提示 */}
       <UpdatePrompt />
 
-      {/* 6. 顶栏导航 */}
-      <div className="sticky top-0 z-40 bg-[#F7F5F0]/90 backdrop-blur-md border-b border-[#EAE5DC]">
-        <NavBar backArrow={false} className="font-semibold text-[#2D2621]">
-          <div className="flex items-center space-x-1.5 justify-center">
-            <span className="text-sm">🌱</span>
-            <span className="font-semibold text-base tracking-tight text-[#2D2621]">学习宠物助手</span>
-            <span className="text-xs font-normal text-[#7D7267] bg-[#EFECE6] px-2 py-0.5 rounded-full border border-[#E5DFD4]">
-              {children.length}个孩子 · {devices.length}台设备
-            </span>
+      {/* 6. 顶栏导航 (结构化专业左对齐顶栏) */}
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 select-none">
+        <div className="w-full max-w-xl mx-auto px-4 h-12 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-md bg-slate-900 text-white flex items-center justify-center shadow-xs">
+              <IconPaw className="w-4 h-4" />
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="font-bold text-[15px] tracking-tight text-slate-900">StudyPet</span>
+              <span className="text-xs font-medium text-slate-400">家长端控制台</span>
+            </div>
           </div>
-        </NavBar>
-      </div>
+
+          <div className="flex items-center gap-2">
+            <div className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200/80">
+              <IconDevice className="w-3.5 h-3.5 text-slate-500" />
+              <span>{children.length} 成员</span>
+              <span className="text-slate-300">·</span>
+              <span className="inline-flex items-center gap-1 text-emerald-700">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                {devices.length} 在线
+              </span>
+            </div>
+          </div>
+        </div>
+      </header>
 
       {/* 7. 主视图内容区 */}
       <main className="flex-1 overflow-x-hidden w-full max-w-xl mx-auto">
@@ -91,23 +106,25 @@ export const Layout: React.FC = () => {
       </main>
 
       {/* 8. 底部导航栏与 iPhone 虚拟条底部安全区适配 */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#FCFAF7]/95 backdrop-blur-md border-t border-[#EAE5DC]">
-        <TabBar
-          activeKey={activeTab}
-          onChange={setActiveTab}
-          className="h-[52px]"
-        >
-          {tabs.map(item => (
-            <TabBar.Item
-              key={item.key}
-              icon={item.icon}
-              title={item.title}
-              badge={item.badge}
-            />
-          ))}
-        </TabBar>
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/80 select-none">
+        <div className="max-w-xl mx-auto">
+          <TabBar
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            className="h-[52px]"
+          >
+            {tabs.map(item => (
+              <TabBar.Item
+                key={item.key}
+                icon={item.icon}
+                title={item.title}
+                badge={item.badge}
+              />
+            ))}
+          </TabBar>
+        </div>
         <SafeArea position="bottom" />
-      </div>
+      </nav>
     </div>
   );
 };

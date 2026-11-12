@@ -1,100 +1,48 @@
 ---
-name: StudyPet Natural Zen Design System
-description: 学习任务养成宠物 (StudyPet) 日式原木温暖素雅亲子风设计规范 (MUJI / Balmuda 风格)
+name: StudyPet Precision Modern Design System
+description: 学习任务养成宠物 (StudyPet) 精密结构化现代极简设计规范 (Linear / Stripe Dashboard 风格)
 colors:
-  # 画布与和纸质感底色
-  background: '#F7F5F0'         # 亚麻暖米色
-  surface: '#FFFFFF'            # 象牙暖白
-  surface-subtle: '#EFECE6'     # 和纸浅灰褐
-  surface-warm: '#FDFAF6'       # 柔润木香白
+  background: '#F4F6F9'         # 通透浅冷灰画布
+  surface: '#FFFFFF'            # 纯白高对比容器
+  surface-subtle: '#F8FAFC'     # 卡片内嵌分栏底色
   
-  # 沉稳温暖文字 (浓茶/炭褐)
-  foreground: '#2D2621'         # 沉稳炭黑棕，告别冰冷死黑
-  foreground-muted: '#7D7267'   # 陶土暖灰
-  foreground-subtle: '#A89F95'  # 浅木灰
+  foreground: '#0F172A'         # Slate-900 深邃墨色主文字
+  foreground-muted: '#475569'   # Slate-600 次级信息
+  foreground-subtle: '#94A3B8'  # Slate-400 辅助标注
   
-  # 边框与发丝线
-  border: '#EAE5DC'             # 柔和木米细边框
-  border-subtle: 'rgba(60, 48, 36, 0.05)'
-  border-hover: '#DCD5C9'
+  border: '#E2E8F0'             # 1px 精密结构分割线
   
-  # 核心自然点缀色 (Natural Accents)
-  terracotta: '#D96B43'         # 暖陶橙 (主交互/活力按钮/待确认)
-  terracotta-light: '#FDF3EE'   # 暖陶浅底
-  terracotta-border: '#F8D8CB'
+  primary: '#4F46E5'            # Indigo-600 科技感靛蓝主色
+  primary-surface: '#EEF2FF'
+  primary-border: '#C7D2FE'
   
-  matcha: '#4F7757'             # 抹茶木绿 (设备在线/已发币完成)
-  matcha-light: '#EEF4EF'       # 抹茶浅底
-  matcha-border: '#D0E3D4'
+  success: '#059669'            # Emerald-600 终端在线/已发币
+  success-surface: '#ECFDF5'
   
-  amber-honey: '#D49439'        # 蜂蜜琥珀金 (金币/奖励)
-  amber-gold: '#C88A2E'         # 金币深文字
-  amber-light: '#FEF8ED'        # 琥珀浅底
-  amber-border: '#FCE7C2'
+  warning: '#D97706'            # Amber-600 金币激励/待确认
+  warning-surface: '#FFFBEB'
   
-  mist-blue: '#5C829B'          # 浅雾蓝 (设备标签/辅助)
-  mist-light: '#EFF5F8'
-  mist-border: '#D5E5EE'
-  
-  clay-red: '#C85A5A'           # 柔陶红 (驳回/注意)
-  clay-light: '#FDF2F2'
-
-typography:
-  display-title:
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang SC', 'Hiragino Sans GB', sans-serif"
-    fontSize: "20px"
-    fontWeight: "700"
-    lineHeight: "26px"
-    letterSpacing: "-0.01em"
-  headline:
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Hiragino Sans GB', sans-serif"
-    fontSize: "16px"
-    fontWeight: "600"
-    lineHeight: "22px"
-  body:
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', sans-serif"
-    fontSize: "14px"
-    fontWeight: "400"
-    lineHeight: "20px"
-  caption:
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', sans-serif"
-    fontSize: "12px"
-    fontWeight: "500"
-    lineHeight: "16px"
+  danger: '#DC2626'             # Red-600 驳回/异常
 
 rounded:
-  sm: "8px"
-  md: "12px"
-  card: "20px"
-  panel: "24px"
-  large: "32px"
-  full: "9999px"
+  badge: "4px"                  # rounded (紧凑标签)
+  control: "6px"                # rounded-md (按钮/分段子项)
+  input: "8px"                  # rounded-lg (输入框/内层块)
+  card: "12px"                  # rounded-xl (外层主面板，严禁使用 24px+ 气泡圆角)
 
 shadows:
-  ambient: "0 1px 3px rgba(60, 48, 36, 0.04)"
-  card: "0 2px 10px rgba(60, 48, 36, 0.04)"
-  float: "0 8px 24px rgba(60, 48, 36, 0.08)"
-
-spacing:
-  margin-screen: "16px"
-  card-padding: "16px"
-  item-gap: "12px"
-  section-gap: "20px"
+  card: "0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.02)"
 ---
 
-# StudyPet 日式原木温暖素雅亲子风设计系统规范 (Natural Zen)
+# StudyPet 精密结构化设计系统规范 (design.md)
 
-## 1. 核心设计哲学：Warm Sanctuary & Quiet Delight (温润居所·素雅治愈)
+## 1. 核心设计原则：Architectural Precision (结构化精密感，告别简陋与气泡圆角)
 
-方案 C 融合 **MUJI (无印良品)** 的质朴自然美学与 **Balmuda (巴慕达)** 的现代生活电器质感：
-
-1. **温润和纸底色，告别冷淡纯黑白**：
-   - 彻底摒弃冰冷死板的冷灰（`zinc` 系列）与刺目的死黑，以暖亚麻色（`#F7F5F0`）为底，象牙白卡片为基座；
-   - 文字使用浓茶炭褐（`#2D2621`），阅读体验温润柔和、不伤眼。
-2. **大地与植物色系（Organic Earth Palettes）**：
-   - **暖陶橙（`#D96B43`）**：主交互动作、待处理打卡标记，温暖有朝气；
-   - **抹茶木绿（`#4F7757`）**：设备在线呼吸灯、任务完成审核，如嫩芽初生；
-   - **蜂蜜琥珀金（`#C88A2E`）**：金币与成长激励，如蜂蜜般温甜；
-   - **浅雾蓝（`#5C829B`）**：硬件设备标签，宁静舒缓。
-3. **圆融柔和触感 (Curved Tactility)**：
-   - 全面升级为 `rounded-3xl`（24px）大圆角与药丸胶囊，触感柔糯圆融，完美契合家庭亲子与桌面陪伴宠物的治愈属性。
+1. **克制同心圆角体系 (Concentric & Crisp Radius)**：
+   - 严禁使用 `rounded-3xl` (24px) 和泛滥的 `rounded-full` 胶囊按钮；
+   - 外层面板统一采用 `rounded-xl` (12px)，内部按钮与选择器采用 `rounded-md` (6px) / `rounded-lg` (8px)，状态徽章采用 `rounded` (4px)，呈现利落、严谨的现代工业软件质感。
+2. **Bento 矩阵与工单式信息架构 (Bento KPI & Ticket Architecture)**：
+   - **成员状态卡**：上半部展示成员与硬件终端在线状态，下半部采用 `grid-cols-3 divide-x` 三栏数据矩阵（账户金币、今日完成进度条、待审批数），使用 `font-mono tabular-nums` 等宽数字对齐；
+   - **待确认工单卡**：采用左侧 `3px` 靛蓝状态边条 + 顶栏设备/时间元数据 + 主体任务与右侧金币盒 + 底栏双按钮操作区，告别“白框堆文字”的简陋感。
+3. **定制矢量图标体系 (Vector SVG System)**：
+   - 使用统一的 `1.75px` 描边 SVG 矢量图标（金币、硬件终端、Wi-Fi 信号、闪电工单、盾牌审核）替代廉价的裸 Emoji。

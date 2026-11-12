@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { List, Button, Dialog, Toast, Tag } from 'antd-mobile';
-import { AddOutline, DeleteOutline, EditSOutline } from 'antd-mobile-icons';
+import { List, Dialog, Toast } from 'antd-mobile';
+import { DeleteOutline, EditSOutline } from 'antd-mobile-icons';
 import { DevicePairModal } from './DevicePairModal';
 import { useAppStore } from '../../stores/useAppStore';
 import { PWAInstallState } from '../../hooks/usePWAInstall';
+import { IconDevice, IconPlus, IconWifi, IconCoin, IconUser } from '../../components/Icons';
 
 interface Props {
   installState: PWAInstallState;
@@ -38,13 +39,13 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
 
   const handleEditNickname = (childId: string, currentName: string) => {
     Dialog.confirm({
-      title: '修改孩子昵称',
+      title: '修改成员昵称',
       content: (
         <input
           id="nickname-input"
           defaultValue={currentName}
-          placeholder="请输入孩子昵称"
-          className="w-full border border-[#EAE5DC] bg-[#F7F5F0] rounded-xl p-2.5 text-sm mt-2 text-[#2D2621] focus:ring-2 focus:ring-[#D96B43] focus:outline-none"
+          placeholder="请输入成员昵称"
+          className="w-full border border-slate-300 bg-slate-50 rounded-lg p-2.5 text-sm mt-2 text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
         />
       ),
       onConfirm: () => {
@@ -59,13 +60,13 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
 
   const handleAddChild = () => {
     Dialog.confirm({
-      title: '添加新孩子档案',
+      title: '添加新成员档案',
       content: (
         <div className="space-y-2 mt-2">
           <input
             id="new-child-input"
             placeholder="例如：小宝 / 豆豆"
-            className="w-full border border-[#EAE5DC] bg-[#F7F5F0] rounded-xl p-2.5 text-sm text-[#2D2621] focus:ring-2 focus:ring-[#D96B43] focus:outline-none"
+            className="w-full border border-slate-300 bg-slate-50 rounded-lg p-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
           />
         </div>
       ),
@@ -73,72 +74,72 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
         const input = document.getElementById('new-child-input') as HTMLInputElement;
         if (input && input.value.trim()) {
           addChild(input.value.trim(), '👧');
-          Toast.show({ icon: 'success', content: '已添加孩子档案' });
+          Toast.show({ icon: 'success', content: '已添加成员档案' });
         }
       },
     });
   };
 
   return (
-    <div className="p-4 space-y-4 pb-24 text-[#2D2621]">
-      {/* 桌面硬件设备列表（支持多设备） */}
-      <div className="bg-white rounded-3xl p-4 shadow-[0_2px_10px_rgba(60,48,36,0.04)] border border-[#EAE5DC]">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-2">
-            <span className="text-xl">📺</span>
+    <div className="p-4 space-y-5 pb-24 text-slate-900">
+      {/* 硬件终端设备列表（支持多设备） */}
+      <section className="card-surface bg-white rounded-xl shadow-card border border-slate-200/90 overflow-hidden">
+        <div className="px-4 py-3 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <IconDevice className="w-4 h-4 text-indigo-600" />
             <div>
-              <h3 className="font-bold text-[#2D2621] text-sm">已绑定桌面设备 ({devices.length} 台)</h3>
-              <p className="text-xs text-[#A89F95]">每台设备独立展示孩子专属宠物</p>
+              <h3 className="font-bold text-slate-900 text-xs">已绑定桌面硬件终端 ({devices.length})</h3>
             </div>
           </div>
-          <Button
-            size="mini"
+          <button
+            type="button"
             onClick={() => setPairModalVisible(true)}
-            className="!rounded-full !text-xs !px-3 !bg-[#D96B43] hover:!bg-[#C75B34] !text-white !border-0 font-medium shadow-xs"
+            className="rounded-md text-xs px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white font-semibold inline-flex items-center gap-1 shadow-xs transition-all select-none"
           >
-            <span className="flex items-center gap-0.5">
-              <AddOutline /> 绑定新设备
-            </span>
-          </Button>
+            <IconPlus className="w-3 h-3" />
+            <span>配对新终端</span>
+          </button>
         </div>
 
         {devices.length === 0 ? (
-          <div className="text-center py-6 text-xs text-[#A89F95]">
-            暂未绑定任何硬件设备，点击右上角【绑定新设备】开始配对
+          <div className="text-center py-8 text-xs text-slate-400">
+            暂未绑定任何硬件终端，点击右上角【配对新终端】开始连接
           </div>
         ) : (
-          <div className="space-y-2.5">
+          <div className="divide-y divide-slate-100">
             {devices.map(device => {
               const child = children.find(c => c.id === device.childId);
               return (
-                <div key={device.id} className="bg-[#F7F5F0] rounded-2xl p-3 border border-[#EAE5DC] space-y-2">
+                <div key={device.id} className="p-3.5 space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-bold text-[#2D2621] text-xs">{device.alias}</span>
-                      <span className="text-[10px] bg-[#EEF4EF] text-[#4F7757] border border-[#D0E3D4] px-2 py-0.5 rounded-full font-medium">
-                        已在线
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-slate-900 text-sm">{device.alias}</span>
+                      <span className="inline-flex items-center gap-1 text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-1.5 py-0.5 rounded font-medium">
+                        <IconWifi className="w-3 h-3" />
+                        在线
                       </span>
                     </div>
                     <button
+                      type="button"
                       onClick={() => handleUnbind(device.id, device.alias)}
-                      className="text-[#C85A5A] hover:text-[#A83838] text-xs flex items-center gap-0.5"
+                      className="text-slate-400 hover:text-red-600 text-xs flex items-center gap-1 transition-colors select-none"
                     >
-                      <DeleteOutline /> 解绑
+                      <DeleteOutline /> 解除绑定
                     </button>
                   </div>
 
-                  <div className="text-xs text-[#7D7267] space-y-1">
-                    <div className="flex justify-between">
-                      <span>主人（孩子）：</span>
-                      <strong className="text-[#2D2621]">{child?.nickname || '未指定'}</strong>
+                  <div className="grid grid-cols-3 gap-2 bg-slate-50 rounded-lg p-2.5 border border-slate-100 text-xs">
+                    <div>
+                      <div className="text-[10px] text-slate-400">绑定成员</div>
+                      <div className="font-semibold text-slate-800 mt-0.5">{child?.nickname || '未指定'}</div>
                     </div>
-                    <div className="flex justify-between">
-                      <span>硬件型号：</span>
-                      <span>{device.deviceModel.replace('Waveshare ', '')}</span>
+                    <div>
+                      <div className="text-[10px] text-slate-400">终端型号</div>
+                      <div className="font-medium text-slate-700 mt-0.5 truncate">{device.deviceModel.replace('Waveshare ', '')}</div>
                     </div>
-                    <div className="flex justify-between">
-                      <span>MAC 地址：</span>
-                      <span className="font-mono text-[#A89F95]">{device.macAddress}</span>
+                    <div>
+                      <div className="text-[10px] text-slate-400">MAC 标识</div>
+                      <div className="font-mono text-[11px] text-slate-500 mt-0.5 truncate">{device.macAddress}</div>
                     </div>
                   </div>
                 </div>
@@ -146,77 +147,78 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
             })}
           </div>
         )}
-      </div>
+      </section>
 
-      {/* 孩子档案管理（支持多孩子） */}
-      <div className="bg-white rounded-3xl shadow-[0_2px_10px_rgba(60,48,36,0.04)] border border-[#EAE5DC] overflow-hidden">
-        <div className="px-4 py-3 bg-[#F7F5F0] border-b border-[#EAE5DC] flex items-center justify-between">
-          <span className="font-bold text-xs text-[#2D2621]">孩子档案与伴学账号 ({children.length} 位)</span>
+      {/* 成员档案管理 */}
+      <section className="card-surface bg-white rounded-xl shadow-card border border-slate-200/90 overflow-hidden">
+        <div className="px-4 py-3 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <IconUser className="w-4 h-4 text-slate-600" />
+            <span className="font-bold text-xs text-slate-900">成员档案管理 ({children.length})</span>
+          </div>
           <button
+            type="button"
             onClick={handleAddChild}
-            className="text-[#D96B43] hover:text-[#C75B34] text-xs font-semibold flex items-center gap-0.5"
+            className="text-indigo-600 hover:text-indigo-700 text-xs font-semibold inline-flex items-center gap-1 select-none"
           >
-            <AddOutline /> 添加孩子
+            <IconPlus className="w-3 h-3" />
+            <span>添加成员</span>
           </button>
         </div>
         <List>
           {children.map(child => (
             <List.Item
               key={child.id}
-              prefix={<span className="text-xl">{child.avatarIcon || '🧒'}</span>}
+              prefix={
+                <div className="w-8 h-8 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center text-base">
+                  {child.avatarIcon || '🧒'}
+                </div>
+              }
               extra={
-                <span className="text-[#C88A2E] font-bold text-xs">
-                  🪙 {child.coinsBalance} 金币
+                <span className="inline-flex items-center gap-1 text-amber-700 font-mono font-bold text-xs bg-amber-50 border border-amber-200/70 px-2 py-0.5 rounded">
+                  <IconCoin className="w-3 h-3" />
+                  {child.coinsBalance}
                 </span>
               }
               clickable
               onClick={() => handleEditNickname(child.id, child.nickname)}
               arrow
             >
-              <div className="flex items-center space-x-2">
-                <span className="font-medium text-xs text-[#2D2621]">{child.nickname}</span>
-                <EditSOutline className="text-[#A89F95] text-xs" />
+              <div className="flex items-center gap-1.5">
+                <span className="font-semibold text-xs text-slate-900">{child.nickname}</span>
+                <EditSOutline className="text-slate-400 text-xs" />
               </div>
             </List.Item>
           ))}
         </List>
-      </div>
+      </section>
 
-      {/* 家庭与系统时区 */}
-      <div className="bg-white rounded-3xl shadow-[0_2px_10px_rgba(60,48,36,0.04)] border border-[#EAE5DC] overflow-hidden">
-        <div className="px-4 py-3 bg-[#F7F5F0] border-b border-[#EAE5DC] font-bold text-xs text-[#2D2621]">
-          家庭基础信息
+      {/* 系统与客户端配置 */}
+      <section className="card-surface bg-white rounded-xl shadow-card border border-slate-200/90 overflow-hidden">
+        <div className="px-4 py-3 bg-slate-50/70 border-b border-slate-100 font-bold text-xs text-slate-900">
+          系统与客户端状态
         </div>
         <List>
-          <List.Item extra={<span className="text-xs text-[#7D7267]">{family.timezone}</span>}>
-            <span className="text-xs text-[#2D2621]">任务结算时区</span>
+          <List.Item extra={<span className="text-xs font-medium text-slate-700">{family.name}</span>}>
+            <span className="text-xs text-slate-600">家庭空间</span>
           </List.Item>
-          <List.Item extra={<span className="text-xs text-[#7D7267]">{family.name}</span>}>
-            <span className="text-xs text-[#2D2621]">家庭档案</span>
+          <List.Item extra={<span className="text-xs font-mono text-slate-500">{family.timezone}</span>}>
+            <span className="text-xs text-slate-600">任务结算时区</span>
           </List.Item>
-        </List>
-      </div>
-
-      {/* PWA 手机桌面安装与状态 */}
-      <div className="bg-white rounded-3xl shadow-[0_2px_10px_rgba(60,48,36,0.04)] border border-[#EAE5DC] overflow-hidden">
-        <div className="px-4 py-3 bg-[#F7F5F0] border-b border-[#EAE5DC] font-bold text-xs text-[#2D2621]">
-          PWA 与手机主屏幕安装
-        </div>
-        <List>
           <List.Item
             extra={
               installState.isStandalone ? (
-                <span className="text-[10px] bg-[#EEF4EF] text-[#4F7757] border border-[#D0E3D4] px-2.5 py-0.5 rounded-full font-medium">
+                <span className="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2 py-0.5 rounded font-medium">
                   独立 App 模式
                 </span>
               ) : (
-                <span className="text-[10px] bg-[#FEF8ED] text-[#D49439] border border-[#FCE7C2] px-2.5 py-0.5 rounded-full font-medium">
-                  浏览器标签模式
+                <span className="text-[11px] bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded font-medium">
+                  浏览器网页模式
                 </span>
               )
             }
           >
-            <span className="text-xs text-[#2D2621]">运行模式</span>
+            <span className="text-xs text-slate-600">客户端形态</span>
           </List.Item>
           {!installState.isStandalone && (
             <List.Item
@@ -232,11 +234,11 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
               }}
               arrow
             >
-              <span className="text-xs text-[#D96B43] font-medium">添加到手机主屏幕</span>
+              <span className="text-xs text-indigo-600 font-semibold">安装至手机主屏幕 (PWA)</span>
             </List.Item>
           )}
         </List>
-      </div>
+      </section>
 
       {/* 绑定弹窗 */}
       <DevicePairModal

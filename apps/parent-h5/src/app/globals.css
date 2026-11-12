@@ -3,19 +3,26 @@
 @tailwind utilities;
 
 :root {
-  --adm-color-primary: #D96B43;
-  --adm-color-success: #4F7757;
-  --adm-color-warning: #D49439;
-  --adm-color-danger: #C85A5A;
-  --adm-border-color: #EAE5DC;
-  --adm-font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+  color-scheme: light;
+  accent-color: #4F46E5;
+  --adm-color-primary: #4F46E5;
+  --adm-color-success: #059669;
+  --adm-color-warning: #D97706;
+  --adm-color-danger: #DC2626;
+  --adm-border-color: #E2E8F0;
+  --adm-font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+}
+
+::selection {
+  background-color: #E0E7FF;
+  color: #1E1B4B;
 }
 
 html, body {
   margin: 0;
   padding: 0;
-  background-color: #F7F5F0;
-  color: #2D2621;
+  background-color: #F4F6F9;
+  color: #0F172A;
   touch-action: manipulation;
   overscroll-behavior-y: none;
   -webkit-tap-highlight-color: transparent;
@@ -23,22 +30,22 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Ant Design Mobile Zen 主题定制 */
+/* Ant Design Mobile 精密现代风格覆盖 */
 .adm-tab-bar {
-  --adm-color-primary: #D96B43;
-  --adm-color-weak: #9C948A;
+  --adm-color-primary: #4F46E5;
+  --adm-color-weak: #64748B;
 }
 
 .adm-tabs {
-  --active-line-color: transparent;
-  --active-title-color: #2D2621;
+  --active-line-color: #4F46E5;
+  --active-title-color: #0F172A;
   --title-font-size: 13px;
 }
 
-/* 日系温润分段控制器 */
+/* 紧凑型结构化分段控制器 (摒弃过度圆角，采用 8px/6px 同心圆角) */
 .segmented {
-  background-color: #EFECE6;
-  border-radius: 9999px;
+  background-color: #E2E8F0;
+  border-radius: 8px;
   padding: 3px;
 }
 .segmented .adm-tabs-header {
@@ -49,48 +56,73 @@ html, body {
 }
 .segmented .adm-tabs-tab-list {
   padding: 0;
-  gap: 2px;
+  gap: 3px;
 }
 .segmented .adm-tabs-tab {
   min-width: max-content;
-  padding: 7px 14px;
-  color: #7D7267;
-  border-radius: 9999px;
+  padding: 6px 12px;
+  color: #475569;
+  border-radius: 6px;
   font-weight: 500;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 .segmented .adm-tabs-tab-active {
   background: #FFFFFF;
-  color: #2D2621;
+  color: #0F172A;
   font-weight: 600;
-  box-shadow: 0 1px 3px rgba(60, 48, 36, 0.08);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
 }
 
 .adm-button {
-  transition: transform 150ms ease, opacity 150ms ease;
+  transition: transform 120ms ease, background-color 120ms ease;
   font-family: inherit;
+  user-select: none;
 }
 .adm-button:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
 .adm-popup .adm-selector {
-  --border-radius: 12px;
-  --color: #F7F5F0;
-  --checked-color: #FDF3EE;
-  --checked-text-color: #D96B43;
+  --border-radius: 8px;
+  --color: #F1F5F9;
+  --checked-color: #EEF2FF;
+  --checked-text-color: #4F46E5;
+  --checked-border: 1px solid #6366F1;
 }
 
 .adm-tag-default {
-  --background-color: #EFECE6;
-  --text-color: #5C544D;
-  --border-color: #EFECE6;
-  --border-radius: 6px;
+  --background-color: #F1F5F9;
+  --text-color: #334155;
+  --border-color: #CBD5E1;
+  --border-radius: 4px;
 }
 
 .adm-popup-body {
   overflow: hidden;
-  border-radius: 24px 24px 0 0;
+  border-radius: 14px 14px 0 0;
+}
+
+textarea {
+  resize: vertical;
+  field-sizing: content;
+}
+
+input:not([type="range"]):user-invalid,
+textarea:user-invalid {
+  border-color: #DC2626;
+  background-color: #FEF2F2;
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --adm-border-color: #64748B;
+  }
+}
+
+@media (forced-colors: active) {
+  .card-surface {
+    border: 1px solid CanvasText;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

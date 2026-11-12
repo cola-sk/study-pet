@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Tag, Tabs } from 'antd-mobile';
+import { Tabs } from 'antd-mobile';
 import { useAppStore } from '../../stores/useAppStore';
+import { IconCoin, IconDevice } from '../../components/Icons';
 
 export const PetWalletPage: React.FC = () => {
   const { children, pets, transactions, shopItems } = useAppStore();
@@ -22,121 +23,147 @@ export const PetWalletPage: React.FC = () => {
     .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
   return (
-    <div className="p-4 space-y-4 pb-24 text-[#2D2621]">
-      {/* 孩子切换 Tab (日式原木温润分段控制器) */}
-      <div className="segmented bg-[#EFECE6] rounded-full p-1 border border-[#E5DFD4]">
+    <div className="p-4 space-y-5 pb-24 text-slate-900">
+      {/* 成员切换 Tab */}
+      <div className="segmented select-none">
         <Tabs activeKey={currentChildId} onChange={setCurrentChildId}>
           {children.map(child => (
             <Tabs.Tab
-              title={
-                <span className="flex items-center gap-1 font-semibold text-xs">
-                  <span>{child.nickname}</span>
-                </span>
-              }
+              title={<span className="text-xs">{child.nickname}</span>}
               key={child.id}
             />
           ))}
         </Tabs>
       </div>
 
-      {/* 宠物状态视窗 (素雅伴学小窝) */}
-      <div className="bg-white rounded-3xl p-5 border border-[#EAE5DC] shadow-[0_2px_12px_rgba(60,48,36,0.04)] text-center relative overflow-hidden">
-        <div className="absolute top-3.5 left-4 text-xs font-medium text-[#D96B43] bg-[#FDF3EE] border border-[#F8D8CB] px-3 py-0.5 rounded-full">
-          {currentChild?.nickname}的小窝
-        </div>
-        <div className="absolute top-3.5 right-4 text-xs text-[#A89F95]">
-          伴学宠物
+      {/* 宠物硬件屏幕状态面板 (结构化双栏仪表视窗) */}
+      <div className="card-surface bg-white rounded-xl border border-slate-200/90 shadow-card overflow-hidden">
+        {/* 模拟终端状态顶栏 */}
+        <div className="px-3.5 py-2 bg-slate-900 text-white flex items-center justify-between text-xs">
+          <div className="flex items-center gap-1.5 font-medium">
+            <IconDevice className="w-3.5 h-3.5 text-indigo-400" />
+            <span>{currentChild?.nickname} · 桌面宠物状态监控</span>
+          </div>
+          <span className="text-[11px] text-slate-400 font-mono">SYNC: LIVE</span>
         </div>
 
-        {/* 宠物形象 */}
-        <div className="py-6 flex flex-col items-center justify-center">
-          <div className="relative">
-            <div className="w-28 h-28 bg-[#FEF8ED] rounded-full flex items-center justify-center text-6xl border border-[#FCE7C2] shadow-xs">
-              {pet?.petAvatar || '🐶'}
-            </div>
-            {pet?.currentClothesItem && (
-              <div className="absolute -bottom-2 right-0 bg-white shadow-sm border border-[#EAE5DC] px-2.5 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1 text-[#2D2621]">
-                <span>{pet.currentClothesItem.icon}</span>
-                <span>{pet.currentClothesItem.name}</span>
-              </div>
-            )}
+        {/* 主体：左侧形象与装扮，右侧物资指标 */}
+        <div className="p-4 flex items-center gap-4">
+          <div className="w-16 h-16 rounded-lg bg-slate-50 border border-slate-200/90 flex items-center justify-center text-4xl shrink-0">
+            {pet?.petAvatar || '🐶'}
           </div>
 
-          <div className="mt-3.5">
-            <div className="font-bold text-[#2D2621] text-base">{pet?.petName || `${currentChild?.nickname}的小伙伴`}</div>
-            <div className="text-xs text-[#7D7267] mt-1">开心健康，等待在桌面设备屏幕上互动</div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-bold text-slate-900 text-base">
+                {pet?.petName || `${currentChild?.nickname}的伴学宠`}
+              </h3>
+              {pet?.currentClothesItem ? (
+                <span className="inline-flex items-center gap-1 text-[11px] bg-indigo-50 text-indigo-700 border border-indigo-200/70 px-1.5 py-0.5 rounded font-medium">
+                  <span>{pet.currentClothesItem.icon}</span>
+                  <span>已穿戴: {pet.currentClothesItem.name}</span>
+                </span>
+              ) : (
+                <span className="text-[11px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">
+                  未穿戴饰品
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              状态良好，可在关联的微雪硬件屏幕上投喂互动
+            </p>
           </div>
+        </div>
 
-          {/* 背包物资 */}
-          <div className="mt-4 flex items-center justify-center space-x-6 bg-[#F7F5F0] py-2 px-6 rounded-2xl border border-[#EAE5DC]">
-            <div className="flex items-center space-x-1.5 text-xs text-[#2D2621]">
-              <span className="text-xl">🍎</span>
-              <span>食物库存: <strong className="text-[#D96B43] font-bold">{pet?.foodCount || 0}</strong></span>
-            </div>
-            <div className="w-px h-4 bg-[#EAE5DC]"></div>
-            <div className="flex items-center space-x-1.5 text-xs text-[#2D2621]">
-              <span className="text-xl">💧</span>
-              <span>饮水库存: <strong className="text-[#5C829B] font-bold">{pet?.waterCount || 0}</strong></span>
-            </div>
+        {/* 底部物资储量条 */}
+        <div className="grid grid-cols-2 divide-x divide-slate-100 border-t border-slate-100 bg-slate-50/60 text-xs">
+          <div className="px-3.5 py-2.5 flex items-center justify-between">
+            <span className="text-slate-500 font-medium">🍎 食物库存</span>
+            <span className="font-mono font-bold text-slate-900 text-sm">{pet?.foodCount || 0} 份</span>
+          </div>
+          <div className="px-3.5 py-2.5 flex items-center justify-between">
+            <span className="text-slate-500 font-medium">💧 饮水库存</span>
+            <span className="font-mono font-bold text-slate-900 text-sm">{pet?.waterCount || 0} 份</span>
           </div>
         </div>
       </div>
 
-      {/* 虚拟金币账户总览 */}
-      <div className="grid grid-cols-3 gap-2.5">
-        <div className="bg-white rounded-3xl p-3.5 shadow-[0_2px_8px_rgba(60,48,36,0.03)] border border-[#EAE5DC] text-center">
-          <div className="text-xs text-[#7D7267] mb-1">可用金币</div>
-          <div className="text-lg font-bold text-[#C88A2E]">🪙 {currentChild?.coinsBalance || 0}</div>
+      {/* 账户资产三栏总览 (Unified KPI Panel) */}
+      <div className="card-surface bg-white rounded-xl border border-slate-200/90 shadow-card grid grid-cols-3 divide-x divide-slate-100 overflow-hidden">
+        <div className="p-3.5">
+          <div className="text-[11px] text-slate-500 font-medium">可用金币</div>
+          <div className="mt-1 flex items-center gap-1">
+            <IconCoin className="w-4 h-4 shrink-0" />
+            <span className="text-lg font-bold font-mono tabular-nums text-slate-900">
+              {currentChild?.coinsBalance || 0}
+            </span>
+          </div>
         </div>
-        <div className="bg-white rounded-3xl p-3.5 shadow-[0_2px_8px_rgba(60,48,36,0.03)] border border-[#EAE5DC] text-center">
-          <div className="text-xs text-[#7D7267] mb-1">今日赚取</div>
-          <div className="text-lg font-bold text-[#4F7757]">+{totalEarnedToday}</div>
+        <div className="p-3.5">
+          <div className="text-[11px] text-slate-500 font-medium">今日赚取</div>
+          <div className="mt-1 text-lg font-bold font-mono tabular-nums text-emerald-600">
+            +{totalEarnedToday}
+          </div>
         </div>
-        <div className="bg-white rounded-3xl p-3.5 shadow-[0_2px_8px_rgba(60,48,36,0.03)] border border-[#EAE5DC] text-center">
-          <div className="text-xs text-[#7D7267] mb-1">历史消费</div>
-          <div className="text-lg font-bold text-[#7D7267]">-{totalSpent}</div>
+        <div className="p-3.5">
+          <div className="text-[11px] text-slate-500 font-medium">累计兑换</div>
+          <div className="mt-1 text-lg font-bold font-mono tabular-nums text-slate-600">
+            -{totalSpent}
+          </div>
         </div>
       </div>
 
-      {/* 设备端商店商品一览 */}
-      <div>
-        <div className="flex items-center justify-between mb-2 mt-3">
-          <h3 className="text-base font-bold text-[#2D2621]">桌面商店</h3>
-          <span className="text-xs text-[#A89F95]">孩子在桌面设备自主兑换</span>
+      {/* 终端兑换商店目录 */}
+      <section>
+        <div className="flex items-center justify-between mb-2.5">
+          <h3 className="text-sm font-bold text-slate-900 tracking-tight">硬件端商店价目表</h3>
+          <span className="text-xs text-slate-400">孩子在硬件屏幕自主兑换</span>
         </div>
         <div className="grid grid-cols-3 gap-2.5">
           {shopItems.map(item => (
-            <div key={item.id} className="bg-white rounded-3xl p-3.5 border border-[#EAE5DC] shadow-[0_2px_8px_rgba(60,48,36,0.03)] text-center">
-              <div className="text-3xl mb-1.5">{item.icon}</div>
-              <div className="font-semibold text-xs text-[#2D2621] truncate">{item.name}</div>
-              <div className="text-xs text-[#C88A2E] font-bold mt-1">🪙 {item.price} 金币</div>
-              <span className="inline-block text-[10px] mt-1.5 bg-[#F7F5F0] text-[#7D7267] px-2 py-0.5 rounded-full border border-[#EAE5DC]">
-                {item.category === 'clothes' ? '永久服饰' : '消耗品'}
-              </span>
+            <div
+              key={item.id}
+              className="card-surface bg-white rounded-xl p-3 border border-slate-200/90 shadow-card flex flex-col justify-between"
+            >
+              <div className="flex items-start justify-between">
+                <span className="text-2xl leading-none">{item.icon}</span>
+                <span className="text-[10px] bg-slate-100 text-slate-600 border border-slate-200/80 px-1.5 py-0.5 rounded font-medium">
+                  {item.category === 'clothes' ? '装扮' : '补给'}
+                </span>
+              </div>
+              <div className="mt-2.5">
+                <div className="font-semibold text-xs text-slate-900 truncate">{item.name}</div>
+                <div className="text-xs text-amber-700 font-mono font-bold mt-0.5 flex items-center gap-0.5">
+                  <IconCoin className="w-3 h-3" />
+                  <span>{item.price}</span>
+                </div>
+              </div>
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      {/* 该孩子的金币流水 */}
-      <div>
-        <div className="flex items-center justify-between mb-2 mt-5">
-          <h3 className="text-base font-bold text-[#2D2621]">金币明细</h3>
-          <span className="text-xs text-[#A89F95]">独立账本流水</span>
+      {/* 金币收支账本流水 */}
+      <section>
+        <div className="flex items-center justify-between mb-2.5">
+          <h3 className="text-sm font-bold text-slate-900 tracking-tight">金币收支账本</h3>
+          <span className="text-xs text-slate-400 font-mono">共 {childTransactions.length} 笔</span>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-[0_2px_10px_rgba(60,48,36,0.04)] border border-[#EAE5DC] divide-y divide-[#F3EFEA] overflow-hidden">
+        <div className="card-surface bg-white rounded-xl shadow-card border border-slate-200/90 divide-y divide-slate-100 overflow-hidden">
           {childTransactions.map(tx => (
-            <div key={tx.id} className="p-3.5 flex items-center justify-between text-xs">
-              <div className="space-y-1">
-                <div className="font-medium text-[#2D2621]">{tx.description}</div>
-                <div className="text-xs text-[#A89F95]">
-                  {tx.createdAt} · 变动后余额: {tx.balanceAfter} 金币
+            <div key={tx.id} className="p-3.5 flex items-center justify-between text-xs hover:bg-slate-50/50 transition-colors">
+              <div className="space-y-0.5">
+                <div className="font-semibold text-slate-900 text-sm">{tx.description}</div>
+                <div className="text-xs text-slate-400 font-mono">
+                  {tx.createdAt} · 结余 {tx.balanceAfter}
                 </div>
               </div>
               <div
-                className={`font-bold text-sm ${
-                  tx.amount > 0 ? 'text-[#4F7757]' : 'text-[#C85A5A]'
+                className={`font-bold font-mono text-sm tabular-nums px-2 py-0.5 rounded ${
+                  tx.amount > 0
+                    ? 'text-emerald-700 bg-emerald-50 border border-emerald-200/60'
+                    : 'text-slate-700 bg-slate-100 border border-slate-200'
                 }`}
               >
                 {tx.amount > 0 ? `+${tx.amount}` : tx.amount}
@@ -145,10 +172,10 @@ export const PetWalletPage: React.FC = () => {
           ))}
 
           {childTransactions.length === 0 && (
-            <div className="p-6 text-center text-[#A89F95] text-xs">该孩子暂无交易记录</div>
+            <div className="p-6 text-center text-slate-400 text-xs">暂无收支记录</div>
           )}
         </div>
-      </div>
+      </section>
     </div>
   );
 };
