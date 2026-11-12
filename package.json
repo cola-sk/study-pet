@@ -4,6 +4,7 @@
   "private": true,
   "description": "学习任务养成宠物桌面设备与家长端全栈系统 (Next.js + Monorepo)",
   "scripts": {
+    "build": "pnpm --filter parent-h5 build",
     "dev:h5": "pnpm --filter parent-h5 dev",
     "build:h5": "pnpm --filter parent-h5 build",
     "start:h5": "pnpm --filter parent-h5 start"
