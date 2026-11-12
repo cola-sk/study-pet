@@ -225,3 +225,23 @@ BEGIN
     RETURN jsonb_build_object('success', true, 'message', '任务已驳回，允许重新提交');
 END;
 $$;
+
+-- ==============================================================================
+-- 初始字典与演示数据注入
+-- ==============================================================================
+
+-- 注入商城道具字典
+INSERT INTO public.shop_items (id, name, category, price, icon, description) VALUES
+('00000000-0000-0000-0000-000000000001', '新鲜小苹果', 'food', 5, '🍎', '脆甜多汁的小红富士'),
+('00000000-0000-0000-0000-000000000002', '美味小蛋糕', 'food', 12, '🍰', '香甜草莓奶油蛋糕'),
+('00000000-0000-0000-0000-000000000003', '纯净矿泉水', 'water', 5, '💧', '清凉解渴矿泉水'),
+('00000000-0000-0000-0000-000000000004', '清凉椰子汁', 'water', 10, '🥥', '天然甘甜椰子水'),
+('00000000-0000-0000-0000-000000000005', '水手服套装', 'clothes', 40, '👔', '帅气精神的水手校服'),
+('00000000-0000-0000-0000-000000000006', '恐龙连体衣', 'clothes', 60, '🦖', '超萌绿色小恐龙')
+ON CONFLICT (id) DO NOTHING;
+
+-- 权限授予 (保证 anon 公开读写用于开发与设备同步)
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL ROUTINES IN SCHEMA public TO anon, authenticated;
