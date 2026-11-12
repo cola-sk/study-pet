@@ -33,14 +33,18 @@ export async function deviceContext(request: NextRequest) {
   if (!data || data.status !== 'paired' || !data.family_id || !data.child_id) throw new ApiError(401, 'Device is not paired');
   return { db, device: data };
 }
-export async function parentContext(request: NextRequest) {
+export async function authenticatedContext(request: NextRequest) {
   const token = bearer(request);
   const db = database();
   const { data, error } = await db.auth.getUser(token);
   if (error || !data.user) throw new ApiError(401, 'Invalid or expired login');
-  const result = await db.from('parents').select('family_id').eq('auth_user_id', data.user.id).maybeSingle();
+  return { db, user: data.user };
+}
+export async function parentContext(request: NextRequest) {
+  const { db, user } = await authenticatedContext(request);
+  const result = await db.from('parents').select('id,family_id').eq('auth_user_id', user.id).maybeSingle();
   if (result.error) throw new ApiError(503, 'Parent lookup unavailable');
   if (!result.data?.family_id) throw new ApiError(403, 'Parent is not assigned to a family');
-  return { db, familyId: result.data.family_id as string };
+  return { db, familyId: result.data.family_id as string, parentId: result.data.id as string, userId: user.id };
 }
 export const reply = (body: unknown, status = 200) => NextResponse.json(body, { status, headers: { 'Cache-Control': 'no-store' } });

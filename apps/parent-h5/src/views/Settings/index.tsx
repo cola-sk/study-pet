@@ -8,6 +8,7 @@ import { useAppStore } from '../../stores/useAppStore';
 import { PWAInstallState } from '../../hooks/usePWAInstall';
 import { IconDevice, IconPlus, IconCoin } from '../../components/Icons';
 import { UserProvidedVisual } from '../../components/UserProvidedVisual';
+import { AccountPairingPanel } from '../../components/AccountPairingPanel';
 
 interface Props {
   installState: PWAInstallState;
@@ -83,7 +84,9 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
 
   return (
     <div className="px-3 py-2.5 space-y-3 pb-20 text-[#1F2937]">
-      {/* 1. 桌面伙伴硬件设备管理 */}
+      <AccountPairingPanel />
+      <p className="text-xs text-gray-500">以下旧版家庭数据为本机演示，暂不与上方真实账号同步。</p>
+      {/* 1. 桌面伙伴硬件设备管理（本地演示） */}
       <section className="space-y-2">
         <div className="flex items-center justify-between px-0.5">
           <h2 className="text-h2 text-[#1F2937]">桌面设备 ({devices.length})</h2>
