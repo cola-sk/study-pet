@@ -8,11 +8,13 @@ root = Path(__file__).resolve().parents[1]
 output = root / 'preview' / 'frames'
 output.mkdir(parents=True, exist_ok=True)
 width, height = 140, 132
-names = [f'{action}_{n:02}' for action in ('idle', 'eat', 'happy', 'sleep') for n in range(1, 5)]
+names = [f'{action}_{n:02}' for action in ('idle', 'eat', 'happy', 'sleep', 'hungry', 'thirsty', 'drink', 'sleepy', 'lonely', 'pet') for n in range(1, 5)]
+new_actions = {'hungry', 'thirsty', 'drink', 'sleepy', 'lonely', 'pet'}
 with (root / 'main' / 'husky_frames.c').open('w') as c:
     c.write('#include "lvgl.h"\n#include "husky_frames.h"\n')
     for name in names:
-        image = Image.open(source / f'{name}.png').convert('RGBA')
+        frame_dir = root / 'tools' / 'source' if name.rsplit('_', 1)[0] in new_actions else source
+        image = Image.open(frame_dir / f'{name}.png').convert('RGBA')
         # Ignore faint background artifacts when calculating the crop.
         mask = image.getchannel('A').point(lambda a: 255 if a >= 80 else 0)
         box = mask.getbbox()

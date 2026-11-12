@@ -34,3 +34,9 @@ idf.py -p /dev/cu.usbmodem1101 flash monitor
 ## 图片素材
 
 用户提供的透明 PNG 经 `tools/prepare_frames.py` 裁剪、缩放并合成背景，输出到 `preview/frames`；同一脚本生成 LVGL 所需的 RGB565 数据 `main/husky_frames.c`。重新生成需安装 Pillow，并传入原始帧目录。由于预览和固件分别实现，修改交互时需同步检查。
+
+## 需求状态演示
+
+设备和网页每约 30 秒轮换“有点饿、有点渴、想休息、想陪伴”提示，供验证动作，不是真实生理数值。Feed 扣 10 枚、Water 扣 5 枚，播放吃饭或喝水后播放开心；Sleep/Wake 切换睡觉，Pet 播放陪伴动作。动画期间忽略其他操作。金币和状态仅在内存中，重启重置，未接后端。需求不会引发惩罚或自动扣币。
+
+新增素材由用户提供的 1536×1024 透明图通过 `tools/extract_sheet.py` 分帧；`prepare_frames.py` 合并旧素材与拆分结果后生成预览和固件资源。画面第一组包含水碗，现阶段借作饿了的演示，后续可替换为食盆素材。

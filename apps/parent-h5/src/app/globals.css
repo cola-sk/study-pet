@@ -10,6 +10,7 @@
   --app-ink: #242620;
   --app-muted: #77786F;
   --app-line: #E9E7E0;
+  --app-forest: #3E493F;
   --app-accent: #B96043;
   --app-accent-soft: #F7EBE5;
   --app-gold: #A87525;
@@ -83,7 +84,7 @@ html, body {
   flex: 0 0 auto;
   height: 29px;
   border-radius: 8px !important;
-  background: #3E493F !important;
+  background: var(--app-forest) !important;
   color: #FFFDF8 !important;
   font-size: 11px !important;
 }
@@ -103,7 +104,7 @@ html, body {
   height: 32px;
   border-radius: 11px;
   color: #FFF9F2;
-  background: #3E493F;
+  background: var(--app-forest);
   box-shadow: 0 3px 8px rgba(47, 57, 47, 0.16);
 }
 
@@ -194,7 +195,7 @@ html, body {
 }
 
 .approval-filter-chip.is-selected {
-  background: #3E493F;
+  background: var(--app-forest);
   color: #FFFDF8;
 }
 
@@ -710,9 +711,9 @@ h1, h2, h3, h4, .font-headline {
   white-space: nowrap;
 }
 .kid-filter-chip-selected {
-  background-color: #3E493F;
+  background-color: var(--app-forest);
   color: #FFFFFF;
-  border-color: #3E493F;
+  border-color: var(--app-forest);
 }
 
 /* 轻量状态小标签 */

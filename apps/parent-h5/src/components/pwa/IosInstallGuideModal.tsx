@@ -3,6 +3,7 @@
 import React from 'react';
 import { Popup, Button } from 'antd-mobile';
 import { PWAInstallState } from '../../hooks/usePWAInstall';
+import { IconPaw } from '../Icons';
 
 interface Props {
   installState: PWAInstallState;
@@ -29,7 +30,7 @@ export const IosInstallGuideModal: React.FC<Props> = ({ installState }) => {
       <div className="flex flex-col items-center text-center">
         {/* App Icon preview */}
         <div className="w-14 h-14 rounded-2xl bg-[#3E493F] shadow-sm flex items-center justify-center text-2xl mb-3 text-white">
-          🐾
+          <IconPaw className="w-8 h-8" />
         </div>
         
         <h3 className="text-base font-bold text-gray-800 mb-1">

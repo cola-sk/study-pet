@@ -8,7 +8,7 @@ if sheet.size != (1536, 1024):
 out = Path(__file__).resolve().parent / 'source'
 out.mkdir(exist_ok=True)
 xs = [245, 510, 790, 1070, 1355]
-ys = [0, 160, 320, 470, 610, 745, 875, 1024]
+ys = [0, 161, 321, 467, 601, 746, 876, 1024]
 for row, action in enumerate(('hungry', 'thirsty', 'drink', 'sleepy', 'lonely', 'pet', 'joy')):
     for col in range(4):
         sheet.crop((xs[col], ys[row], xs[col + 1], ys[row + 1])).save(out / f'{action}_{col+1:02}.png')

@@ -6,7 +6,10 @@ export const metadata: Metadata = {
   description: '好习惯与学习任务桌面养成宠物管理系统 - 家长端',
   manifest: '/manifest.webmanifest',
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/icons/paw-app-icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: 'any' },
+    ],
     apple: '/icons/apple-touch-icon.png',
   },
   appleWebApp: {
@@ -22,7 +25,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
-  themeColor: '#FFFFFF',
+  themeColor: '#3E493F',
 };
 
 export default function RootLayout({
@@ -33,6 +36,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <head>
+        <link rel="icon" type="image/svg+xml" href="/icons/paw-app-icon.svg" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

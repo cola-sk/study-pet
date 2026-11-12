@@ -1,13 +1,17 @@
 // 学习宠物助手 - 自定义轻量级 Service Worker
-const CACHE_NAME = 'study-pet-pwa-v3';
+const CACHE_NAME = 'study-pet-pwa-v4';
 
 const PRECACHE_URLS = [
   '/',
   '/manifest.webmanifest',
   '/favicon.ico',
+  '/icons/paw-app-icon.svg',
   '/icons/apple-touch-icon.png',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
+  '/icons/icon-maskable-512x512.png',
+  '/icons/shortcut-task.png',
+  '/icons/shortcut-add.png',
   '/splash/launch-screen.png',
 ];
 

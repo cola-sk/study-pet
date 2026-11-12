@@ -1,137 +1,127 @@
-# KidLearn Design System
+# KidLearn Parent H5 Design System
 
-## Overview
+## Direction
 
-KidLearn is a bright, chunky, and friendly design system built for children's educational apps targeting ages 5-12. Every element uses rounded, approachable shapes with generous sizing to ensure comfort and accessibility for young learners. The system prioritizes large touch targets, clear visual hierarchy, reward-oriented feedback, and COPPA-compliant patterns. Colors are vivid but carefully balanced to avoid sensory overload.
+The parent app is a calm family management space with a warm, polished feel. Keep the interface clear and restrained; express its child-friendly character through the pet, paw-print mark, reward details, and occasional celebratory motion. Avoid turning every control into a bright, playful element.
 
----
+The visual foundation is warm ivory, soft white, forest green, and muted terracotta. Surfaces use fine warm borders and low, diffuse shadows. Layouts are mobile-first and information-dense enough for daily family tasks while keeping clear section hierarchy.
 
-## Colors
+## Brand mark and iconography
 
-- **Color Primary** (#EF4444): Primary actions, highlights
-- **Color Secondary** (#3B82F6): Secondary actions, links
-- **Color Tertiary** (#FACC15): Rewards, stars, badges
-- **Surface Base** (#FFFFFF): Page background
-- **Surface Raised** (#F9FAFB): Card background
-- **Surface Highlight** (#FEF3C7): Active lesson highlight
-- **Color Success** (#22C55E): Correct answer, completion
-- **Color Warning** (#F59E0B): Try again prompts
-- **Color Error** (#EF4444): Incorrect answer feedback
-- **Color Info** (#3B82F6): Hints, tips
+- Use a simple paw print as the KidLearn brand mark.
+- Place the warm-white paw on a forest-green square background for the app tile and compact brand mark.
+- Keep the paw silhouette centered and inside the safe area so it remains legible when an operating system masks the icon into a circle or squircle.
+- Use the same artwork for the browser favicon, Apple touch icon, PWA icons, home-screen shortcuts, and install guide.
+- Keep the master artwork in `apps/parent-h5/public/icons/paw-app-icon.svg`; regenerate its PNG and ICO derivatives when the mark changes.
+- Use line icons for navigation and actions. Pet emoji or illustrations belong in child and pet identity areas, not as general-purpose controls.
+
+## Color palette
+
+| Token | Value | Use |
+| --- | --- | --- |
+| Canvas | `#F5F4F0` | Main page background |
+| Surface | `#FFFFFF` | Cards, lists, inputs |
+| Ink | `#242620` | Primary text |
+| Muted ink | `#77786F` | Supporting text |
+| Line | `#E9E7E0` | Dividers and subtle borders |
+| Forest | `#3E493F` | Brand tile, selected filters, install action |
+| Terracotta | `#B96043` | Primary action, selected navigation, pending emphasis |
+| Terracotta soft | `#F7EBE5` | Pending and selected states |
+| Reward gold | `#A87525` | Coins and reward values |
+| Reward gold soft | `#FBF3E2` | Reward and retry backgrounds |
+| Success sage | `#4C7866` | Online and completed states |
+| Success soft | `#E9F2EC` | Success and online backgrounds |
+
+Use terracotta for the main action and one or two high-priority cues. Reserve gold for rewards and sage for positive states. Use neutral gray-green for progress, inactive, and secondary information. Avoid adding another saturated accent without a clear meaning.
+
+These values are exposed as `--app-*` custom properties in `apps/parent-h5/src/app/globals.css`.
 
 ## Typography
 
-- **Headline Font**: Fredoka
-- **Body Font**: Nunito
-- **Mono Font**: Roboto Mono
+- Chinese UI: system sans-serif such as PingFang SC, Hiragino Sans GB, or Microsoft YaHei.
+- Latin UI: Nunito for friendly, readable body and interface text. Use Fredoka sparingly for short expressive labels. Use Roboto Mono only when aligned numeric values benefit from it.
+- Keep the hierarchy compact and consistent: page title 17px, section title 16px, card title 14–15px, body 12–13px, secondary metadata 10–11px.
+- Use 10–11px text only for tertiary details such as timestamps, device labels, and counts. Primary task names and actions should remain at least 12px.
+- Prefer medium and bold weights for hierarchy. Do not use decorative type for long text.
 
-- **text-hero**: Fredoka 48px bold, 1.2 line height
-- **text-h1**: Fredoka 36px bold, 1.25 line height
-- **text-h2**: Fredoka 28px semibold, 1.3 line height
-- **text-h3**: Fredoka 22px semibold, 1.35 line height
-- **text-body-lg**: Nunito 18px regular, 1.6 line height
-- **text-body**: Nunito 16px regular, 1.6 line height
-- **text-caption**: Nunito 14px semibold, 1.5 line height
-- **text-mono**: Roboto Mono 14px regular, 1.5 line height
+## Spacing and layout
 
----
+Use a 4px base unit, with 8px as the normal component gap.
 
-## Spacing
+- Mobile page gutters: 16px.
+- Card padding: 12px, with 14–16px for featured or summary cards.
+- Related rows and controls: 8–10px apart.
+- Section spacing: 16px; use 20px only between distinct content groups.
+- Compact task rows: about 52px minimum height, with enough vertical space for a second metadata line.
+- Keep the bottom navigation fixed and account for the device safe area and navigation height in page padding.
+- Allow long filters and labels to scroll or truncate gracefully on narrow screens.
 
-Base unit: **8px**. Use generous padding throughout to create breathing room for young users.
-- **space-1**: 8px — Inline icon gaps
-- **space-2**: 16px — Between label and input
-- **space-3**: 24px — Card inner padding
-- **space-4**: 32px — Between components
-- **space-5**: 40px — Section padding
-- **space-6**: 48px — Large section gaps
-- **space-8**: 64px — Page-level vertical rhythm
+## Shape and elevation
 
-## Border Radius
-
-- **radius-sm** (12px): Small elements, chips
-- **radius-md** (20px): Buttons, cards, inputs
-- **radius-lg** (28px): Large cards, modals
-- **radius-pill** (9999px): Pills, tags, small controls
-- **radius-circle** (50%): Avatars, icons
-
-## Elevation (Material-Style Playful Depth)
-
-- **shadow-sm**: 2px offset, 4px blur, #000000 at 8%. Resting cards.
-- **shadow-md**: 4px offset, 12px blur, #000000 at 12%. Raised cards, menus.
-- **shadow-lg**: 8px offset, 24px blur, #000000 at 16%. Modals, popovers.
-- **shadow-playful**: 6px offset, 0px blur, #D1D5DB. Chunky offset shadow.
-- **shadow-focus**: 4px ring #3B82F6 at 35%. Focus rings.
+- Cards and lists: 14–16px corners.
+- Main action buttons: 9–10px corners; compact controls may use 8px.
+- Filter and count chips: fully rounded pills.
+- Pet avatars: 14px corners; app mark: 11px corners.
+- Use fine 1px borders and restrained shadows. Cards should lift gently from the canvas without hard outlines, chunky offsets, or large dark shadows.
+- Keep fixed headers and navigation lightly tinted and translucent, with a subtle divider or shadow.
 
 ## Components
 
+### Navigation and header
+
+- Use a forest-green app mark with a warm-white paw print.
+- Keep the header compact, with the app name and a short family-context label. Show family and device counts in a quiet outlined chip.
+- Use a warm white bottom bar. The active item uses terracotta and a soft tinted icon background; inactive items stay muted.
+
 ### Buttons
-All buttons use `border-radius: 20px` minimum, with a chunky pressed state that shifts down by 3px.
-#### Variants
-- **Primary**: #EF4444 fill, #FFFFFF text, no border.
-- **Secondary**: #3B82F6 fill, #FFFFFF text, no border.
-- **Ghost**: transparent fill, #EF4444 text, 2px #EF4444 border.
-- **Destructive**: #DC2626 fill, #FFFFFF text, no border.
-#### Sizes
-Sizes: Small (40px, 16px, 14px, 80px), Medium (48px, 24px, 16px, 120px), Large (56px, 32px, 18px, 160px).
-#### Disabled State
-0.45 opacity, disabled cursor.
-- No hover or pressed transform
-- Background desaturated
 
-### Cards
-surface-raised (#F9FAFB) fill, 2px border-default border, 20px corners, 24px padding, shadow-playful shadow, Hover: Translate Y -4px, shadow-md.
+- **Primary:** terracotta fill with white text; use for the main decision or submission action.
+- **Secondary:** white fill, warm neutral border, muted ink text.
+- **Success:** sage fill for a clear positive confirmation when a primary action is not more appropriate.
+- **Destructive:** quiet red text and border; keep it visually secondary until confirmation is needed.
+- Use compact 32–34px controls in dense mobile rows and at least 40px for standalone prominent actions where space allows. Current approval actions and filters use the compact size; keep adequate spacing between adjacent targets.
+- Use a subtle 1px pressed movement and restrained hover changes. Respect `prefers-reduced-motion`.
 
-### Inputs
-- **Default**: #9CA3AF border color, #FFFFFF fill, no shadow.
-- **Hover**: #6B7280 border color, #FFFFFF fill, no shadow.
-- **Focus**: #3B82F6 border color, #FFFFFF fill, shadow-focus shadow.
-- **Error**: #EF4444 border color, #FEF2F2 fill, 4px ring #EF4444 at 20% shadow.
-- **Disabled**: #E5E7EB border color, #F3F4F6 fill, no shadow.
-20px border radius. 48px minimum tall, 16px (Nunito) font size, 16px/horizontal padding.
+### Cards and lists
 
-### Chips
-#### Filter Chips
-- **Default**: #F3F4F6 fill, #1F2937 text, 1px #E5E7EB border.
-- **Selected**: #3B82F6 fill, #FFFFFF text, 1px #3B82F6 border.
-- **Hover**: #E5E7EB fill, #1F2937 text, 1px #9CA3AF border.
-#### Status Chips
-- **Complete**: #DCFCE7 fill, #166534 text, Checkmark indicator.
-- **Locked**: #F3F4F6 fill, #9CA3AF text, Lock indicator.
-- **Active**: #DBEAFE fill, #1E40AF text, Star indicator.
-- **New**: #FEF3C7 fill, #92400E text, Sparkle indicator.
-9999px (pill) border radius. 14px Nunito 600. 36px tall.
+- Summary cards use white surfaces, warm borders, 14–16px corners, and very soft shadows.
+- Pending approval cards use an ivory surface and a subtle warm border. Make the task title and reward easy to scan; keep child and device labels quiet.
+- Keep task lists white with warm dividers and compact rows. Use status chips to communicate state without coloring the entire row.
 
-### Lists
-56px minimum row height, 16px horizontal padding, 1px #E5E7EB divider, #F3F4F6 hover background, #DBEAFE active background, 20px (container) corners, 24px, placed left with 12px gap icon size.
+### Filters and status
 
-### Checkboxes
-- **Unchecked**: #FFFFFF fill, 2px #9CA3AF border.
-- **Checked**: #3B82F6 fill, 2px #3B82F6 border, #FFFFFF checkmark.
-- **Disabled**: #F3F4F6 fill, 2px #E5E7EB border, #9CA3AF checkmark.
-28px (larger for kids), 8px border radius. shadow-focus focus ring.
-- Animated bounce on check
+- Default filter: warm gray fill with muted text.
+- Selected filter: forest-green fill with warm-white text.
+- Count badges: muted gold with dark text.
+- Completed or online: soft sage.
+- Pending or selected: soft terracotta.
+- In progress or offline: neutral gray-green.
+- Rewards and retry reminders: soft gold.
 
-### Radio Buttons
-- **Unselected**: #FFFFFF fill, 2px #9CA3AF border.
-- **Selected**: #FFFFFF fill, 2px #EF4444 border, #EF4444 dot.
-- **Disabled**: #F3F4F6 fill, 2px #E5E7EB border, #9CA3AF dot.
-28px. 14px dot diameter, shadow-focus focus ring.
+### Install surfaces
 
-### Tooltips
-#1F2937 fill, #FFFFFF text, 14px Nunito font size, 10px 16px padding, 12px corners, 220px max width, 8px triangle arrow, 300ms show, 100ms hide delay, shadow-md shadow.
+- The install banner uses an oatmeal background, subdued icon tile, concise benefit copy, and a forest-green action.
+- The iOS install guide and home-screen assets reuse the same paw-print identity as the browser and PWA icons.
 
----
+## Motion and feedback
 
-## Do's and Don'ts
+- Use short transitions for color, shadow, and pressed states; avoid bounce on routine controls.
+- Use the existing reward confetti only for successful reward moments, with muted terracotta, gold, sage, and cream tones.
+- Keep success, retry, and offline feedback clear and encouraging.
 
-1. **Do** ensure all interactive elements meet a minimum 48px touch target.
-2. **Do** use simple, age-appropriate language (aim for a 2nd-grade reading level).
-3. **Do** incorporate reward animations (stars, confetti, bounce) for correct answers and milestones.
-4. **Don't** use more than three bright colors in a single view -- keep it vivid but not overwhelming.
-5. **Do** maintain COPPA compliance: no personal data collection, no external links without parental gate.
-6. **Don't** rely on text alone for navigation -- always pair labels with icons or illustrations.
-7. **Do** provide generous padding and spacing between interactive elements to prevent accidental taps.
-8. **Don't** use time pressure or countdown mechanics that could cause anxiety.
-9. **Do** design forgiving error states -- "Try again!" not "Wrong answer."
-10. **Don't** use thin fonts, low-contrast text, or small UI elements anywhere in the interface.
+## Accessibility and content
+
+- Maintain readable contrast for primary and supporting text.
+- Provide visible keyboard focus and semantic labels for icon-only controls.
+- Keep tap targets separated; enlarge the hit area when compact visual controls are used.
+- Use short, supportive Chinese copy. Explain status in words as well as color.
+- Keep family information and child identity within the parent-controlled experience.
+
+## Do and avoid
+
+- Do use warm neutrals to establish a calm surface and reserve strong color for actions and meaningful state.
+- Do keep pets and rewards as the source of playfulness.
+- Do keep card, chip, button, and status styles consistent across tabs.
+- Avoid mixing several bright status colors in one viewport.
+- Avoid tiny text for task names, actions, or essential instructions.
+- Avoid thick borders, heavy shadows, overly large corner radii, and decorative color blocks that compete with task content.
