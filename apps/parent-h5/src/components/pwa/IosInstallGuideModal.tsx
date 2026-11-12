@@ -29,8 +29,8 @@ export const IosInstallGuideModal: React.FC<Props> = ({ installState }) => {
     >
       <div className="flex flex-col items-center text-center">
         {/* App Icon preview */}
-        <div className="w-14 h-14 rounded-2xl bg-[#3E493F] shadow-sm flex items-center justify-center text-2xl mb-3 text-white">
-          <IconPaw className="w-8 h-8" />
+        <div className="w-14 h-14 rounded-2xl bg-[#EF4444] shadow-sm flex items-center justify-center text-2xl mb-3 text-white">
+          <IconPaw className="w-9 h-9" />
         </div>
         
         <h3 className="text-base font-bold text-gray-800 mb-1">

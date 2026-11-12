@@ -11,6 +11,7 @@
   --app-muted: #77786F;
   --app-line: #E9E7E0;
   --app-forest: #3E493F;
+  --app-brand-red: #EF4444;
   --app-accent: #B96043;
   --app-accent-soft: #F7EBE5;
   --app-gold: #A87525;
@@ -102,10 +103,10 @@ html, body {
 .parent-app-mark {
   width: 32px;
   height: 32px;
-  border-radius: 11px;
-  color: #FFF9F2;
-  background: var(--app-forest);
-  box-shadow: 0 3px 8px rgba(47, 57, 47, 0.16);
+  border-radius: 50%;
+  color: #FFFFFF;
+  background: var(--app-brand-red);
+  box-shadow: 0 3px 8px rgba(239, 68, 68, 0.18);
 }
 
 .parent-app-title {

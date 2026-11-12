@@ -14,26 +14,34 @@ static const pet_action_t needs[] = { HUNGRY, THIRSTY, SLEEPY, LONELY };
 static pet_action_t action = IDLE;
 static unsigned coins = 30, frame = 0, cycles = 0, need_ticks = 0;
 static int last_need = -1;
-static lv_obj_t *balance, *pet_image, *menu, *menu_balance, *notice, *sleep_label;
+static lv_obj_t *balance, *pet_image, *buttons[4], *notice, *sleep_label;
 
 static void set_action(pet_action_t next)
 {
-    action = next; frame = 0; cycles = 0;
+    action = next; frame = next == SLEEPY ? 1 : 0; cycles = 0;
     lv_img_set_src(pet_image, frames[action][frame]);
-    lv_label_set_text(sleep_label, action == SLEEP ? "Wake up     FREE" : "Sleep            FREE");
+    lv_label_set_text(sleep_label, action == SLEEP ? "Wake\nFREE" : "Sleep\nFREE");
 }
-static bool menu_open(void) { return !lv_obj_has_flag(menu, LV_OBJ_FLAG_HIDDEN); }
+static bool is_need(pet_action_t a) { return a == HUNGRY || a == THIRSTY || a == SLEEPY || a == LONELY; }
+static bool menu_open(void) { return !lv_obj_has_flag(buttons[0], LV_OBJ_FLAG_HIDDEN); }
+static void set_menu(bool open) {
+    for (unsigned i = 0; i < 4; i++) {
+        if (open) lv_obj_clear_flag(buttons[i], LV_OBJ_FLAG_HIDDEN);
+        else lv_obj_add_flag(buttons[i], LV_OBJ_FLAG_HIDDEN);
+    }
+    lv_obj_add_flag(notice, LV_OBJ_FLAG_HIDDEN);
+}
 static void animate_pet(lv_timer_t *timer)
 {
     (void)timer;
     if (menu_open()) return;
-    frame = (frame + 1) % 4;
-    if (frame == 0) {
+    if (!is_need(action)) frame = (frame + 1) % 4;
+    if (!is_need(action) && frame == 0) {
         cycles++;
         if ((action == EAT || action == DRINK || action == PET) && cycles >= 2) { set_action(HAPPY); return; }
         if (action == HAPPY && cycles >= 2) { set_action(IDLE); need_ticks = 0; return; }
     }
-    if (action == IDLE || action == HUNGRY || action == THIRSTY || action == SLEEPY || action == LONELY) {
+    if (action == IDLE || is_need(action)) {
         if (++need_ticks >= 100) {
             unsigned pick = esp_random() % 4;
             if ((int)pick == last_need) pick = (pick + 1 + esp_random() % 3) % 4;
@@ -44,24 +52,20 @@ static void animate_pet(lv_timer_t *timer)
     lv_img_set_src(pet_image, frames[action][frame]);
 }
 static bool busy(void) { return action == EAT || action == DRINK || action == PET || action == HAPPY; }
-static void close_menu(lv_event_t *event) { (void)event; lv_obj_add_flag(menu, LV_OBJ_FLAG_HIDDEN); }
 static void show_menu(lv_event_t *event)
 {
     (void)event;
     if (busy()) return;
-    lv_label_set_text_fmt(menu_balance, "Your credits: %u", coins);
-    lv_label_set_text(notice, "Choose an action");
-    lv_obj_clear_flag(menu, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_move_foreground(menu);
+    set_menu(!menu_open());
 }
 static void spend(lv_event_t *event)
 {
     bool water = (bool)(uintptr_t)lv_event_get_user_data(event);
     unsigned cost = water ? 5 : 10;
-    if (coins < cost) { lv_label_set_text(notice, "Not enough credits"); return; }
+    if (coins < cost) { lv_obj_clear_flag(notice, LV_OBJ_FLAG_HIDDEN); return; }
     coins -= cost;
     lv_label_set_text_fmt(balance, "%u credits", coins);
-    lv_obj_add_flag(menu, LV_OBJ_FLAG_HIDDEN);
+    set_menu(false);
     set_action(water ? DRINK : EAT);
     ESP_LOGI("PET", "%s, credits=%u", water ? "Drink" : "Feed", coins);
 }
@@ -69,22 +73,28 @@ static void toggle_sleep(lv_event_t *event)
 {
     (void)event;
     bool sleeping = action != SLEEP;
-    lv_obj_add_flag(menu, LV_OBJ_FLAG_HIDDEN);
+    set_menu(false);
     set_action(sleeping ? SLEEP : IDLE); need_ticks = 0;
 }
 static void play_pet(lv_event_t *event)
 {
     (void)event;
-    lv_obj_add_flag(menu, LV_OBJ_FLAG_HIDDEN);
+    set_menu(false);
     set_action(PET);
 }
-static lv_obj_t *button(lv_obj_t *parent, int y, const char *text, uint32_t color, lv_event_cb_t cb, void *data)
+static lv_obj_t *button(lv_obj_t *parent, int x, int y, const char *text, uint32_t color, lv_event_cb_t cb, void *data, lv_obj_t **out_button)
 {
     lv_obj_t *btn = lv_btn_create(parent);
-    lv_obj_set_size(btn, 172, 30); lv_obj_set_pos(btn, 5, y);
+    lv_obj_set_size(btn, 64, 64); lv_obj_set_pos(btn, x, y);
+    lv_obj_set_style_radius(btn, LV_RADIUS_CIRCLE, 0);
+    lv_obj_set_style_pad_all(btn, 0, 0);
     lv_obj_set_style_bg_color(btn, lv_color_hex(color), 0);
     lv_obj_add_event_cb(btn, cb, LV_EVENT_CLICKED, data);
-    lv_obj_t *label = lv_label_create(btn); lv_label_set_text(label, text); lv_obj_center(label);
+    lv_obj_t *label = lv_label_create(btn);
+    lv_label_set_text(label, text);
+    lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_center(label);
+    *out_button = btn;
     return label;
 }
 void app_main(void)
@@ -98,19 +108,13 @@ void app_main(void)
     lv_obj_add_flag(pet_image, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(pet_image, show_menu, LV_EVENT_CLICKED, NULL);
 
-    menu = lv_obj_create(screen); lv_obj_set_size(menu, 210, 244); lv_obj_center(menu);
-    lv_obj_clear_flag(menu, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_style_bg_color(menu, lv_color_hex(0xfffdf7), 0);
-    lv_obj_set_style_radius(menu, 14, 0); lv_obj_set_style_border_width(menu, 1, 0);
-    lv_obj_set_style_pad_all(menu, 12, 0);
-    menu_balance = lv_label_create(menu); lv_obj_set_pos(menu_balance, 5, 0);
-    notice = lv_label_create(menu); lv_obj_set_pos(notice, 5, 20);
-    button(menu, 42, "Feed             10", 0x728e62, spend, (void *)(uintptr_t)0);
-    button(menu, 76, "Water              5", 0x658faa, spend, (void *)(uintptr_t)1);
-    sleep_label = button(menu, 110, "Sleep            FREE", 0x8797ac, toggle_sleep, NULL);
-    button(menu, 144, "Pet                FREE", 0xc58574, play_pet, NULL);
-    button(menu, 178, "Close", 0x89918c, close_menu, NULL);
-    lv_obj_add_flag(menu, LV_OBJ_FLAG_HIDDEN);
+    button(screen, 88, 39, "Feed\n10 cr", 0x728e62, spend, (void *)(uintptr_t)0, &buttons[0]);
+    button(screen, 5, 136, "Water\n5 cr", 0x658faa, spend, (void *)(uintptr_t)1, &buttons[1]);
+    sleep_label = button(screen, 171, 136, "Sleep\nFREE", 0x8797ac, toggle_sleep, NULL, &buttons[2]);
+    button(screen, 88, 237, "Pet\nFREE", 0xc58574, play_pet, NULL, &buttons[3]);
+    notice = lv_label_create(screen); lv_label_set_text(notice, "Not enough credits");
+    lv_obj_align(notice, LV_ALIGN_BOTTOM_MID, 0, -1);
+    set_menu(false);
     lv_timer_create(animate_pet, 300, NULL);
     while (1) { vTaskDelay(pdMS_TO_TICKS(10)); lv_timer_handler(); }
 }

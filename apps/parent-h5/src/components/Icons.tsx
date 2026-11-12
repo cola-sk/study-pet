@@ -68,11 +68,10 @@ export const IconClipboard: React.FC<{ className?: string }> = ({ className = 'w
 
 export const IconPaw: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <ellipse cx="5.8" cy="7.4" rx="2.1" ry="3" transform="rotate(-28 5.8 7.4)" />
-    <ellipse cx="10.2" cy="4.9" rx="2" ry="2.9" transform="rotate(-10 10.2 4.9)" />
-    <ellipse cx="13.8" cy="4.9" rx="2" ry="2.9" transform="rotate(10 13.8 4.9)" />
-    <ellipse cx="18.2" cy="7.4" rx="2.1" ry="3" transform="rotate(28 18.2 7.4)" />
-    <path d="M9.4 10.5c-2 .5-3.9 2.9-3.9 5.3 0 2.5 1.8 3.9 3.9 3.1 1-.4 1.8-.8 2.6-.8s1.6.4 2.6.8c2.1.8 3.9-.6 3.9-3.1 0-2.4-1.9-4.8-3.9-5.3a11.5 11.5 0 0 0-5.2 0Z" />
+    <circle cx="11" cy="4" r="2.2" />
+    <circle cx="18" cy="8" r="2.2" />
+    <circle cx="20" cy="16" r="2.2" />
+    <path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z" />
   </svg>
 );
 

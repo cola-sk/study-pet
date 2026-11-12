@@ -9,8 +9,9 @@ The visual foundation is warm ivory, soft white, forest green, and muted terraco
 ## Brand mark and iconography
 
 - Use a simple paw print as the KidLearn brand mark.
-- Place the warm-white paw on a forest-green square background for the app tile and compact brand mark.
+- Keep the existing white paw silhouette on a red background for the app tile; use the red circular mark in the website header.
 - Keep the paw silhouette centered and inside the safe area so it remains legible when an operating system masks the icon into a circle or squircle.
+- In the small website roundel, let the paw occupy roughly half to three-fifths of the circle; on the home-screen tile, let it use about 70% of the safe area.
 - Use the same artwork for the browser favicon, Apple touch icon, PWA icons, home-screen shortcuts, and install guide.
 - Keep the master artwork in `apps/parent-h5/public/icons/paw-app-icon.svg`; regenerate its PNG and ICO derivatives when the mark changes.
 - Use line icons for navigation and actions. Pet emoji or illustrations belong in child and pet identity areas, not as general-purpose controls.
@@ -24,7 +25,8 @@ The visual foundation is warm ivory, soft white, forest green, and muted terraco
 | Ink | `#242620` | Primary text |
 | Muted ink | `#77786F` | Supporting text |
 | Line | `#E9E7E0` | Dividers and subtle borders |
-| Forest | `#3E493F` | Brand tile, selected filters, install action |
+| Forest | `#3E493F` | Selected filters and install action |
+| Brand red (`--app-brand-red`) | `#EF4444` | Existing paw-print identity in the header and app icon |
 | Terracotta | `#B96043` | Primary action, selected navigation, pending emphasis |
 | Terracotta soft | `#F7EBE5` | Pending and selected states |
 | Reward gold | `#A87525` | Coins and reward values |

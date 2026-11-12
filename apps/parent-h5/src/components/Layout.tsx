@@ -58,7 +58,7 @@ export const Layout: React.FC = () => {
         <div className="parent-app-header-inner w-full max-w-xl mx-auto px-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="parent-app-mark flex items-center justify-center shrink-0">
-              <IconPaw className="w-3.5 h-3.5" />
+              <IconPaw className="w-5 h-5" />
             </div>
             <div>
               <h1 className="parent-app-title leading-none">学习宠物助手</h1>
