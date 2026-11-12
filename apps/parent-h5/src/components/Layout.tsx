@@ -47,26 +47,26 @@ export const Layout: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F6F7F9] text-[#1F2937] antialiased">
+    <div className="parent-app-shell flex flex-col min-h-screen antialiased">
       <SafeArea position="top" />
       <OfflineNoticeBar />
       <InstallBanner installState={installState} />
       <IosInstallGuideModal installState={installState} />
       <UpdatePrompt />
 
-      {/* 极简一行顶栏 */}
-      <header className="sticky top-0 z-40 bg-[#FFFFFF]/95 backdrop-blur-md border-b border-[#E5E7EB] select-none">
-        <div className="w-full max-w-xl mx-auto px-3 py-2 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-[#EF4444] text-white flex items-center justify-center shrink-0">
+      <header className="parent-app-header sticky top-0 z-40 select-none">
+        <div className="parent-app-header-inner w-full max-w-xl mx-auto px-4 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="parent-app-mark flex items-center justify-center shrink-0">
               <IconPaw className="w-3.5 h-3.5" />
             </div>
-            <h1 className="text-[15px] font-headline font-bold text-[#1F2937] leading-none">
-              学习宠物助手
-            </h1>
+            <div>
+              <h1 className="parent-app-title leading-none">学习宠物助手</h1>
+              <div className="parent-app-subtitle">家庭成长空间</div>
+            </div>
           </div>
 
-          <span className="kid-status-chip kid-status-active">
+          <span className="family-summary-chip">
             {children.length}个宝贝 · {devices.length}台设备
           </span>
         </div>
@@ -81,7 +81,7 @@ export const Layout: React.FC = () => {
       </main>
 
       {/* 简洁底部导航栏 */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#FFFFFF] border-t border-[#E5E7EB] select-none">
+      <nav className="parent-bottom-nav fixed bottom-0 left-0 right-0 z-50 select-none">
         <div className="max-w-xl mx-auto px-2 py-1 grid grid-cols-4">
           {tabs.map(item => {
             const isActive = activeTab === item.key;
@@ -90,14 +90,14 @@ export const Layout: React.FC = () => {
                 key={item.key}
                 type="button"
                 onClick={() => setActiveTab(item.key)}
-                className={`relative h-[44px] flex flex-col items-center justify-center gap-0.5 text-[11px] font-semibold transition-colors ${
-                  isActive ? 'text-[#EF4444]' : 'text-[#6B7280] hover:text-[#1F2937]'
+                className={`parent-nav-item relative h-[50px] flex flex-col items-center justify-center gap-0.5 transition-colors ${
+                  isActive ? 'is-active' : 'hover:text-[#4C5148]'
                 }`}
               >
-                <div className="relative">
+                <div className="parent-nav-item-icon relative">
                   {item.icon}
                   {item.badge !== undefined && (
-                    <span className="absolute -top-1 -right-2.5 bg-[#EF4444] text-white text-[10px] font-bold min-w-[14px] h-[14px] px-1 rounded-full flex items-center justify-center">
+                    <span className="parent-nav-badge absolute -top-1 -right-2.5 text-white text-[10px] font-bold min-w-[14px] h-[14px] px-1 rounded-full flex items-center justify-center">
                       {item.badge}
                     </span>
                   )}

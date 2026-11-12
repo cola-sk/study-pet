@@ -196,10 +196,10 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
                   >
                     <span
                       className={`w-5 h-5 rounded-full flex items-center justify-center border-2 shrink-0 ${
-                        selected ? 'border-[#EF4444] bg-white' : 'border-[#9CA3AF] bg-white'
+                        selected ? 'border-[#B96043] bg-white' : 'border-[#9CA3AF] bg-white'
                       }`}
                     >
-                      {selected && <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444]" />}
+                      {selected && <span className="w-2.5 h-2.5 rounded-full bg-[#B96043]" />}
                     </span>
                     <span className="text-body font-semibold text-[#1F2937]">{opt.label}</span>
                   </button>

@@ -65,7 +65,7 @@ export const DevicePairModal: React.FC<Props> = ({ visible, onClose }) => {
     >
       <div className="flex flex-col text-[#1F2937] space-y-3.5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#EF4444] text-white rounded-full flex items-center justify-center shrink-0 shadow-[0_2px_0_#B91C1C]">
+          <div className="w-10 h-10 bg-[#B96043] text-white rounded-2xl flex items-center justify-center shrink-0 shadow-[0_3px_8px_rgba(185,96,67,0.18)]">
             <IconDevice className="w-5 h-5" />
           </div>
           <div>
@@ -93,10 +93,10 @@ export const DevicePairModal: React.FC<Props> = ({ visible, onClose }) => {
                 >
                   <span
                     className={`w-5 h-5 rounded-full flex items-center justify-center border-2 shrink-0 ${
-                      selected ? 'border-[#EF4444] bg-white' : 'border-[#9CA3AF] bg-white'
+                      selected ? 'border-[#B96043] bg-white' : 'border-[#9CA3AF] bg-white'
                     }`}
                   >
-                    {selected && <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444]" />}
+                    {selected && <span className="w-2.5 h-2.5 rounded-full bg-[#B96043]" />}
                   </span>
                   <span className="text-body font-bold text-[#1F2937] truncate">
                     {child.nickname}

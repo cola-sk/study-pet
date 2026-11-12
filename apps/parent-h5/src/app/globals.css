@@ -4,12 +4,23 @@
 
 :root {
   color-scheme: light;
-  accent-color: #EF4444;
-  --adm-color-primary: #EF4444;
-  --adm-color-success: #22C55E;
-  --adm-color-warning: #F59E0B;
-  --adm-color-danger: #EF4444;
-  --adm-border-color: #E5E7EB;
+  accent-color: #B96043;
+  --app-canvas: #F5F4F0;
+  --app-surface: #FFFFFF;
+  --app-ink: #242620;
+  --app-muted: #77786F;
+  --app-line: #E9E7E0;
+  --app-accent: #B96043;
+  --app-accent-soft: #F7EBE5;
+  --app-gold: #A87525;
+  --app-gold-soft: #FBF3E2;
+  --app-success: #4C7866;
+  --app-success-soft: #E9F2EC;
+  --adm-color-primary: #B96043;
+  --adm-color-success: #4C7866;
+  --adm-color-warning: #A87525;
+  --adm-color-danger: #B96043;
+  --adm-border-color: #E9E7E0;
   --adm-font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
 }
 
@@ -21,8 +32,8 @@
 html, body {
   margin: 0;
   padding: 0;
-  background-color: #F6F7F9;
-  color: #1F2937;
+  background-color: var(--app-canvas);
+  color: var(--app-ink);
   touch-action: manipulation;
   overscroll-behavior-y: none;
   -webkit-tap-highlight-color: transparent;
@@ -30,6 +41,462 @@ html, body {
   font-size: 13px;
   line-height: 1.4;
   -webkit-font-smoothing: antialiased;
+}
+
+.parent-app-shell {
+  background: var(--app-canvas);
+  color: var(--app-ink);
+}
+
+.install-banner {
+  min-height: 48px;
+  border-bottom: 1px solid #E8E4DA;
+  background: #EEE9DE;
+  color: #3D4138;
+}
+
+.install-banner-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: #F9F5EC;
+  color: #8D7651;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.install-banner-title {
+  color: #41443B;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.install-banner-note {
+  margin-top: 2px;
+  color: #828075;
+  font-size: 10px;
+}
+
+.install-banner-button {
+  flex: 0 0 auto;
+  height: 29px;
+  border-radius: 8px !important;
+  background: #3E493F !important;
+  color: #FFFDF8 !important;
+  font-size: 11px !important;
+}
+
+.parent-app-header {
+  background: rgba(250, 249, 246, 0.94);
+  border-bottom: 1px solid rgba(45, 46, 39, 0.07);
+  backdrop-filter: blur(18px);
+}
+
+.parent-app-header-inner {
+  min-height: 58px;
+}
+
+.parent-app-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 11px;
+  color: #FFF9F2;
+  background: #3E493F;
+  box-shadow: 0 3px 8px rgba(47, 57, 47, 0.16);
+}
+
+.parent-app-title {
+  color: var(--app-ink);
+  font-family: 'Nunito', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.parent-app-subtitle {
+  margin-top: 3px;
+  color: #929187;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.family-summary-chip {
+  border: 1px solid #E8E4DA;
+  border-radius: 999px;
+  background: #FFFDF9;
+  color: #716F65;
+  padding: 6px 9px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.parent-bottom-nav {
+  border-top: 1px solid rgba(45, 46, 39, 0.08);
+  background: rgba(250, 249, 246, 0.96);
+  box-shadow: 0 -8px 24px rgba(55, 51, 42, 0.035);
+  backdrop-filter: blur(18px);
+}
+
+.parent-nav-item {
+  color: #898980;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+
+.parent-nav-item-icon {
+  display: flex;
+  width: 30px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.parent-nav-item.is-active {
+  color: var(--app-accent);
+}
+
+.parent-nav-item.is-active .parent-nav-item-icon {
+  background: var(--app-accent-soft);
+}
+
+.parent-nav-badge {
+  background: var(--app-accent);
+}
+
+/* 家长端审批页：温暖中性的底色，珊瑚色只用于主要动作。 */
+.approval-dashboard {
+  color: var(--app-ink);
+}
+
+.approval-filter-chip {
+  height: 32px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: #ECEAE4;
+  color: #696A61;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.approval-filter-chip.is-selected {
+  background: #3E493F;
+  color: #FFFDF8;
+}
+
+.approval-filter-count {
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #E8BD62;
+  color: #3C3526;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.family-overview-card {
+  padding: 12px;
+  border: 1px solid #EAE7DF;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 5px 16px rgba(57, 53, 43, 0.035);
+}
+
+.family-pet-avatar {
+  width: 42px;
+  height: 42px;
+  border: 1px solid #EDE1C7;
+  border-radius: 14px;
+  background: #F8F1E3;
+  font-size: 20px;
+}
+
+.family-pet-name {
+  border-radius: 5px;
+  background: #F3F1EB;
+  color: #77776D;
+  padding: 3px 6px;
+  font-size: 10px;
+}
+
+.family-account-meta {
+  color: #77786F;
+  font-size: 11px;
+}
+
+.family-coin-balance {
+  color: var(--app-gold);
+  font-weight: 750;
+}
+
+.family-device-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 999px;
+  padding: 5px 8px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.family-device-status::before {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  content: '';
+}
+
+.family-device-status.is-online {
+  background: var(--app-success-soft);
+  color: var(--app-success);
+}
+
+.family-device-status.is-offline {
+  background: #F0EFEA;
+  color: #85857B;
+}
+
+.family-device-name {
+  margin-top: 4px;
+  color: #96958B;
+  font-size: 10px;
+}
+
+.family-progress-track {
+  height: 5px;
+  margin-top: 12px;
+  border-radius: 999px;
+  background: #EFEEE9;
+  overflow: hidden;
+}
+
+.family-progress-value {
+  height: 100%;
+  border-radius: inherit;
+  background: #6F927B;
+  transition: width 500ms ease;
+}
+
+.approval-section-title {
+  color: var(--app-ink);
+  font-family: 'Nunito', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.approval-count-pill {
+  border-radius: 999px;
+  background: var(--app-accent-soft);
+  color: #A85339;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.approval-card {
+  padding: 12px;
+  border: 1px solid #E8D9C8;
+  border-radius: 16px;
+  background: #FFFEFB;
+  box-shadow: 0 6px 18px rgba(87, 67, 44, 0.055);
+}
+
+.approval-card-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.approval-child-tag {
+  border-radius: 6px;
+  background: #F3F1EB;
+  color: #55574F;
+  padding: 4px 7px;
+  font-size: 10px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.approval-device-label {
+  min-width: 0;
+  color: #8B8A80;
+  font-size: 11px;
+}
+
+.approval-reward {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--app-gold);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.approval-time {
+  margin-top: 4px;
+  color: #A19F95;
+  font-size: 10px;
+}
+
+.approval-task-title {
+  margin-top: 6px;
+  color: #292B25;
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+.approval-task-description {
+  margin-top: 2px;
+  color: #77786F;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.approval-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.approval-action {
+  height: 32px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.approval-action-secondary {
+  border: 1px solid #E4E1D9;
+  background: #FFFFFF;
+  color: #77776E;
+}
+
+.approval-action-primary {
+  border: 1px solid #B96043;
+  background: #B96043;
+  color: #FFFFFF;
+  box-shadow: 0 3px 7px rgba(185, 96, 67, 0.16);
+}
+
+.approval-action {
+  cursor: pointer;
+  transition: transform 120ms ease, background-color 150ms ease, box-shadow 150ms ease;
+}
+
+.approval-action:active {
+  transform: translateY(1px);
+}
+
+.approval-action-secondary:hover {
+  background: #F8F7F3;
+}
+
+.approval-action-primary:hover {
+  background: #A95137;
+  box-shadow: 0 4px 10px rgba(185, 96, 67, 0.2);
+}
+
+.today-task-list {
+  border: 1px solid #E9E7E0;
+  border-radius: 15px;
+  background: #FFFFFF;
+  box-shadow: 0 4px 15px rgba(57, 53, 43, 0.03);
+  overflow: hidden;
+}
+
+.today-task-row {
+  min-height: 52px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid #F0EFEA;
+}
+
+.today-task-row:last-child {
+  border-bottom: 0;
+}
+
+.today-task-child {
+  color: #89887E;
+  font-size: 10px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.today-task-name {
+  color: #33352E;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.today-task-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+  color: #929187;
+  font-size: 10px;
+}
+
+.today-task-reward {
+  color: var(--app-gold);
+  font-weight: 750;
+}
+
+.approval-status {
+  border-radius: 7px;
+  padding: 5px 7px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.approval-status.is-done {
+  background: var(--app-success-soft);
+  color: #4A745E;
+}
+
+.approval-status.is-pending {
+  background: var(--app-accent-soft);
+  color: #A85339;
+}
+
+.approval-status.is-progress {
+  background: #F0EFEA;
+  color: #77776D;
+}
+
+.approval-status.is-retry {
+  background: #FBF3E2;
+  color: #9B742F;
 }
 
 h1, h2, h3, h4, .font-headline {
@@ -89,18 +556,18 @@ h1, h2, h3, h4, .font-headline {
 /* 简洁紧凑卡片 (去重边框与厚阴影，保留柔和层次) */
 .kid-card {
   background-color: #FFFFFF;
-  border: 1px solid #E5E7EB;
-  border-radius: 12px;
+  border: 1px solid var(--app-line);
+  border-radius: 14px;
   padding: 10px 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 3px 12px rgba(57, 53, 43, 0.035);
 }
 
 .kid-card-highlight {
-  background-color: #FFFBEB;
-  border: 1px solid #FDE68A;
-  border-radius: 12px;
+  background-color: #FFFEFB;
+  border: 1px solid #E8D9C8;
+  border-radius: 14px;
   padding: 10px 12px;
-  box-shadow: 0 1px 2px rgba(245, 158, 11, 0.06);
+  box-shadow: 0 4px 14px rgba(87, 67, 44, 0.045);
 }
 
 /* 简洁按钮体系 */
@@ -130,12 +597,12 @@ h1, h2, h3, h4, .font-headline {
 }
 
 .kid-btn-primary {
-  background-color: #EF4444;
+  background-color: var(--app-accent);
   color: #FFFFFF;
   border: none;
 }
 .kid-btn-primary:hover:not(:disabled) {
-  background-color: #DC2626;
+  background-color: #A95137;
 }
 
 .kid-btn-secondary {
@@ -148,12 +615,12 @@ h1, h2, h3, h4, .font-headline {
 }
 
 .kid-btn-success {
-  background-color: #10B981;
+  background-color: var(--app-success);
   color: #FFFFFF;
   border: none;
 }
 .kid-btn-success:hover:not(:disabled) {
-  background-color: #059669;
+  background-color: #3B6554;
 }
 
 .kid-btn-ghost {
@@ -243,9 +710,9 @@ h1, h2, h3, h4, .font-headline {
   white-space: nowrap;
 }
 .kid-filter-chip-selected {
-  background-color: #18181B;
+  background-color: #3E493F;
   color: #FFFFFF;
-  border-color: #18181B;
+  border-color: #3E493F;
 }
 
 /* 轻量状态小标签 */
@@ -262,8 +729,8 @@ h1, h2, h3, h4, .font-headline {
   white-space: nowrap;
 }
 .kid-status-complete {
-  background-color: #DCFCE7;
-  color: #15803D;
+  background-color: var(--app-success-soft);
+  color: #4A745E;
 }
 .kid-status-locked {
   background-color: #F3F4F6;
@@ -274,16 +741,16 @@ h1, h2, h3, h4, .font-headline {
   color: #3F3F46;
 }
 .kid-status-new {
-  background-color: #FEF3C7;
-  color: #B45309;
+  background-color: var(--app-gold-soft);
+  color: #9B742F;
 }
 
 /* 紧凑列表容器与列表行 */
 .kid-list {
   background-color: #FFFFFF;
-  border: 1px solid #E5E7EB;
-  border-radius: 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--app-line);
+  border-radius: 14px;
+  box-shadow: 0 3px 12px rgba(57, 53, 43, 0.03);
   overflow: hidden;
 }
 .kid-list-row {
@@ -293,7 +760,7 @@ h1, h2, h3, h4, .font-headline {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  border-bottom: 1px solid #F3F4F6;
+  border-bottom: 1px solid #F0EFEA;
   transition: background-color 150ms ease;
 }
 .kid-list-row:last-child {

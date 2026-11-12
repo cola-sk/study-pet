@@ -34,7 +34,7 @@ export const ApprovalsPage: React.FC = () => {
         particleCount: 45,
         spread: 60,
         origin: { y: 0.7 },
-        colors: ['#EF4444', '#F59E0B', '#FACC15', '#10B981'],
+        colors: ['#B96043', '#D7AF59', '#6F927B', '#F4E7D3'],
       });
     }
   };
@@ -66,19 +66,19 @@ export const ApprovalsPage: React.FC = () => {
 
   return (
     <PullToRefresh onRefresh={async () => { await new Promise(r => setTimeout(r, 500)); }}>
-      <div className="px-3 py-2.5 space-y-3 pb-20">
+      <div className="approval-dashboard px-4 pt-3 space-y-4 pb-24">
         {/* 顶部宝贝筛选 */}
-        <div className="flex items-center gap-1.5 overflow-x-auto" role="tablist" aria-label="选择孩子">
+        <div className="flex items-center gap-2 overflow-x-auto" role="tablist" aria-label="选择孩子">
           <button
             type="button"
             role="tab"
             aria-selected={selectedChildId === 'all'}
             onClick={() => setSelectedChildId('all')}
-            className={`kid-filter-chip ${selectedChildId === 'all' ? 'kid-filter-chip-selected' : ''}`}
+            className={`approval-filter-chip ${selectedChildId === 'all' ? 'is-selected' : ''}`}
           >
             <span>全部宝贝</span>
             {totalPendingCount > 0 && (
-              <span className="bg-[#FACC15] text-[#1F2937] text-[10px] font-bold px-1.5 rounded-full">
+              <span className="approval-filter-count">
                 {totalPendingCount}
               </span>
             )}
@@ -94,12 +94,12 @@ export const ApprovalsPage: React.FC = () => {
                 role="tab"
                 aria-selected={isSelected}
                 onClick={() => setSelectedChildId(child.id)}
-                className={`kid-filter-chip ${isSelected ? 'kid-filter-chip-selected' : ''}`}
+                className={`approval-filter-chip ${isSelected ? 'is-selected' : ''}`}
               >
                 <span>{child.avatarIcon || '🧒'}</span>
                 <span>{child.nickname}</span>
                 {childPendingCount > 0 && (
-                  <span className="bg-[#FACC15] text-[#1F2937] text-[10px] font-bold px-1.5 rounded-full">
+                  <span className="approval-filter-count">
                     {childPendingCount}
                   </span>
                 )}
@@ -108,8 +108,8 @@ export const ApprovalsPage: React.FC = () => {
           })}
         </div>
 
-        {/* 宝贝状态概览卡片（单层紧凑结构，无多余分割线） */}
-        <section className="space-y-2">
+        {/* 宝贝与设备状态概览 */}
+        <section className="space-y-2.5">
           {(selectedChildId === 'all' ? children : children.filter(c => c.id === selectedChildId)).map(child => {
             const pet = pets[child.id];
             const device = devices.find(d => d.childId === child.id);
@@ -119,25 +119,25 @@ export const ApprovalsPage: React.FC = () => {
             const progressPct = childTotal > 0 ? Math.round((childCompleted / childTotal) * 100) : 0;
 
             return (
-              <div key={child.id} className="kid-card">
+              <div key={child.id} className="family-overview-card">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-9 h-9 rounded-full bg-[#FEF3C7] border border-[#FDE68A] flex items-center justify-center text-lg shrink-0">
+                    <div className="family-pet-avatar flex items-center justify-center shrink-0">
                       {pet?.currentClothesItem?.icon || pet?.petAvatar || '🐶'}
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5">
-                        <h2 className="text-h3 text-[#1F2937] truncate">{child.nickname}</h2>
-                        <span className="text-[11px] text-[#6B7280] bg-[#F3F4F6] px-1.5 py-0.5 rounded">
+                        <h2 className="text-[15px] font-bold text-[#292B25] truncate">{child.nickname}</h2>
+                        <span className="family-pet-name">
                           {pet?.petName || '伴学小宠'}
                         </span>
                       </div>
-                      <div className="text-caption text-[#4B5563] mt-0.5 flex items-center gap-2">
-                        <span className="inline-flex items-center gap-1 font-bold text-[#B45309]">
+                      <div className="family-account-meta mt-1 flex items-center gap-2">
+                        <span className="family-coin-balance inline-flex items-center gap-1">
                           <IconCoin className="w-3.5 h-3.5" />
                           {child.coinsBalance} 金币
                         </span>
-                        <span className="text-[#D1D5DB]">|</span>
+                        <span className="text-[#D9D6CE]">·</span>
                         <span>完成 {childCompleted}/{childTotal}</span>
                       </div>
                     </div>
@@ -145,11 +145,11 @@ export const ApprovalsPage: React.FC = () => {
 
                   <div className="text-right shrink-0">
                     {device ? (
-                      <span className="kid-status-chip kid-status-complete">● 设备在线</span>
+                      <span className="family-device-status is-online">设备在线</span>
                     ) : (
-                      <span className="kid-status-chip kid-status-locked">未配对</span>
+                      <span className="family-device-status is-offline">未配对</span>
                     )}
-                    <div className="text-caption text-[#9CA3AF] mt-0.5 truncate max-w-[110px]">
+                    <div className="family-device-name truncate max-w-[110px]">
                       {device?.alias || '暂无设备'}
                     </div>
                   </div>
@@ -157,14 +157,14 @@ export const ApprovalsPage: React.FC = () => {
 
                 {/* 纤细进度条 */}
                 <div
-                  className="w-full bg-[#F3F4F6] h-1.5 rounded-full overflow-hidden mt-2"
+                  className="family-progress-track"
                   role="progressbar"
                   aria-valuenow={progressPct}
                   aria-valuemin={0}
                   aria-valuemax={100}
                 >
                   <div
-                    className="bg-[#22C55E] h-full rounded-full transition-all duration-500"
+                    className="family-progress-value"
                     style={{ width: `${Math.max(progressPct, childCompleted > 0 ? 10 : 0)}%` }}
                   />
                 </div>
@@ -174,72 +174,72 @@ export const ApprovalsPage: React.FC = () => {
         </section>
 
         {/* 待我确认 */}
-        <section className="space-y-2">
-          <div className="flex items-center justify-between px-0.5">
-            <div className="flex items-center gap-1.5">
-              <h3 className="text-h2 text-[#1F2937]">待我确认</h3>
+        <section className="approval-section space-y-2.5">
+          <div className="flex items-center justify-between gap-2 px-0.5">
+            <div className="flex items-center gap-2">
+              <h3 className="approval-section-title">待我确认</h3>
               {submittedTasks.length > 0 && (
-                <span className="kid-status-chip kid-status-new">{submittedTasks.length} 项</span>
+                <span className="approval-count-pill">{submittedTasks.length} 项</span>
               )}
             </div>
-            <span className="text-caption text-[#9CA3AF]">孩子在硬件屏幕提交后展示</span>
+            <span className="text-[10px] text-[#929187]">设备提交后显示</span>
           </div>
 
           {submittedTasks.length === 0 ? (
-            <div className="kid-card text-center py-4 text-body text-[#6B7280]">
+            <div className="family-overview-card text-center py-5 text-[12px] text-[#85847B]">
               暂无待确认打卡，宝贝完成后会显示在这里
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {submittedTasks.map(task => {
                 const child = children.find(c => c.id === task.childId);
                 return (
-                  <div key={task.id} className="kid-card-highlight">
+                  <div key={task.id} className="approval-card">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5">
-                          <span className="kid-status-chip kid-status-active">
+                        <div className="approval-card-header">
+                          <span className="approval-child-tag">
                             {child?.nickname || task.childNickname}
                           </span>
                           {task.deviceAlias && (
-                            <span className="text-caption text-[#6B7280] truncate">
+                            <span className="approval-device-label truncate">
                               {task.deviceAlias}
                             </span>
                           )}
                         </div>
-                        <h4 className="text-h3 text-[#1F2937] mt-1">{task.title}</h4>
+                        <h4 className="approval-task-title">{task.title}</h4>
                         {task.description && (
-                          <p className="text-body text-[#6B7280] mt-0.5 line-clamp-1">
+                          <p className="approval-task-description line-clamp-1">
                             {task.description}
                           </p>
                         )}
                       </div>
 
                       <div className="text-right shrink-0">
-                        <div className="inline-flex items-center gap-0.5 font-headline font-bold text-[14px] text-[#B45309]">
+                        <div className="approval-reward">
                           <IconCoin className="w-3.5 h-3.5" />
                           <span>+{task.rewardCoins}</span>
                         </div>
-                        <div className="text-mono text-[#9CA3AF]">
+                        <div className="approval-time">
                           {task.submittedAt || '刚刚'}
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-2 flex items-center justify-end gap-2">
+                    <div className="approval-card-actions">
                       <button
                         type="button"
                         onClick={() => setRejectingTask(task)}
-                        className="kid-btn kid-btn-ghost kid-btn-sm"
+                        className="approval-action approval-action-secondary"
                       >
                         <span>再试一次</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => handleApprove(task)}
-                        className="kid-btn kid-btn-success kid-btn-sm"
+                        className="approval-action approval-action-primary inline-flex items-center gap-1.5"
                       >
-                        <IconCheck className="w-3 h-3" />
+                        <IconCheck className="w-3.5 h-3.5" />
                         <span>批准发币</span>
                       </button>
                     </div>
@@ -251,47 +251,47 @@ export const ApprovalsPage: React.FC = () => {
         </section>
 
         {/* 今日任务清单 */}
-        <section className="space-y-2">
+        <section className="approval-section space-y-2.5">
           <div className="flex items-center justify-between px-0.5">
-            <h3 className="text-h2 text-[#1F2937]">今日任务清单</h3>
-            <span className="text-caption text-[#9CA3AF]">共 {filteredInstances.length} 项</span>
+            <h3 className="approval-section-title">今日任务清单</h3>
+            <span className="text-[11px] text-[#929187]">共 {filteredInstances.length} 项</span>
           </div>
 
-          <div className="kid-list">
+          <div className="today-task-list">
             {filteredInstances.map(task => {
               const child = children.find(c => c.id === task.childId);
               return (
-                <div key={task.id} className="kid-list-row">
+                <div key={task.id} className="today-task-row">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] font-semibold text-[#3F3F46] bg-[#F4F4F5] px-1.5 py-0.5 rounded shrink-0">
+                      <span className="today-task-child shrink-0">
                         {child?.nickname || task.childNickname}
                       </span>
-                      <span className="font-semibold text-[13px] text-[#1F2937] truncate">
+                      <span className="today-task-name truncate">
                         {task.title}
                       </span>
                     </div>
-                    <div className="text-caption text-[#6B7280] mt-0.5 flex items-center gap-1.5">
-                      <span className="text-[#B45309] font-semibold">+{task.rewardCoins} 金币</span>
+                    <div className="today-task-meta">
+                      <span className="today-task-reward">+{task.rewardCoins} 金币</span>
                       {task.deviceAlias && <span>· {task.deviceAlias}</span>}
                       {task.rejectReason && (
-                        <span className="text-[#F59E0B] truncate">· {task.rejectReason}</span>
+                        <span className="text-[#9B742F] truncate">· {task.rejectReason}</span>
                       )}
                     </div>
                   </div>
 
                   <div className="shrink-0">
                     {task.status === 'completed' && (
-                      <span className="kid-status-chip kid-status-complete">已完成</span>
+                      <span className="approval-status is-done">已完成</span>
                     )}
                     {task.status === 'submitted' && (
-                      <span className="kid-status-chip kid-status-new">待确认</span>
+                      <span className="approval-status is-pending">待确认</span>
                     )}
                     {task.status === 'pending' && (
-                      <span className="kid-status-chip kid-status-locked">进行中</span>
+                      <span className="approval-status is-progress">进行中</span>
                     )}
                     {task.status === 'rejected' && (
-                      <span className="kid-status-chip kid-status-active">再试一次</span>
+                      <span className="approval-status is-retry">再试一次</span>
                     )}
                   </div>
                 </div>
