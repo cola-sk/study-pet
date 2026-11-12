@@ -54,15 +54,15 @@ export const ApprovalsPage: React.FC = () => {
   return (
     <PullToRefresh onRefresh={async () => { await new Promise(r => setTimeout(r, 600)); }}>
       <div className="p-4 space-y-4 pb-24">
-        {/* 多孩子/多设备切换筛选 Tabs */}
-        <div className="bg-white rounded-2xl p-1 shadow-sm border border-slate-100">
+        {/* 多孩子/多设备切换筛选 Tabs (日式原木温润分段控制器) */}
+        <div className="segmented bg-[#EFECE6] rounded-full p-1 border border-[#E5DFD4]">
           <Tabs activeKey={selectedChildId} onChange={setSelectedChildId}>
             <Tabs.Tab
               title={
-                <span className="flex items-center gap-1 font-semibold text-xs">
-                  <span>👥 全部孩子</span>
+                <span className="flex items-center gap-1.5 font-medium text-xs">
+                  <span>全部孩子</span>
                   {instances.filter(i => i.status === 'submitted').length > 0 && (
-                    <span className="bg-orange-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                    <span className="bg-[#D96B43] text-white text-[10px] min-w-4 h-4 px-1 rounded-full flex items-center justify-center font-bold shadow-xs">
                       {instances.filter(i => i.status === 'submitted').length}
                     </span>
                   )}
@@ -75,10 +75,10 @@ export const ApprovalsPage: React.FC = () => {
               return (
                 <Tabs.Tab
                   title={
-                    <span className="flex items-center gap-1 font-semibold text-xs">
-                      <span>{child.avatarIcon || '🧒'} {child.nickname}</span>
+                    <span className="flex items-center gap-1.5 font-medium text-xs">
+                      <span>{child.nickname}</span>
                       {childPendingCount > 0 && (
-                        <span className="bg-orange-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                        <span className="bg-[#D96B43] text-white text-[10px] min-w-4 h-4 px-1 rounded-full flex items-center justify-center font-bold shadow-xs">
                           {childPendingCount}
                         </span>
                       )}
@@ -91,8 +91,8 @@ export const ApprovalsPage: React.FC = () => {
           </Tabs>
         </div>
 
-        {/* 顶部孩子与设备状态卡片 (支持多设备多孩子网格概览) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* 顶部孩子与设备状态卡片 (原木素雅伴学小窝) */}
+        <div className="grid grid-cols-1 gap-3">
           {(selectedChildId === 'all' ? children : children.filter(c => c.id === selectedChildId)).map(child => {
             const pet = pets[child.id];
             const device = devices.find(d => d.childId === child.id);
@@ -103,49 +103,54 @@ export const ApprovalsPage: React.FC = () => {
             return (
               <div
                 key={child.id}
-                className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-4 text-white shadow-md relative overflow-hidden"
+                className="bg-white rounded-3xl p-4 text-[#2D2621] border border-[#EAE5DC] shadow-[0_2px_10px_rgba(60,48,36,0.04)] relative overflow-hidden transition-all hover:shadow-[0_4px_16px_rgba(60,48,36,0.08)]"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-2xl shadow-inner border border-white/30">
+                    {/* 宠物形象窝 */}
+                    <div className="w-12 h-12 bg-[#FEF8ED] rounded-2xl flex items-center justify-center text-2xl border border-[#FCE7C2] shadow-xs">
                       {pet?.currentClothesItem?.icon || pet?.petAvatar || '🐶'}
                     </div>
                     <div>
                       <div className="flex items-center space-x-2">
-                        <h2 className="text-base font-bold">{child.nickname}</h2>
-                        <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full backdrop-blur-sm">
-                          {pet?.petName || '小宠物'}
+                        <h2 className="text-base font-bold text-[#2D2621]">{child.nickname}</h2>
+                        <span className="text-xs bg-[#FDF3EE] text-[#D96B43] px-2.5 py-0.5 rounded-full border border-[#F8D8CB] font-medium">
+                          {pet?.petName || '伴学宠物'}
                         </span>
                       </div>
-                      <div className="flex items-center space-x-2 mt-0.5">
-                        <span className="text-yellow-300 font-bold text-sm flex items-center gap-1">
-                          🪙 {child.coinsBalance} <span className="text-[10px] font-normal text-white/80">金币</span>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <span className="text-[#C88A2E] font-bold text-sm flex items-center gap-1">
+                          🪙 {child.coinsBalance} <span className="text-xs font-normal text-[#7D7267]">金币</span>
                         </span>
-                        <span className="text-white/40">|</span>
-                        <span className="text-[11px] text-blue-100">
+                        <span className="text-[#D5CFC5]">|</span>
+                        <span className="text-xs text-[#7D7267]">
                           完成 {childCompleted}/{childTotal}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* 关联设备状态 */}
+                  {/* 关联设备状态 (抹茶绿生态呼吸感) */}
                   <div className="text-right">
-                    <div className="inline-flex items-center space-x-1 bg-black/20 px-2 py-0.5 rounded-full text-[10px] backdrop-blur-sm">
-                      <span className={`w-1.5 h-1.5 rounded-full ${device ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`}></span>
+                    <div className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
+                      device 
+                        ? 'bg-[#EEF4EF] text-[#4F7757] border-[#D0E3D4]' 
+                        : 'bg-[#EFECE6] text-[#A89F95] border-[#E5DFD4]'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${device ? 'bg-[#4F7757] animate-pulse' : 'bg-[#C5BDB3]'}`}></span>
                       <span>{device ? '设备在线' : '未绑设备'}</span>
                     </div>
-                    <div className="text-[10px] text-blue-200 mt-1 max-w-[100px] truncate">
+                    <div className="text-xs text-[#A89F95] mt-1 max-w-[110px] truncate">
                       {device?.alias || '去设置绑定'}
                     </div>
                   </div>
                 </div>
 
-                {/* 进度条 */}
-                <div className="mt-3 pt-2 border-t border-white/10">
-                  <div className="w-full bg-black/20 h-1.5 rounded-full overflow-hidden">
+                {/* 进度条 (焦糖暖橙渐变质感) */}
+                <div className="mt-3.5 pt-2.5 border-t border-[#F3EFEA]">
+                  <div className="w-full bg-[#EFECE6] h-2 rounded-full overflow-hidden">
                     <div
-                      className="bg-yellow-400 h-full rounded-full transition-all duration-500 ease-out"
+                      className="bg-gradient-to-r from-[#E07A5F] to-[#D96B43] h-full rounded-full transition-all duration-500 ease-out"
                       style={{ width: `${childTotal > 0 ? (childCompleted / childTotal) * 100 : 0}%` }}
                     ></div>
                   </div>
@@ -155,25 +160,25 @@ export const ApprovalsPage: React.FC = () => {
           })}
         </div>
 
-        {/* 置顶待确认任务列表 */}
+        {/* 置顶待确认任务列表 (手作温度任务清单) */}
         <div>
-          <div className="flex items-center justify-between mb-2 mt-2">
-            <h3 className="text-base font-bold text-gray-800 flex items-center gap-1.5">
-              <span className="text-orange-500">⚡</span> 待我确认
+          <div className="flex items-center justify-between mb-2 mt-4">
+            <h3 className="text-base font-bold text-[#2D2621] flex items-center gap-2">
+              <span>待我确认</span>
               {submittedTasks.length > 0 && (
-                <span className="bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold">
+                <span className="bg-[#FDF3EE] text-[#D96B43] border border-[#F8D8CB] text-xs px-2 py-0.5 rounded-full font-bold">
                   {submittedTasks.length} 项
                 </span>
               )}
             </h3>
-            <span className="text-xs text-gray-400">孩子在硬件屏幕提交后展示</span>
+            <span className="text-xs text-[#A89F95]">孩子在桌面设备提交后展示</span>
           </div>
 
           {submittedTasks.length === 0 ? (
-            <div className="bg-white rounded-2xl p-6 text-center border border-slate-100 shadow-sm">
-              <div className="text-3xl mb-1">✨</div>
-              <div className="text-sm text-gray-600 font-medium">暂无待确认的任务</div>
-              <div className="text-xs text-gray-400 mt-1">孩子在各自微雪设备上打卡后，会即时呈现在这里</div>
+            <div className="bg-white rounded-3xl p-6 text-center border border-[#EAE5DC] shadow-[0_2px_8px_rgba(60,48,36,0.03)]">
+              <div className="text-2xl mb-1">🌿</div>
+              <div className="text-sm text-[#2D2621] font-medium">暂无待确认的任务</div>
+              <div className="text-xs text-[#A89F95] mt-1">孩子在微雪设备上打卡后，会即时呈现在这里</div>
             </div>
           ) : (
             <div className="space-y-3">
@@ -182,53 +187,51 @@ export const ApprovalsPage: React.FC = () => {
                 return (
                   <div
                     key={task.id}
-                    className="bg-white rounded-2xl p-4 shadow-sm border-2 border-orange-200/80 hover:shadow-md transition-all"
+                    className="bg-white rounded-3xl p-4 border border-[#EAE5DC] shadow-[0_2px_10px_rgba(60,48,36,0.04)] transition-all hover:shadow-[0_4px_16px_rgba(60,48,36,0.06)]"
                   >
                     <div className="flex items-start justify-between">
                       <div>
                         {/* 明确标识来源孩子与设备 */}
-                        <div className="flex items-center space-x-1.5 mb-1">
-                          <Tag color="primary" className="!text-[11px] !px-1.5 !rounded-md">
-                            {child?.avatarIcon || '🧒'} {child?.nickname || task.childNickname}
-                          </Tag>
+                        <div className="flex items-center space-x-1.5 mb-1.5">
+                          <span className="text-xs bg-[#FEF8ED] text-[#C88A2E] border border-[#FCE7C2] px-2 py-0.5 rounded-md font-medium">
+                            {child?.nickname || task.childNickname}
+                          </span>
                           {task.deviceAlias && (
-                            <span className="text-[10px] text-gray-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                            <span className="text-xs text-[#5C829B] bg-[#EFF5F8] border border-[#D5E5EE] px-2 py-0.5 rounded-md">
                               {task.deviceAlias}
                             </span>
                           )}
                         </div>
-                        <div className="font-bold text-gray-800 text-base">{task.title}</div>
-                        <div className="text-xs text-gray-500 mt-0.5">{task.description || '已提交完成'}</div>
+                        <div className="font-bold text-[#2D2621] text-base">{task.title}</div>
+                        <div className="text-xs text-[#7D7267] mt-1">{task.description || '已打卡完成'}</div>
                       </div>
 
                       <div className="text-right">
-                        <div className="text-base font-extrabold text-orange-600 flex items-center justify-end gap-0.5">
-                          🪙 +{task.rewardCoins}
+                        <div className="text-sm font-bold text-[#C88A2E] flex items-center justify-end gap-1">
+                          +{task.rewardCoins} 金币
                         </div>
-                        <div className="text-[11px] text-gray-400 flex items-center gap-1 mt-0.5">
+                        <div className="text-xs text-[#A89F95] flex items-center gap-1 mt-1 justify-end">
                           <ClockCircleOutline /> {task.submittedAt || '刚刚'}
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-end space-x-2">
+                    <div className="mt-3.5 pt-3 border-t border-[#F3EFEA] flex items-center justify-end space-x-2.5">
                       <Button
                         size="small"
-                        color="default"
                         onClick={() => setRejectingTask(task)}
-                        className="!rounded-lg !text-xs !px-3"
+                        className="!rounded-full !text-xs !px-3.5 !bg-[#F3EFEA] hover:!bg-[#EAE5DC] !text-[#7D7267] !border-0 font-medium"
                       >
-                        <span className="flex items-center gap-1 text-gray-600">
+                        <span className="flex items-center gap-1">
                           <CloseOutline /> 驳回
                         </span>
                       </Button>
                       <Button
                         size="small"
-                        color="primary"
                         onClick={() => handleApprove(task)}
-                        className="!rounded-lg !text-xs !px-4 !bg-emerald-600 !border-emerald-600 font-medium shadow-sm hover:!bg-emerald-700"
+                        className="!rounded-full !text-xs !px-4 !bg-[#D96B43] hover:!bg-[#C75B34] !text-white !border-0 font-medium shadow-xs"
                       >
-                        <span className="flex items-center gap-1 text-white">
+                        <span className="flex items-center gap-1">
                           <CheckOutline /> 批准发币
                         </span>
                       </Button>
@@ -242,42 +245,58 @@ export const ApprovalsPage: React.FC = () => {
 
         {/* 今日全部任务列表 */}
         <div>
-          <div className="flex items-center justify-between mb-2 mt-4">
-            <h3 className="text-base font-bold text-gray-800">📋 今日任务清单</h3>
-            <span className="text-xs text-gray-400">已按设备分发</span>
+          <div className="flex items-center justify-between mb-2 mt-5">
+            <h3 className="text-base font-bold text-[#2D2621]">今日任务清单</h3>
+            <span className="text-xs text-[#A89F95]">已按设备自动分发</span>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 divide-y divide-slate-100 overflow-hidden">
+          <div className="bg-white rounded-3xl border border-[#EAE5DC] shadow-[0_2px_10px_rgba(60,48,36,0.04)] divide-y divide-[#F3EFEA] overflow-hidden">
             {filteredInstances.map(task => {
               const child = children.find(c => c.id === task.childId);
               return (
                 <div key={task.id} className="p-3.5 flex items-center justify-between">
                   <div className="space-y-1">
                     <div className="flex items-center space-x-2">
-                      <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+                      <span className="text-xs font-medium text-[#7D7267] bg-[#EFECE6] px-2 py-0.5 rounded-md">
                         {child?.nickname || task.childNickname}
                       </span>
-                      <span className="text-sm font-medium text-gray-800">{task.title}</span>
+                      <span className="text-sm font-semibold text-[#2D2621]">{task.title}</span>
                     </div>
-                    <div className="text-xs text-gray-400">
-                      奖励: <strong className="text-yellow-600 font-semibold">{task.rewardCoins} 金币</strong>
+                    <div className="text-xs text-[#A89F95]">
+                      奖励: <strong className="text-[#C88A2E] font-medium">{task.rewardCoins} 金币</strong>
                       {task.deviceAlias && <span className="ml-2">({task.deviceAlias})</span>}
-                      {task.rejectReason && <span className="text-red-500 ml-2">({task.rejectReason})</span>}
+                      {task.rejectReason && <span className="text-[#C85A5A] ml-2">({task.rejectReason})</span>}
                     </div>
                   </div>
 
                   <div>
-                    {task.status === 'completed' && <Tag color="success" className="!text-xs">已发币 ✓</Tag>}
-                    {task.status === 'submitted' && <Tag color="warning" className="!text-xs">待确认</Tag>}
-                    {task.status === 'pending' && <Tag color="default" className="!text-xs text-gray-400">待提交</Tag>}
-                    {task.status === 'rejected' && <Tag color="danger" className="!text-xs">已驳回</Tag>}
+                    {task.status === 'completed' && (
+                      <span className="text-xs bg-[#EEF4EF] text-[#4F7757] border border-[#D0E3D4] px-2.5 py-1 rounded-full font-medium">
+                        已发币 ✓
+                      </span>
+                    )}
+                    {task.status === 'submitted' && (
+                      <span className="text-xs bg-[#FEF8ED] text-[#D49439] border border-[#FCE7C2] px-2.5 py-1 rounded-full font-medium">
+                        待确认
+                      </span>
+                    )}
+                    {task.status === 'pending' && (
+                      <span className="text-xs bg-[#EFECE6] text-[#A89F95] px-2.5 py-1 rounded-full font-medium">
+                        待提交
+                      </span>
+                    )}
+                    {task.status === 'rejected' && (
+                      <span className="text-xs bg-[#FDF2F2] text-[#C85A5A] border border-[#FECACA] px-2.5 py-1 rounded-full font-medium">
+                        已驳回
+                      </span>
+                    )}
                   </div>
                 </div>
               );
             })}
 
             {filteredInstances.length === 0 && (
-              <div className="p-6 text-center text-gray-400 text-xs">
+              <div className="p-6 text-center text-[#A89F95] text-xs">
                 暂无任务记录
               </div>
             )}
@@ -291,16 +310,16 @@ export const ApprovalsPage: React.FC = () => {
         title="驳回任务"
         content={
           <div className="space-y-3 pt-2">
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-[#7D7267]">
               驳回后，任务将退回为【{rejectingTask?.childNickname}】桌面设备上的“待提交”状态。
             </p>
-            <div className="text-xs font-semibold text-gray-700">驳回说明：</div>
+            <div className="text-xs font-semibold text-[#2D2621]">驳回说明：</div>
             <textarea
-              className="w-full border border-gray-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full border border-[#EAE5DC] bg-[#F7F5F0] rounded-xl p-2.5 text-xs text-[#2D2621] focus:ring-2 focus:ring-[#D96B43] focus:outline-none"
               rows={3}
               value={rejectReason}
               onChange={e => setRejectReason(e.target.value)}
-              placeholder="请输入驳回原因或提示..."
+              placeholder="请输入驳回原因或鼓励提示..."
             />
           </div>
         }

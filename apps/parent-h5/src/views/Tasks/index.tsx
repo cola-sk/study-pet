@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, Button, Switch, Tag, Dialog, Toast, Empty } from 'antd-mobile';
+import { Card, Button, Switch, Empty, Dialog, Toast } from 'antd-mobile';
 import { AddOutline, EditSOutline, DeleteOutline } from 'antd-mobile-icons';
 import { useAppStore } from '../../stores/useAppStore';
 import { TaskTemplate } from '../../services/types';
@@ -50,13 +50,21 @@ export const TasksPage: React.FC = () => {
 
   const renderTargetText = (tpl: TaskTemplate) => {
     if (tpl.targetScope === 'all') {
-      return <Tag color="primary" className="!text-[10px]">👥 全员设备</Tag>;
+      return (
+        <span className="text-xs bg-[#EFECE6] text-[#7D7267] px-2 py-0.5 rounded-full font-medium">
+          全部孩子
+        </span>
+      );
     }
     const targetNames = children
       .filter(c => tpl.targetChildIds?.includes(c.id))
       .map(c => c.nickname)
       .join('、');
-    return <Tag color="warning" className="!text-[10px]">👤 {targetNames || '指定孩子'}</Tag>;
+    return (
+      <span className="text-xs bg-[#FEF8ED] text-[#C88A2E] border border-[#FCE7C2] px-2 py-0.5 rounded-full font-medium">
+        {targetNames || '指定孩子'}
+      </span>
+    );
   };
 
   return (
@@ -64,14 +72,12 @@ export const TasksPage: React.FC = () => {
       {/* 顶部标题与新建按钮 */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-gray-800">任务规则库</h2>
-          <p className="text-xs text-gray-400">支持全家设备派发或指定孩子设备专属</p>
+          <h2 className="text-lg font-bold text-[#2D2621]">任务管理</h2>
+          <p className="text-xs text-[#7D7267]">为孩子安排日常养成任务与习惯</p>
         </div>
         <Button
-          color="primary"
-          size="small"
           onClick={handleCreate}
-          className="!rounded-xl shadow-sm !px-3 font-medium"
+          className="!bg-[#D96B43] hover:!bg-[#C75B34] !text-white !border-0 !rounded-full !px-4 !py-1 text-xs font-medium shadow-xs"
         >
           <span className="flex items-center gap-1">
             <AddOutline /> 新建任务
@@ -81,26 +87,28 @@ export const TasksPage: React.FC = () => {
 
       {/* 模板列表 */}
       {templates.length === 0 ? (
-        <Card className="!rounded-2xl !bg-white border border-slate-100 py-12 text-center">
+        <div className="rounded-3xl bg-white border border-[#EAE5DC] py-12 text-center shadow-xs">
           <Empty description="暂无任务模板，点击右上角新建任务吧！" />
-        </Card>
+        </div>
       ) : (
         <div className="space-y-3">
           {templates.map(tpl => (
             <div
               key={tpl.id}
-              className={`bg-white rounded-2xl p-4 shadow-sm border transition-all ${
-                tpl.isActive ? 'border-slate-100 hover:shadow-md' : 'border-slate-200/60 opacity-60 bg-slate-50'
+              className={`rounded-3xl p-4 transition-all border ${
+                tpl.isActive 
+                  ? 'bg-white border-[#EAE5DC] shadow-[0_2px_10px_rgba(60,48,36,0.04)] hover:shadow-[0_4px_16px_rgba(60,48,36,0.06)]' 
+                  : 'bg-[#F9F7F2] border-[#E8E3DA] opacity-65'
               }`}
             >
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
                   <div className="flex items-center space-x-2">
-                    <span className="font-bold text-gray-800 text-sm">{tpl.title}</span>
+                    <span className="font-bold text-[#2D2621] text-base">{tpl.title}</span>
                     {renderTargetText(tpl)}
                   </div>
                   {tpl.description && (
-                    <div className="text-xs text-gray-400 line-clamp-1">{tpl.description}</div>
+                    <div className="text-xs text-[#7D7267] line-clamp-1">{tpl.description}</div>
                   )}
                 </div>
 
@@ -108,35 +116,39 @@ export const TasksPage: React.FC = () => {
                   <Switch
                     checked={tpl.isActive}
                     onChange={() => toggleTemplate(tpl.id)}
-                    style={{ '--width': '42px', '--height': '24px' }}
+                    style={{
+                      '--width': '42px',
+                      '--height': '24px',
+                      '--checked-color': '#D96B43',
+                    }}
                   />
                 </div>
               </div>
 
               {/* 标签属性区 */}
-              <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between text-xs text-gray-500">
+              <div className="mt-3.5 pt-3 border-t border-[#F3EFEA] flex flex-wrap items-center justify-between text-xs text-[#7D7267]">
                 <div className="flex items-center space-x-2">
-                  <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-[11px] font-medium">
-                    📅 {renderFrequencyText(tpl)}
+                  <span className="bg-[#EFECE6] text-[#7D7267] px-2 py-0.5 rounded-md text-xs font-medium">
+                    {renderFrequencyText(tpl)}
                   </span>
-                  <span className="bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded text-[11px] font-medium">
+                  <span className="bg-[#FEF8ED] text-[#C88A2E] border border-[#FCE7C2] px-2 py-0.5 rounded-md text-xs font-medium">
                     🪙 {tpl.rewardCoins} 金币
                   </span>
-                  <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[11px]">
-                    {tpl.confirmType === 'parent_confirm' ? '需确认' : '免确认'}
+                  <span className="bg-[#EEF4EF] text-[#4F7757] border border-[#D0E3D4] px-2 py-0.5 rounded-md text-xs">
+                    {tpl.confirmType === 'parent_confirm' ? '需审核' : '自动通过'}
                   </span>
                 </div>
 
                 <div className="flex items-center space-x-3 mt-1 sm:mt-0">
                   <button
                     onClick={() => handleEdit(tpl)}
-                    className="text-blue-600 hover:text-blue-800 flex items-center gap-0.5 text-xs font-medium"
+                    className="text-[#7D7267] hover:text-[#2D2621] flex items-center gap-0.5 text-xs font-medium"
                   >
                     <EditSOutline /> 编辑
                   </button>
                   <button
                     onClick={() => handleDelete(tpl)}
-                    className="text-gray-400 hover:text-red-500 flex items-center gap-0.5 text-xs"
+                    className="text-[#A89F95] hover:text-[#C85A5A] flex items-center gap-0.5 text-xs"
                   >
                     <DeleteOutline /> 删除
                   </button>

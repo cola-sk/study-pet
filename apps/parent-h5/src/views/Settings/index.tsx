@@ -2,10 +2,9 @@
 
 import React, { useState } from 'react';
 import { List, Button, Dialog, Toast, Tag } from 'antd-mobile';
-import { AddOutline, DeleteOutline, EditSOutline, RedoOutline } from 'antd-mobile-icons';
+import { AddOutline, DeleteOutline, EditSOutline } from 'antd-mobile-icons';
 import { DevicePairModal } from './DevicePairModal';
 import { useAppStore } from '../../stores/useAppStore';
-import { rawSupabaseUrl, rawSupabaseAnonKey, isSupabaseConfigured } from '../../services/supabase';
 import { PWAInstallState } from '../../hooks/usePWAInstall';
 
 interface Props {
@@ -17,23 +16,12 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
     children, 
     family, 
     devices, 
-    isSyncing,
-    syncWithSupabase,
     unbindDevice, 
     addChild, 
-    updateChildNickname, 
-    resetAllData 
+    updateChildNickname 
   } = useAppStore();
 
   const [pairModalVisible, setPairModalVisible] = useState(false);
-  const [serverConfig, setServerConfig] = useState<{ configured?: boolean; url?: string; hasKey?: boolean } | null>(null);
-
-  React.useEffect(() => {
-    fetch('/api/supabase-config')
-      .then(res => res.json())
-      .then(data => setServerConfig(data))
-      .catch(() => {});
-  }, []);
 
   const handleUnbind = (deviceId: string, alias: string) => {
     Dialog.confirm({
@@ -56,7 +44,7 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
           id="nickname-input"
           defaultValue={currentName}
           placeholder="请输入孩子昵称"
-          className="w-full border border-gray-300 rounded-lg p-2 text-sm mt-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="w-full border border-[#EAE5DC] bg-[#F7F5F0] rounded-xl p-2.5 text-sm mt-2 text-[#2D2621] focus:ring-2 focus:ring-[#D96B43] focus:outline-none"
         />
       ),
       onConfirm: () => {
@@ -77,7 +65,7 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
           <input
             id="new-child-input"
             placeholder="例如：小宝 / 豆豆"
-            className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="w-full border border-[#EAE5DC] bg-[#F7F5F0] rounded-xl p-2.5 text-sm text-[#2D2621] focus:ring-2 focus:ring-[#D96B43] focus:outline-none"
           />
         </div>
       ),
@@ -91,63 +79,22 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
     });
   };
 
-  const handleResetData = () => {
-    Dialog.confirm({
-      title: '恢复初始测试数据',
-      content: '该操作将重置多设备、多孩子、今日任务与金币为演示初始数据，是否继续？',
-      confirmText: '确定重置',
-      onConfirm: () => {
-        resetAllData();
-        Toast.show({ icon: 'success', content: '已恢复初始演示数据' });
-      },
-    });
-  };
-
-  // 深度清理 Service Worker 缓存，解决 PWA 缓存旧构建产物的问题
-  const handleClearCacheAndReload = async () => {
-    Toast.show({ icon: 'loading', content: '正在清空 PWA 缓存并重载...' });
-    try {
-      if ('serviceWorker' in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        for (const reg of registrations) {
-          await reg.unregister();
-        }
-      }
-      if ('caches' in window) {
-        const keys = await caches.keys();
-        for (const key of keys) {
-          await caches.delete(key);
-        }
-      }
-      localStorage.removeItem('study_pet_parent_storage_v1');
-      localStorage.removeItem('study_pet_parent_storage_v2');
-      sessionStorage.clear();
-      setTimeout(() => {
-        window.location.href = window.location.origin + window.location.pathname + '?reload=' + Date.now();
-      }, 500);
-    } catch (err) {
-      console.error('Failed to clear cache:', err);
-      window.location.reload();
-    }
-  };
-
   return (
-    <div className="p-4 space-y-4 pb-24">
-      {/* 微雪硬件设备列表（支持多设备） */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+    <div className="p-4 space-y-4 pb-24 text-[#2D2621]">
+      {/* 桌面硬件设备列表（支持多设备） */}
+      <div className="bg-white rounded-3xl p-4 shadow-[0_2px_10px_rgba(60,48,36,0.04)] border border-[#EAE5DC]">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2">
             <span className="text-xl">📺</span>
             <div>
-              <h3 className="font-bold text-gray-800 text-sm">已绑定微雪设备 ({devices.length} 台)</h3>
-              <p className="text-[11px] text-gray-400">每台设备独立展示孩子专属宠物</p>
+              <h3 className="font-bold text-[#2D2621] text-sm">已绑定桌面设备 ({devices.length} 台)</h3>
+              <p className="text-xs text-[#A89F95]">每台设备独立展示孩子专属宠物</p>
             </div>
           </div>
           <Button
             size="mini"
-            color="primary"
             onClick={() => setPairModalVisible(true)}
-            className="!rounded-lg !text-xs !px-2.5 shadow-sm"
+            className="!rounded-full !text-xs !px-3 !bg-[#D96B43] hover:!bg-[#C75B34] !text-white !border-0 font-medium shadow-xs"
           >
             <span className="flex items-center gap-0.5">
               <AddOutline /> 绑定新设备
@@ -156,32 +103,34 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
         </div>
 
         {devices.length === 0 ? (
-          <div className="text-center py-6 text-xs text-gray-400">
-            暂未绑定任何微雪设备，点击右上角【绑定新设备】开始配对
+          <div className="text-center py-6 text-xs text-[#A89F95]">
+            暂未绑定任何硬件设备，点击右上角【绑定新设备】开始配对
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {devices.map(device => {
               const child = children.find(c => c.id === device.childId);
               return (
-                <div key={device.id} className="bg-slate-50 rounded-xl p-3 border border-slate-200/80 space-y-2">
+                <div key={device.id} className="bg-[#F7F5F0] rounded-2xl p-3 border border-[#EAE5DC] space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <span className="font-bold text-gray-800 text-xs">{device.alias}</span>
-                      <Tag color="success" className="!text-[9px]">● 在线 ({device.lastSeenAt || '刚刚'})</Tag>
+                      <span className="font-bold text-[#2D2621] text-xs">{device.alias}</span>
+                      <span className="text-[10px] bg-[#EEF4EF] text-[#4F7757] border border-[#D0E3D4] px-2 py-0.5 rounded-full font-medium">
+                        已在线
+                      </span>
                     </div>
                     <button
                       onClick={() => handleUnbind(device.id, device.alias)}
-                      className="text-red-500 hover:text-red-700 text-xs flex items-center gap-0.5"
+                      className="text-[#C85A5A] hover:text-[#A83838] text-xs flex items-center gap-0.5"
                     >
                       <DeleteOutline /> 解绑
                     </button>
                   </div>
 
-                  <div className="text-[11px] text-gray-500 space-y-1">
+                  <div className="text-xs text-[#7D7267] space-y-1">
                     <div className="flex justify-between">
                       <span>主人（孩子）：</span>
-                      <strong className="text-blue-600">{child?.nickname || '未指定'}</strong>
+                      <strong className="text-[#2D2621]">{child?.nickname || '未指定'}</strong>
                     </div>
                     <div className="flex justify-between">
                       <span>硬件型号：</span>
@@ -189,7 +138,7 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
                     </div>
                     <div className="flex justify-between">
                       <span>MAC 地址：</span>
-                      <span className="font-mono text-gray-400">{device.macAddress}</span>
+                      <span className="font-mono text-[#A89F95]">{device.macAddress}</span>
                     </div>
                   </div>
                 </div>
@@ -200,12 +149,12 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
       </div>
 
       {/* 孩子档案管理（支持多孩子） */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="px-4 py-3 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
-          <span className="font-bold text-xs text-gray-700">孩子档案与宠物账号 ({children.length} 位)</span>
+      <div className="bg-white rounded-3xl shadow-[0_2px_10px_rgba(60,48,36,0.04)] border border-[#EAE5DC] overflow-hidden">
+        <div className="px-4 py-3 bg-[#F7F5F0] border-b border-[#EAE5DC] flex items-center justify-between">
+          <span className="font-bold text-xs text-[#2D2621]">孩子档案与伴学账号 ({children.length} 位)</span>
           <button
             onClick={handleAddChild}
-            className="text-blue-600 text-xs font-semibold flex items-center gap-0.5"
+            className="text-[#D96B43] hover:text-[#C75B34] text-xs font-semibold flex items-center gap-0.5"
           >
             <AddOutline /> 添加孩子
           </button>
@@ -216,7 +165,7 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
               key={child.id}
               prefix={<span className="text-xl">{child.avatarIcon || '🧒'}</span>}
               extra={
-                <span className="text-yellow-600 font-bold text-xs">
+                <span className="text-[#C88A2E] font-bold text-xs">
                   🪙 {child.coinsBalance} 金币
                 </span>
               }
@@ -225,93 +174,49 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
               arrow
             >
               <div className="flex items-center space-x-2">
-                <span className="font-medium text-xs text-gray-800">{child.nickname}</span>
-                <EditSOutline className="text-gray-400 text-xs" />
+                <span className="font-medium text-xs text-[#2D2621]">{child.nickname}</span>
+                <EditSOutline className="text-[#A89F95] text-xs" />
               </div>
             </List.Item>
           ))}
         </List>
       </div>
 
-      {/* 云端 Supabase 数据库连接与调试诊断 */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="px-4 py-3 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
-          <span className="font-bold text-xs text-gray-700">云端数据库 (Supabase) 状态</span>
-          {isSupabaseConfigured && (
-            <button
-              onClick={() => syncWithSupabase()}
-              className="text-blue-600 text-xs flex items-center gap-1 font-medium"
-            >
-              <RedoOutline className={isSyncing ? 'animate-spin' : ''} /> {isSyncing ? '同步中...' : '立即同步'}
-            </button>
-          )}
-        </div>
-        <List>
-          <List.Item
-            extra={
-              (isSupabaseConfigured || serverConfig?.configured) ? (
-                <Tag color="success" className="!text-[10px]">● 已连接 Supabase</Tag>
-              ) : (
-                <Tag color="default" className="!text-[10px]">本地离线存储模式</Tag>
-              )
-            }
-          >
-            连接状态
-          </List.Item>
-          <List.Item
-            extra={
-              <span className="text-[11px] font-mono text-gray-600 max-w-[200px] truncate block text-right">
-                {rawSupabaseUrl 
-                  ? rawSupabaseUrl.replace(/https:\/\/(.{6}).*(\.supabase\.co)/, 'https://$1***$2')
-                  : (serverConfig?.url || '⚠️ 未读取到环境变量')}
-              </span>
-            }
-          >
-            SUPABASE_URL
-          </List.Item>
-          <List.Item
-            extra={
-              <span className="text-[11px] text-gray-600">
-                {(rawSupabaseAnonKey || serverConfig?.hasKey) ? '●●●●●● (已就绪)' : '⚠️ 未读取到凭证'}
-              </span>
-            }
-          >
-            SUPABASE_ANON_KEY
-          </List.Item>
-        </List>
-      </div>
-
       {/* 家庭与系统时区 */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="px-4 py-3 bg-slate-50/50 border-b border-slate-100 font-bold text-xs text-gray-700">
+      <div className="bg-white rounded-3xl shadow-[0_2px_10px_rgba(60,48,36,0.04)] border border-[#EAE5DC] overflow-hidden">
+        <div className="px-4 py-3 bg-[#F7F5F0] border-b border-[#EAE5DC] font-bold text-xs text-[#2D2621]">
           家庭基础信息
         </div>
         <List>
-          <List.Item extra={family.timezone}>
-            任务结算时区
+          <List.Item extra={<span className="text-xs text-[#7D7267]">{family.timezone}</span>}>
+            <span className="text-xs text-[#2D2621]">任务结算时区</span>
           </List.Item>
-          <List.Item extra={family.name}>
-            家庭档案
+          <List.Item extra={<span className="text-xs text-[#7D7267]">{family.name}</span>}>
+            <span className="text-xs text-[#2D2621]">家庭档案</span>
           </List.Item>
         </List>
       </div>
 
       {/* PWA 手机桌面安装与状态 */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="px-4 py-3 bg-slate-50/50 border-b border-slate-100 font-bold text-xs text-gray-700">
+      <div className="bg-white rounded-3xl shadow-[0_2px_10px_rgba(60,48,36,0.04)] border border-[#EAE5DC] overflow-hidden">
+        <div className="px-4 py-3 bg-[#F7F5F0] border-b border-[#EAE5DC] font-bold text-xs text-[#2D2621]">
           PWA 与手机主屏幕安装
         </div>
         <List>
           <List.Item
             extra={
               installState.isStandalone ? (
-                <Tag color="success" className="!text-[10px]">独立 App 运行中</Tag>
+                <span className="text-[10px] bg-[#EEF4EF] text-[#4F7757] border border-[#D0E3D4] px-2.5 py-0.5 rounded-full font-medium">
+                  独立 App 模式
+                </span>
               ) : (
-                <Tag color="primary" className="!text-[10px]">浏览器标签模式</Tag>
+                <span className="text-[10px] bg-[#FEF8ED] text-[#D49439] border border-[#FCE7C2] px-2.5 py-0.5 rounded-full font-medium">
+                  浏览器标签模式
+                </span>
               )
             }
           >
-            运行模式
+            <span className="text-xs text-[#2D2621]">运行模式</span>
           </List.Item>
           {!installState.isStandalone && (
             <List.Item
@@ -321,39 +226,16 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
                   await installState.triggerInstall();
                 } else {
                   Toast.show({
-                    content: '请使用 Safari 或 Chrome，在菜单中选择「添加到主屏幕」',
+                    content: '请使用 Safari 或 Chrome，在系统菜单中选择「添加到主屏幕」',
                   });
                 }
               }}
               arrow
             >
-              添加到手机主屏幕
+              <span className="text-xs text-[#D96B43] font-medium">添加到手机主屏幕</span>
             </List.Item>
           )}
         </List>
-      </div>
-
-      {/* 维护与缓存清除工具 */}
-      <div className="space-y-2 pt-2">
-        <Button
-          block
-          color="warning"
-          fill="outline"
-          size="middle"
-          onClick={handleClearCacheAndReload}
-          className="!rounded-xl !text-xs font-semibold shadow-sm"
-        >
-          🧹 清空 PWA 缓存并强制刷新 (更新环境变量必点)
-        </Button>
-        <Button
-          block
-          fill="none"
-          size="middle"
-          onClick={handleResetData}
-          className="!text-gray-400 !text-xs"
-        >
-          重置并加载初始演示数据
-        </Button>
       </div>
 
       {/* 绑定弹窗 */}

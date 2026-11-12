@@ -24,7 +24,7 @@ export const DevicePairModal: React.FC<Props> = ({ visible, onClose }) => {
 
   const handlePair = async () => {
     if (code.length !== 6) {
-      Toast.show({ icon: 'fail', content: '请输入微雪屏幕上的 6 位数字配对码' });
+      Toast.show({ icon: 'fail', content: '请输入桌面屏幕上的 6 位数字配对码' });
       return;
     }
 
@@ -61,24 +61,24 @@ export const DevicePairModal: React.FC<Props> = ({ visible, onClose }) => {
       onMaskClick={onClose}
       position="bottom"
       bodyStyle={{
-        borderTopLeftRadius: '20px',
-        borderTopRightRadius: '20px',
+        borderTopLeftRadius: '24px',
+        borderTopRightRadius: '24px',
         padding: '24px 20px',
-        background: '#ffffff',
+        background: '#F7F5F0',
       }}
     >
-      <div className="flex flex-col items-center text-center">
-        <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-3xl mb-2 shadow-inner">
+      <div className="flex flex-col items-center text-center text-[#2D2621]">
+        <div className="w-14 h-14 bg-[#FEF8ED] border border-[#FCE7C2] text-[#D96B43] rounded-2xl flex items-center justify-center text-3xl mb-2.5 shadow-xs">
           📺
         </div>
-        <h3 className="text-lg font-bold text-gray-800 mb-1">绑定微雪 ESP32 硬件设备</h3>
-        <p className="text-xs text-gray-400 mb-4 max-w-xs">
-          请开启微雪屏幕进入设置查看 6 位动态配对码，并指派给对应孩子。
+        <h3 className="text-lg font-bold text-[#2D2621] mb-1">绑定桌面伴学设备</h3>
+        <p className="text-xs text-[#7D7267] mb-4 max-w-xs">
+          请开启桌面屏幕进入设置查看 6 位动态配对码，并指派给对应孩子。
         </p>
 
         {/* 归属孩子选择 */}
-        <div className="w-full text-left mb-4">
-          <label className="text-xs font-bold text-gray-700 block mb-1.5">1. 选择该设备的主人（孩子）*</label>
+        <div className="w-full text-left mb-4 bg-white p-3.5 rounded-2xl border border-[#EAE5DC]">
+          <label className="text-xs font-semibold text-[#2D2621] block mb-2">指派归属孩子：</label>
           <Selector
             options={childOptions}
             value={[selectedChildId]}
@@ -87,46 +87,53 @@ export const DevicePairModal: React.FC<Props> = ({ visible, onClose }) => {
           />
         </div>
 
-        {/* 设备名称设置 */}
-        <div className="w-full text-left mb-4">
-          <label className="text-xs font-bold text-gray-700 block mb-1.5">2. 给这台设备起个名字（选填）</label>
+        {/* 6 位配对码输入 */}
+        <div className="w-full bg-white p-4 rounded-2xl border border-[#EAE5DC] mb-4">
+          <label className="text-xs font-semibold text-[#2D2621] block mb-2 text-left">
+            屏幕 6 位数字配对码：
+          </label>
+          <div className="flex justify-center mb-1">
+            <Input
+              value={code}
+              onChange={val => {
+                const clean = val.replace(/\D/g, '').slice(0, 6);
+                setCode(clean);
+              }}
+              placeholder="例如 829103"
+              className="text-center font-mono tracking-widest !text-2xl font-bold !h-12 !border-2 !border-[#EAE5DC] !bg-[#F7F5F0] rounded-xl text-[#2D2621]"
+              type="number"
+            />
+          </div>
+          <span className="text-[11px] text-[#A89F95]">设备端启动联网后屏幕会自动展示该配对码</span>
+        </div>
+
+        {/* 备注名称 */}
+        <div className="w-full text-left mb-5 bg-white p-3.5 rounded-2xl border border-[#EAE5DC]">
+          <label className="text-xs font-semibold text-[#2D2621] block mb-1">设备备注名称（选填）：</label>
           <Input
-            placeholder="例如：天天的书桌设备"
             value={alias}
             onChange={setAlias}
-            className="!text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-200"
+            placeholder="例如：大宝书桌上的微雪屏"
+            className="!text-xs border-b border-[#EAE5DC] pb-1 text-[#2D2621]"
           />
         </div>
 
-        {/* 6 位验证码输入框 */}
-        <div className="w-full mb-6 text-left">
-          <label className="text-xs font-bold text-gray-700 block mb-1.5">3. 输入微雪屏幕上的 6 位配对码 *</label>
-          <input
-            type="text"
-            pattern="[0-9]*"
-            maxLength={6}
-            value={code}
-            onChange={e => setCode(e.target.value.replace(/\D/g, ''))}
-            placeholder="6 位配对码"
-            className="w-full text-center tracking-[10px] text-2xl font-mono font-bold py-2.5 bg-slate-50 border-2 border-blue-200 rounded-xl focus:border-blue-600 focus:bg-white focus:outline-none transition-all"
-          />
-          <div className="text-[11px] text-gray-400 mt-1.5 text-center">配对码有效时间 5 分钟，绑定后设备将展示专属宠物</div>
-        </div>
-
+        {/* 操作按钮 */}
         <div className="w-full space-y-2">
           <Button
             block
-            color="primary"
-            size="large"
             loading={loading}
             onClick={handlePair}
-            className="!rounded-xl font-bold shadow-sm"
+            className="!rounded-full font-bold !bg-[#D96B43] hover:!bg-[#C75B34] !text-white !border-0 !py-2.5 shadow-sm"
           >
-            确认绑定此设备
+            确认并完成配对绑定
           </Button>
-          <Button block fill="none" size="middle" onClick={onClose} className="!text-gray-400">
-            取消
-          </Button>
+          <button
+            onClick={onClose}
+            className="text-xs text-[#7D7267] hover:text-[#2D2621] py-1.5"
+          >
+            稍后配对
+          </button>
         </div>
       </div>
     </Popup>

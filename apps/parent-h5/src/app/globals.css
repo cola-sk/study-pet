@@ -3,18 +3,19 @@
 @tailwind utilities;
 
 :root {
-  --adm-color-primary: #1677FF;
-  --adm-color-success: #00B578;
-  --adm-color-warning: #FF8F1F;
-  --adm-color-danger: #FF3141;
-  --adm-border-color: #E2E8F0;
-  --adm-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --adm-color-primary: #D96B43;
+  --adm-color-success: #4F7757;
+  --adm-color-warning: #D49439;
+  --adm-color-danger: #C85A5A;
+  --adm-border-color: #EAE5DC;
+  --adm-font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
 }
 
 html, body {
   margin: 0;
   padding: 0;
-  background-color: #F8FAFC;
+  background-color: #F7F5F0;
+  color: #2D2621;
   touch-action: manipulation;
   overscroll-behavior-y: none;
   -webkit-tap-highlight-color: transparent;
@@ -22,28 +23,79 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* 禁止移动端文字误长按弹出系统操作条 (表单输入控件除外) */
-* {
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
+/* Ant Design Mobile Zen 主题定制 */
+.adm-tab-bar {
+  --adm-color-primary: #D96B43;
+  --adm-color-weak: #9C948A;
 }
 
-input, textarea {
-  -webkit-touch-callout: default;
-  -webkit-user-select: auto;
-  user-select: auto;
+.adm-tabs {
+  --active-line-color: transparent;
+  --active-title-color: #2D2621;
+  --title-font-size: 13px;
 }
 
-@keyframes bounceSlow {
-  0%, 100% {
-    transform: translateY(0);
+/* 日系温润分段控制器 */
+.segmented {
+  background-color: #EFECE6;
+  border-radius: 9999px;
+  padding: 3px;
+}
+.segmented .adm-tabs-header {
+  border: 0;
+}
+.segmented .adm-tabs-tab-line {
+  display: none;
+}
+.segmented .adm-tabs-tab-list {
+  padding: 0;
+  gap: 2px;
+}
+.segmented .adm-tabs-tab {
+  min-width: max-content;
+  padding: 7px 14px;
+  color: #7D7267;
+  border-radius: 9999px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+.segmented .adm-tabs-tab-active {
+  background: #FFFFFF;
+  color: #2D2621;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(60, 48, 36, 0.08);
+}
+
+.adm-button {
+  transition: transform 150ms ease, opacity 150ms ease;
+  font-family: inherit;
+}
+.adm-button:active {
+  transform: scale(0.97);
+}
+
+.adm-popup .adm-selector {
+  --border-radius: 12px;
+  --color: #F7F5F0;
+  --checked-color: #FDF3EE;
+  --checked-text-color: #D96B43;
+}
+
+.adm-tag-default {
+  --background-color: #EFECE6;
+  --text-color: #5C544D;
+  --border-color: #EFECE6;
+  --border-radius: 6px;
+}
+
+.adm-popup-body {
+  overflow: hidden;
+  border-radius: 24px 24px 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
-  50% {
-    transform: translateY(-6px);
-  }
-}
-
-.animate-bounce-slow {
-  animation: bounceSlow 3s ease-in-out infinite;
 }

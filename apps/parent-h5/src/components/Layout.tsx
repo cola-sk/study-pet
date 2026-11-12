@@ -53,7 +53,7 @@ export const Layout: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50 text-gray-800 antialiased select-none">
+    <div className="flex flex-col min-h-screen bg-[#F7F5F0] text-[#2D2621] antialiased">
       {/* 1. iPhone 刘海屏 / 灵动岛顶部安全区适配 */}
       <SafeArea position="top" />
 
@@ -70,12 +70,12 @@ export const Layout: React.FC = () => {
       <UpdatePrompt />
 
       {/* 6. 顶栏导航 */}
-      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-100 shadow-sm">
-        <NavBar backArrow={false} className="font-bold text-gray-800">
+      <div className="sticky top-0 z-40 bg-[#F7F5F0]/90 backdrop-blur-md border-b border-[#EAE5DC]">
+        <NavBar backArrow={false} className="font-semibold text-[#2D2621]">
           <div className="flex items-center space-x-1.5 justify-center">
-            <span>🐾</span>
-            <span className="font-extrabold text-base tracking-tight">学习宠物助手</span>
-            <span className="text-[11px] font-normal text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
+            <span className="text-sm">🌱</span>
+            <span className="font-semibold text-base tracking-tight text-[#2D2621]">学习宠物助手</span>
+            <span className="text-xs font-normal text-[#7D7267] bg-[#EFECE6] px-2 py-0.5 rounded-full border border-[#E5DFD4]">
               {children.length}个孩子 · {devices.length}台设备
             </span>
           </div>
@@ -83,7 +83,7 @@ export const Layout: React.FC = () => {
       </div>
 
       {/* 7. 主视图内容区 */}
-      <main className="flex-1 overflow-x-hidden">
+      <main className="flex-1 overflow-x-hidden w-full max-w-xl mx-auto">
         {activeTab === 'approvals' && <ApprovalsPage />}
         {activeTab === 'tasks' && <TasksPage />}
         {activeTab === 'pet' && <PetWalletPage />}
@@ -91,7 +91,7 @@ export const Layout: React.FC = () => {
       </main>
 
       {/* 8. 底部导航栏与 iPhone 虚拟条底部安全区适配 */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur border-t border-slate-100 shadow-lg">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#FCFAF7]/95 backdrop-blur-md border-t border-[#EAE5DC]">
         <TabBar
           activeKey={activeTab}
           onChange={setActiveTab}
