@@ -9,7 +9,7 @@ output = root / 'preview' / 'frames'
 output.mkdir(parents=True, exist_ok=True)
 width, height = 140, 132
 names = [f'{action}_{n:02}' for action in ('idle', 'eat', 'happy', 'sleep', 'hungry', 'thirsty', 'drink', 'sleepy', 'lonely', 'pet') for n in range(1, 5)]
-new_actions = {'hungry', 'thirsty', 'drink', 'sleepy', 'lonely', 'pet'}
+new_actions = {'hungry', 'thirsty', 'drink', 'sleepy', 'lonely', 'pet', 'sleep'}
 with (root / 'main' / 'husky_frames.c').open('w') as c:
     c.write('#include "lvgl.h"\n#include "husky_frames.h"\n')
     for name in names:
@@ -17,7 +17,7 @@ with (root / 'main' / 'husky_frames.c').open('w') as c:
         image = Image.open(frame_dir / f'{name}.png').convert('RGBA')
         # Ignore faint background artifacts when calculating the crop.
         mask = image.getchannel('A').point(lambda a: 255 if a >= 80 else 0)
-        box = mask.getbbox()
+        box = (0, 0, image.width, image.height) if name.startswith('sleep_') else mask.getbbox()
         if box is None:
             raise ValueError(f'No visible pixels: {name}')
         image = image.crop(box)

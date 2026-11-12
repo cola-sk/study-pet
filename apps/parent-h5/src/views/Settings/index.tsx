@@ -7,6 +7,7 @@ import { DevicePairModal } from './DevicePairModal';
 import { useAppStore } from '../../stores/useAppStore';
 import { PWAInstallState } from '../../hooks/usePWAInstall';
 import { IconDevice, IconPlus, IconCoin } from '../../components/Icons';
+import { UserProvidedVisual } from '../../components/UserProvidedVisual';
 
 interface Props {
   installState: PWAInstallState;
@@ -73,7 +74,7 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
       onConfirm: () => {
         const input = document.getElementById('new-child-input') as HTMLInputElement;
         if (input && input.value.trim()) {
-          addChild(input.value.trim(), '👧');
+          addChild(input.value.trim());
           Toast.show({ icon: 'success', content: '已添加宝贝档案' });
         }
       },
@@ -155,27 +156,36 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
         </div>
 
         <div className="kid-list">
-          {children.map(child => (
-            <button
-              key={child.id}
-              type="button"
-              onClick={() => handleEditNickname(child.id, child.nickname)}
-              className="kid-list-row w-full text-left"
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="text-base leading-none">{child.avatarIcon || '🧒'}</span>
-                <span className="font-semibold text-[13px] text-[#1F2937] truncate">
-                  {child.nickname}
-                </span>
-                <EditSOutline className="text-[#9CA3AF] text-xs shrink-0" />
-              </div>
+          {children.map(child => {
+            const childAvatar = child.avatarUrl || child.avatarIcon;
+            return (
+              <button
+                key={child.id}
+                type="button"
+                onClick={() => handleEditNickname(child.id, child.nickname)}
+                className="kid-list-row w-full text-left"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  {childAvatar && (
+                    <UserProvidedVisual
+                      value={childAvatar}
+                      alt={`${child.nickname}头像`}
+                      className="inline-flex h-5 w-5 items-center justify-center rounded-full object-cover text-base leading-none"
+                    />
+                  )}
+                  <span className="font-semibold text-[13px] text-[#1F2937] truncate">
+                    {child.nickname}
+                  </span>
+                  <EditSOutline className="text-[#9CA3AF] text-xs shrink-0" />
+                </div>
 
-              <span className="inline-flex items-center gap-1 text-caption font-bold text-[#B45309] shrink-0">
-                <IconCoin className="w-3.5 h-3.5" />
-                <span>{child.coinsBalance} 金币</span>
-              </span>
-            </button>
-          ))}
+                <span className="inline-flex items-center gap-1 text-caption font-bold text-[#B45309] shrink-0">
+                  <IconCoin className="w-3.5 h-3.5" />
+                  <span>{child.coinsBalance} 金币</span>
+                </span>
+              </button>
+            );
+          })}
         </div>
       </section>
 

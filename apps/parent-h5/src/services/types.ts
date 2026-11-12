@@ -27,7 +27,7 @@ export interface Child {
   nickname: string;
   coinsBalance: number;
   avatarUrl?: string;
-  avatarIcon?: string; // e.g. '👦' or '👧'
+  avatarIcon?: string; // 用户录入时选择的头像图标
 }
 
 export interface Device {
@@ -101,7 +101,7 @@ export interface ShopItem {
   name: string;
   category: 'food' | 'water' | 'clothes';
   price: number;
-  icon: string;
+  icon?: string | null; // 用户上传或选择的商品图标
   description?: string;
 }
 
@@ -109,7 +109,7 @@ export interface PetState {
   id: string;
   familyId: string;
   childId: string;
-  petAvatar: string; // '🐶', '🐱' 等
+  petAvatar?: string | null; // 用户上传或选择的宠物图标
   petName: string;
   currentClothesItem?: ShopItem | null;
   foodCount: number;

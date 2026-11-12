@@ -6,6 +6,7 @@ import confetti from 'canvas-confetti';
 import { useAppStore } from '../../stores/useAppStore';
 import { TaskInstance } from '../../services/types';
 import { IconCoin, IconCheck } from '../../components/Icons';
+import { UserProvidedVisual } from '../../components/UserProvidedVisual';
 
 export const ApprovalsPage: React.FC = () => {
   const { 
@@ -87,6 +88,7 @@ export const ApprovalsPage: React.FC = () => {
           {children.map(child => {
             const childPendingCount = instances.filter(i => i.childId === child.id && i.status === 'submitted').length;
             const isSelected = selectedChildId === child.id;
+            const childAvatar = child.avatarUrl || child.avatarIcon;
             return (
               <button
                 key={child.id}
@@ -96,7 +98,13 @@ export const ApprovalsPage: React.FC = () => {
                 onClick={() => setSelectedChildId(child.id)}
                 className={`approval-filter-chip ${isSelected ? 'is-selected' : ''}`}
               >
-                <span>{child.avatarIcon || '🧒'}</span>
+                {childAvatar && (
+                  <UserProvidedVisual
+                    value={childAvatar}
+                    alt={`${child.nickname}头像`}
+                    className="inline-flex w-4 h-4 items-center justify-center rounded-full object-cover text-[15px] leading-none"
+                  />
+                )}
                 <span>{child.nickname}</span>
                 {childPendingCount > 0 && (
                   <span className="approval-filter-count">
@@ -117,14 +125,21 @@ export const ApprovalsPage: React.FC = () => {
             const childCompleted = childTasks.filter(i => i.status === 'completed').length;
             const childTotal = childTasks.length;
             const progressPct = childTotal > 0 ? Math.round((childCompleted / childTotal) * 100) : 0;
+            const profileVisual = pet?.currentClothesItem?.icon || pet?.petAvatar || child.avatarUrl || child.avatarIcon;
 
             return (
               <div key={child.id} className="family-overview-card">
                 <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="family-pet-avatar flex items-center justify-center shrink-0">
-                      {pet?.currentClothesItem?.icon || pet?.petAvatar || '🐶'}
-                    </div>
+                  <div className={`flex items-center ${profileVisual ? 'gap-2.5' : ''} min-w-0`}>
+                    {profileVisual && (
+                      <div className="family-pet-avatar flex items-center justify-center shrink-0 overflow-hidden">
+                        <UserProvidedVisual
+                          value={profileVisual}
+                          alt={pet?.currentClothesItem?.name || pet?.petName || child.nickname}
+                          className="flex h-full w-full items-center justify-center object-cover text-xl"
+                        />
+                      </div>
+                    )}
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5">
                         <h2 className="text-[15px] font-bold text-[#292B25] truncate">{child.nickname}</h2>

@@ -42,6 +42,10 @@ static void animate_pet(lv_timer_t *timer)
         if (action == HAPPY && cycles >= 2) { set_action(IDLE); need_ticks = 0; return; }
     }
     if (action == IDLE || is_need(action)) {
+        if (is_need(action) && need_ticks > 0 && need_ticks % 4 == 0) {
+            unsigned base = action == SLEEPY ? 1 : 0;
+            frame = base + (frame == base ? 1 : 0);
+        }
         if (++need_ticks >= 100) {
             unsigned pick = esp_random() % 4;
             if ((int)pick == last_need) pick = (pick + 1 + esp_random() % 3) % 4;

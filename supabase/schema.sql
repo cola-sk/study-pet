@@ -112,10 +112,12 @@ CREATE TABLE IF NOT EXISTS public.shop_items (
     name VARCHAR(80) NOT NULL,
     category VARCHAR(20) NOT NULL, -- 'food' | 'water' | 'clothes'
     price INT NOT NULL CHECK (price >= 0),
-    icon TEXT NOT NULL,
+    icon TEXT NOT NULL DEFAULT '',
     description TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE public.shop_items ALTER COLUMN icon SET DEFAULT '';
 
 -- 9. 宠物状态与背包装扮表 (pet_states) - 每个孩子拥有独立宠物
 CREATE TABLE IF NOT EXISTS public.pet_states (
@@ -231,14 +233,16 @@ $$;
 -- ==============================================================================
 
 -- 注入商城道具字典
-INSERT INTO public.shop_items (id, name, category, price, icon, description) VALUES
-('00000000-0000-0000-0000-000000000001', '新鲜小苹果', 'food', 5, '🍎', '脆甜多汁的小红富士'),
-('00000000-0000-0000-0000-000000000002', '美味小蛋糕', 'food', 12, '🍰', '香甜草莓奶油蛋糕'),
-('00000000-0000-0000-0000-000000000003', '纯净矿泉水', 'water', 5, '💧', '清凉解渴矿泉水'),
-('00000000-0000-0000-0000-000000000004', '清凉椰子汁', 'water', 10, '🥥', '天然甘甜椰子水'),
-('00000000-0000-0000-0000-000000000005', '水手服套装', 'clothes', 40, '👔', '帅气精神的水手校服'),
-('00000000-0000-0000-0000-000000000006', '恐龙连体衣', 'clothes', 60, '🦖', '超萌绿色小恐龙')
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.shop_items AS existing_items (id, name, category, price, icon, description) VALUES
+('00000000-0000-0000-0000-000000000001', '新鲜小苹果', 'food', 5, '', '脆甜多汁的小红富士'),
+('00000000-0000-0000-0000-000000000002', '美味小蛋糕', 'food', 12, '', '香甜草莓奶油蛋糕'),
+('00000000-0000-0000-0000-000000000003', '纯净矿泉水', 'water', 5, '', '清凉解渴矿泉水'),
+('00000000-0000-0000-0000-000000000004', '清凉椰子汁', 'water', 10, '', '天然甘甜椰子水'),
+('00000000-0000-0000-0000-000000000005', '水手服套装', 'clothes', 40, '', '帅气精神的水手校服'),
+('00000000-0000-0000-0000-000000000006', '恐龙连体衣', 'clothes', 60, '', '超萌绿色小恐龙')
+-- 清除旧演示商品里的固定 emoji；其他已有图标（包括手动设置的图标）保持不变。
+ON CONFLICT (id) DO UPDATE SET icon = EXCLUDED.icon
+WHERE existing_items.icon IN ('🍎', '🍰', '💧', '🥥', '👔', '🦖');
 
 -- 权限授予 (保证 anon 公开读写用于开发与设备同步)
 GRANT USAGE ON SCHEMA public TO anon, authenticated;

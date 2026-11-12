@@ -3,13 +3,14 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../../stores/useAppStore';
 import { IconCoin } from '../../components/Icons';
+import { UserProvidedVisual } from '../../components/UserProvidedVisual';
 
 export const PetWalletPage: React.FC = () => {
   const { children, pets, transactions, shopItems } = useAppStore();
   const [currentChildId, setCurrentChildId] = useState<string>(children[0]?.id || 'child-101');
 
   const currentChild = children.find(c => c.id === currentChildId) || children[0];
-  const pet = pets[currentChild?.id || ''] || pets['child-101'];
+  const pet = currentChild ? pets[currentChild.id] : undefined;
 
   const childTransactions = transactions.filter(t => t.childId === currentChild?.id);
 
@@ -20,6 +21,7 @@ export const PetWalletPage: React.FC = () => {
   const totalSpent = childTransactions
     .filter(t => t.amount < 0)
     .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+  const petVisual = pet?.petAvatar || pet?.currentClothesItem?.icon || currentChild?.avatarUrl || currentChild?.avatarIcon;
 
   return (
     <div className="px-3 py-2.5 space-y-3 pb-20 text-[#1F2937]">
@@ -27,6 +29,7 @@ export const PetWalletPage: React.FC = () => {
       <div className="flex items-center gap-1.5 overflow-x-auto" role="tablist" aria-label="选择孩子">
         {children.map(child => {
           const isSelected = currentChildId === child.id;
+          const childAvatar = child.avatarUrl || child.avatarIcon;
           return (
             <button
               key={child.id}
@@ -36,7 +39,13 @@ export const PetWalletPage: React.FC = () => {
               onClick={() => setCurrentChildId(child.id)}
               className={`kid-filter-chip ${isSelected ? 'kid-filter-chip-selected' : ''}`}
             >
-              <span>{child.avatarIcon || '🧒'}</span>
+              {childAvatar && (
+                <UserProvidedVisual
+                  value={childAvatar}
+                  alt={`${child.nickname}头像`}
+                  className="inline-flex h-4 w-4 items-center justify-center rounded-full object-cover text-[15px] leading-none"
+                />
+              )}
               <span>{child.nickname}</span>
             </button>
           );
@@ -46,10 +55,16 @@ export const PetWalletPage: React.FC = () => {
       {/* 宠物与金币一体化紧凑卡片 */}
       <div className="kid-card space-y-2.5">
         <div className="flex items-center justify-between gap-2.5">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-11 h-11 rounded-full bg-[#FEF3C7] border border-[#FDE68A] flex items-center justify-center text-2xl shrink-0">
-              {pet?.petAvatar || '🐶'}
-            </div>
+          <div className={`flex items-center ${petVisual ? 'gap-2.5' : ''} min-w-0`}>
+            {petVisual && (
+              <div className="w-11 h-11 rounded-full bg-[#F8F1E3] border border-[#EDE1C7] flex items-center justify-center shrink-0 overflow-hidden">
+                <UserProvidedVisual
+                  value={petVisual}
+                  alt={pet?.petName || currentChild?.nickname || '宠物'}
+                  className="flex h-full w-full items-center justify-center object-cover text-2xl"
+                />
+              </div>
+            )}
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
                 <h2 className="text-h2 text-[#1F2937] truncate">
@@ -57,13 +72,20 @@ export const PetWalletPage: React.FC = () => {
                 </h2>
                 {pet?.currentClothesItem && (
                   <span className="kid-status-chip kid-status-active">
-                    {pet.currentClothesItem.icon} {pet.currentClothesItem.name}
+                    {pet.currentClothesItem.icon && (
+                      <UserProvidedVisual
+                        value={pet.currentClothesItem.icon}
+                        alt={pet.currentClothesItem.name}
+                        className="inline-flex h-4 w-4 items-center justify-center object-contain"
+                      />
+                    )}
+                    {pet.currentClothesItem.name}
                   </span>
                 )}
               </div>
               <div className="text-caption text-[#6B7280] mt-0.5 flex items-center gap-3">
-                <span>🍎 食物 {pet?.foodCount || 0}</span>
-                <span>💧 饮水 {pet?.waterCount || 0}</span>
+                <span>食物 {pet?.foodCount || 0}</span>
+                <span>饮水 {pet?.waterCount || 0}</span>
               </div>
             </div>
           </div>
@@ -100,9 +122,15 @@ export const PetWalletPage: React.FC = () => {
         <div className="grid grid-cols-3 gap-2">
           {shopItems.map(item => (
             <div key={item.id} className="kid-card !p-2 text-center flex flex-col items-center">
-              <div className="w-8 h-8 rounded-full bg-[#FEF3C7] flex items-center justify-center text-lg mb-1">
-                {item.icon}
-              </div>
+              {item.icon && (
+                <div className="w-8 h-8 rounded-full bg-[#F8F1E3] flex items-center justify-center text-lg mb-1 overflow-hidden">
+                  <UserProvidedVisual
+                    value={item.icon}
+                    alt={item.name}
+                    className="flex h-full w-full items-center justify-center object-cover"
+                  />
+                </div>
+              )}
               <div className="font-semibold text-[12px] text-[#1F2937] truncate w-full">{item.name}</div>
               <div className="mt-0.5 inline-flex items-center gap-0.5 text-[#B45309] font-bold text-[11px]">
                 <IconCoin className="w-3 h-3" />

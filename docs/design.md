@@ -14,7 +14,8 @@ The visual foundation is warm ivory, soft white, forest green, and muted terraco
 - In the small website roundel, let the paw occupy roughly half to three-fifths of the circle; on the home-screen tile, let it use about 70% of the safe area.
 - Use the same artwork for the browser favicon, Apple touch icon, PWA icons, home-screen shortcuts, and install guide.
 - Keep the master artwork in `apps/parent-h5/public/icons/paw-app-icon.svg`; regenerate its PNG and ICO derivatives when the mark changes.
-- Use line icons for navigation and actions. Pet emoji or illustrations belong in child and pet identity areas, not as general-purpose controls.
+- Render child, pet, clothing, and shop imagery only when it comes from a value explicitly selected or uploaded for that record. Do not synthesize default emoji or show a placeholder image when the value is empty.
+- Brand artwork and functional navigation/action icons are fixed product UI assets and remain visible independently of record data.
 
 ## Color palette
 
@@ -63,7 +64,7 @@ Use a 4px base unit, with 8px as the normal component gap.
 - Cards and lists: 14–16px corners.
 - Main action buttons: 9–10px corners; compact controls may use 8px.
 - Filter and count chips: fully rounded pills.
-- Pet avatars: 14px corners; app mark: 11px corners.
+- Pet avatars: 14px corners; website app mark: circular.
 - Use fine 1px borders and restrained shadows. Cards should lift gently from the canvas without hard outlines, chunky offsets, or large dark shadows.
 - Keep fixed headers and navigation lightly tinted and translucent, with a subtle divider or shadow.
 

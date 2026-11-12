@@ -16,13 +16,18 @@ import { supabase, isSupabaseConfigured } from '../services/supabase';
 
 // 初始默认商品字典
 const DEFAULT_SHOP_ITEMS: ShopItem[] = [
-  { id: 'item-1', name: '新鲜小苹果', category: 'food', price: 5, icon: '🍎', description: '脆甜多汁的小红富士' },
-  { id: 'item-2', name: '美味小蛋糕', category: 'food', price: 12, icon: '🍰', description: '香甜草莓奶油蛋糕' },
-  { id: 'item-3', name: '纯净矿泉水', category: 'water', price: 5, icon: '💧', description: '清凉解渴矿泉水' },
-  { id: 'item-4', name: '清凉椰子汁', category: 'water', price: 10, icon: '🥥', description: '天然甘甜椰子水' },
-  { id: 'item-5', name: '水手服套装', category: 'clothes', price: 40, icon: '👔', description: '帅气精神的水手校服' },
-  { id: 'item-6', name: '恐龙连体衣', category: 'clothes', price: 60, icon: '🦖', description: '超萌绿色小恐龙' },
+  { id: 'item-1', name: '新鲜小苹果', category: 'food', price: 5, description: '脆甜多汁的小红富士' },
+  { id: 'item-2', name: '美味小蛋糕', category: 'food', price: 12, description: '香甜草莓奶油蛋糕' },
+  { id: 'item-3', name: '纯净矿泉水', category: 'water', price: 5, description: '清凉解渴矿泉水' },
+  { id: 'item-4', name: '清凉椰子汁', category: 'water', price: 10, description: '天然甘甜椰子水' },
+  { id: 'item-5', name: '水手服套装', category: 'clothes', price: 40, description: '帅气精神的水手校服' },
+  { id: 'item-6', name: '恐龙连体衣', category: 'clothes', price: 60, description: '超萌绿色小恐龙' },
 ];
+
+// One-time cleanup for emoji that older demo data injected into persisted profiles.
+const LEGACY_DEFAULT_CHILD_AVATARS = new Set(['👦', '👧', '🧒']);
+const LEGACY_DEFAULT_PET_AVATARS = new Set(['🐶', '🐱', '🦊']);
+const LEGACY_DEFAULT_SHOP_ICONS = new Set(['🍎', '🍰', '💧', '🥥', '👔', '🦖']);
 
 const INITIAL_FAMILY: Family = {
   id: 'fam-101',
@@ -38,14 +43,12 @@ const INITIAL_CHILDREN: Child[] = [
     familyId: 'fam-101',
     nickname: '天天 (大宝)',
     coinsBalance: 25,
-    avatarIcon: '👦',
   },
   {
     id: 'child-102',
     familyId: 'fam-101',
     nickname: '果果 (二宝)',
     coinsBalance: 15,
-    avatarIcon: '👧',
   },
 ];
 
@@ -81,9 +84,7 @@ const INITIAL_PETS: Record<string, PetState> = {
     id: 'pet-101',
     familyId: 'fam-101',
     childId: 'child-101',
-    petAvatar: '🐶',
     petName: '天天的汪汪',
-    currentClothesItem: DEFAULT_SHOP_ITEMS[4], // 水手服
     foodCount: 2,
     waterCount: 1,
     updatedAt: '2026-11-12T08:00:00Z',
@@ -92,9 +93,7 @@ const INITIAL_PETS: Record<string, PetState> = {
     id: 'pet-102',
     familyId: 'fam-101',
     childId: 'child-102',
-    petAvatar: '🐱',
     petName: '果果的喵喵',
-    currentClothesItem: DEFAULT_SHOP_ITEMS[5], // 恐龙服
     foodCount: 3,
     waterCount: 2,
     updatedAt: '2026-11-12T08:00:00Z',
@@ -306,14 +305,19 @@ export const useAppStore = create<AppState>()(
           // 1. 同步孩子档案
           const { data: childrenData } = await supabase.from('children').select('*');
           if (childrenData && childrenData.length > 0) {
+            const localChildren = get().children;
             set({
-              children: childrenData.map(c => ({
-                id: c.id,
-                familyId: c.family_id,
-                nickname: c.nickname,
-                coinsBalance: c.coins_balance,
-                avatarIcon: c.nickname.includes('果') ? '👧' : '👦',
-              })),
+              children: childrenData.map(c => {
+                const localChild = localChildren.find(child => child.id === c.id);
+                return {
+                  id: c.id,
+                  familyId: c.family_id,
+                  nickname: c.nickname,
+                  coinsBalance: c.coins_balance,
+                  avatarUrl: c.avatar_url || localChild?.avatarUrl,
+                  avatarIcon: localChild?.avatarIcon,
+                };
+              }),
             });
           }
 
@@ -573,22 +577,21 @@ export const useAppStore = create<AppState>()(
         triggerHaptic(20);
       },
 
-      addChild: (nickname: string, avatarIcon = '🧒') => {
+      addChild: (nickname: string, avatarIcon?: string) => {
         const id = `child-${Date.now()}`;
         const newChild: Child = {
           id,
           familyId: get().family.id,
           nickname,
           coinsBalance: 0,
-          avatarIcon,
+          avatarIcon: avatarIcon || undefined,
         };
 
         const newPet: PetState = {
           id: `pet-${Date.now()}`,
           familyId: get().family.id,
           childId: id,
-          petAvatar: '🦊',
-          petName: `${nickname}的小狐狸`,
+          petName: `${nickname}的小宠`,
           foodCount: 1,
           waterCount: 1,
           updatedAt: new Date().toISOString(),
@@ -627,6 +630,36 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'study_pet_parent_storage_v2', // v2 with multi-device support
+      version: 1,
+      migrate: (persistedState, _version) => {
+        const state = persistedState as AppState;
+        return {
+          ...state,
+          children: (state.children || []).map(child => ({
+            ...child,
+            avatarIcon: LEGACY_DEFAULT_CHILD_AVATARS.has(child.avatarIcon || '')
+              ? undefined
+              : child.avatarIcon,
+          })),
+          pets: Object.fromEntries(
+            Object.entries(state.pets || {}).map(([childId, pet]) => [
+              childId,
+              {
+                ...pet,
+                petAvatar: LEGACY_DEFAULT_PET_AVATARS.has(pet.petAvatar || '')
+                  ? undefined
+                  : pet.petAvatar,
+                currentClothesItem: pet.currentClothesItem && LEGACY_DEFAULT_SHOP_ICONS.has(pet.currentClothesItem.icon || '')
+                  ? { ...pet.currentClothesItem, icon: undefined }
+                  : pet.currentClothesItem,
+              },
+            ])
+          ),
+          shopItems: (state.shopItems || []).map(item => LEGACY_DEFAULT_SHOP_ICONS.has(item.icon || '')
+            ? { ...item, icon: undefined }
+            : item),
+        };
+      },
     }
   )
 );
