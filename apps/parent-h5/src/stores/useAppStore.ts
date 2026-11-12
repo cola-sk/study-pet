@@ -262,9 +262,11 @@ interface AppState {
   transactions: WalletTransaction[];
   pets: Record<string, PetState>;
   shopItems: ShopItem[];
+  isSyncing: boolean;
 
   // Actions
   setSelectedChildId: (childId: string) => void;
+  syncWithSupabase: () => Promise<void>;
   approveTask: (instanceId: string) => Promise<{ success: boolean; message: string; coins?: number }>;
   rejectTask: (instanceId: string, reason: string) => Promise<{ success: boolean; message: string }>;
   addTemplate: (tpl: Omit<TaskTemplate, 'id' | 'createdAt'>) => void;
@@ -291,9 +293,89 @@ export const useAppStore = create<AppState>()(
       transactions: INITIAL_TRANSACTIONS,
       pets: INITIAL_PETS,
       shopItems: DEFAULT_SHOP_ITEMS,
+      isSyncing: false,
 
       setSelectedChildId: (childId: string) => {
         set({ selectedChildId: childId });
+      },
+
+      syncWithSupabase: async () => {
+        if (!isSupabaseConfigured || !supabase) return;
+        set({ isSyncing: true });
+        try {
+          // 1. 同步孩子档案
+          const { data: childrenData } = await supabase.from('children').select('*');
+          if (childrenData && childrenData.length > 0) {
+            set({
+              children: childrenData.map(c => ({
+                id: c.id,
+                familyId: c.family_id,
+                nickname: c.nickname,
+                coinsBalance: c.coins_balance,
+                avatarIcon: c.nickname.includes('果') ? '👧' : '👦',
+              })),
+            });
+          }
+
+          // 2. 同步设备列表
+          const { data: devicesData } = await supabase.from('devices').select('*');
+          if (devicesData && devicesData.length > 0) {
+            set({
+              devices: devicesData.map(d => ({
+                id: d.id,
+                familyId: d.family_id,
+                childId: d.child_id,
+                alias: d.alias || '桌面微雪设备',
+                deviceModel: d.device_model || '微雪 ESP32-S3-Touch-LCD-2.8',
+                macAddress: d.mac_address,
+                status: d.status || 'paired',
+                firmwareVersion: d.firmware_version || 'v1.0.0',
+                lastSeenAt: '刚刚同步',
+              })),
+            });
+          }
+
+          // 3. 同步今日任务实例
+          const todayStr = new Date().toISOString().split('T')[0];
+          const { data: instancesData } = await supabase
+            .from('task_instances')
+            .select('*')
+            .eq('target_date', todayStr);
+
+          if (instancesData && instancesData.length > 0) {
+            const { children, devices } = get();
+            set({
+              instances: instancesData.map(i => {
+                const child = children.find(c => c.id === i.child_id);
+                const device = devices.find(d => d.childId === i.child_id);
+                return {
+                  id: i.id,
+                  templateId: i.template_id,
+                  familyId: i.family_id,
+                  childId: i.child_id,
+                  childNickname: child?.nickname,
+                  deviceId: i.device_id,
+                  deviceAlias: device?.alias,
+                  targetDate: i.target_date,
+                  title: i.title,
+                  description: i.description,
+                  rewardCoins: i.reward_coins,
+                  confirmType: i.confirm_type,
+                  status: i.status,
+                  submittedAt: i.submitted_at ? new Date(i.submitted_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : undefined,
+                  reviewedAt: i.reviewed_at ? new Date(i.reviewed_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : undefined,
+                  rejectReason: i.reject_reason,
+                  rewardGranted: i.reward_granted,
+                  createdAt: i.created_at,
+                };
+              }),
+            });
+          }
+        } catch (err) {
+          console.warn('Sync with Supabase failed:', err);
+        } finally {
+          set({ isSyncing: false });
+        }
       },
 
       approveTask: async (instanceId: string) => {

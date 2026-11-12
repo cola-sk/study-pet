@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { List, Button, Dialog, Toast, Tag } from 'antd-mobile';
-import { AddOutline, DeleteOutline, EditSOutline } from 'antd-mobile-icons';
+import { AddOutline, DeleteOutline, EditSOutline, RedoOutline } from 'antd-mobile-icons';
 import { DevicePairModal } from './DevicePairModal';
 import { useAppStore } from '../../stores/useAppStore';
-import { isSupabaseConfigured } from '../../services/supabase';
+import { rawSupabaseUrl, rawSupabaseAnonKey, isSupabaseConfigured } from '../../services/supabase';
 import { PWAInstallState } from '../../hooks/usePWAInstall';
 
 interface Props {
@@ -15,6 +15,8 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
     children, 
     family, 
     devices, 
+    isSyncing,
+    syncWithSupabase,
     unbindDevice, 
     addChild, 
     updateChildNickname, 
@@ -89,6 +91,34 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
         Toast.show({ icon: 'success', content: '已恢复初始演示数据' });
       },
     });
+  };
+
+  // 深度清理 Service Worker 缓存，解决 PWA 缓存旧构建产物的问题
+  const handleClearCacheAndReload = async () => {
+    Toast.show({ icon: 'loading', content: '正在清空 PWA 缓存并重载...' });
+    try {
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const reg of registrations) {
+          await reg.unregister();
+        }
+      }
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        for (const key of keys) {
+          await caches.delete(key);
+        }
+      }
+      localStorage.removeItem('study_pet_parent_storage_v1');
+      localStorage.removeItem('study_pet_parent_storage_v2');
+      sessionStorage.clear();
+      setTimeout(() => {
+        window.location.href = window.location.origin + window.location.pathname + '?reload=' + Date.now();
+      }, 500);
+    } catch (err) {
+      console.error('Failed to clear cache:', err);
+      window.location.reload();
+    }
   };
 
   return (
@@ -193,6 +223,52 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
         </List>
       </div>
 
+      {/* 云端 Supabase 数据库连接与调试诊断 */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="px-4 py-3 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+          <span className="font-bold text-xs text-gray-700">云端数据库 (Supabase) 状态</span>
+          {isSupabaseConfigured && (
+            <button
+              onClick={() => syncWithSupabase()}
+              className="text-blue-600 text-xs flex items-center gap-1 font-medium"
+            >
+              <RedoOutline className={isSyncing ? 'animate-spin' : ''} /> {isSyncing ? '同步中...' : '立即同步'}
+            </button>
+          )}
+        </div>
+        <List>
+          <List.Item
+            extra={
+              isSupabaseConfigured ? (
+                <Tag color="success" className="!text-[10px]">● 已连接 Supabase</Tag>
+              ) : (
+                <Tag color="default" className="!text-[10px]">本地离线存储模式</Tag>
+              )
+            }
+          >
+            连接状态
+          </List.Item>
+          <List.Item
+            extra={
+              <span className="text-[11px] font-mono text-gray-600 max-w-[200px] truncate block text-right">
+                {rawSupabaseUrl ? rawSupabaseUrl.replace(/https:\/\/(.{6}).*(\.supabase\.co)/, 'https://$1***$2') : '⚠️ 未读取到 (为空)'}
+              </span>
+            }
+          >
+            VITE_SUPABASE_URL
+          </List.Item>
+          <List.Item
+            extra={
+              <span className="text-[11px] text-gray-600">
+                {rawSupabaseAnonKey ? '●●●●●● (已配置)' : '⚠️ 未读取到 (为空)'}
+              </span>
+            }
+          >
+            VITE_SUPABASE_ANON_KEY
+          </List.Item>
+        </List>
+      </div>
+
       {/* 家庭与系统时区 */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="px-4 py-3 bg-slate-50/50 border-b border-slate-100 font-bold text-xs text-gray-700">
@@ -242,22 +318,21 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
               添加到手机主屏幕
             </List.Item>
           )}
-          <List.Item
-            extra={
-              isSupabaseConfigured ? (
-                <span className="text-green-600 font-semibold text-xs">● 已连接 Supabase</span>
-              ) : (
-                <span className="text-gray-400 text-xs">本地离线存储模式</span>
-              )
-            }
-          >
-            后端数据库状态
-          </List.Item>
         </List>
       </div>
 
-      {/* 快捷开发者重置按钮 */}
-      <div className="pt-2">
+      {/* 维护与缓存清除工具 */}
+      <div className="space-y-2 pt-2">
+        <Button
+          block
+          color="warning"
+          fill="outline"
+          size="middle"
+          onClick={handleClearCacheAndReload}
+          className="!rounded-xl !text-xs font-semibold shadow-sm"
+        >
+          🧹 清空 PWA 缓存并强制刷新 (更新环境变量必点)
+        </Button>
         <Button
           block
           fill="none"
