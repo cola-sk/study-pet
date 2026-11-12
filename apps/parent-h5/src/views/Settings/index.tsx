@@ -6,7 +6,7 @@ import { DeleteOutline, EditSOutline } from 'antd-mobile-icons';
 import { DevicePairModal } from './DevicePairModal';
 import { useAppStore } from '../../stores/useAppStore';
 import { PWAInstallState } from '../../hooks/usePWAInstall';
-import { IconDevice, IconPlus, IconCheck, IconCoin, IconStar } from '../../components/Icons';
+import { IconDevice, IconPlus, IconCoin } from '../../components/Icons';
 
 interface Props {
   installState: PWAInstallState;
@@ -27,9 +27,9 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
   const handleUnbind = (deviceId: string, alias: string) => {
     Dialog.confirm({
       title: '解除设备连接？',
-      content: `确定要断开设备「${alias}」吗？断开后可以随时重新配对哦。`,
-      confirmText: '确定断开',
-      cancelText: '返回',
+      content: `确定要断开设备「${alias}」吗？断开后可随时重新配对。`,
+      confirmText: '断开',
+      cancelText: '取消',
       onConfirm: () => {
         unbindDevice(deviceId);
         Toast.show({ icon: 'success', content: '已解除设备绑定' });
@@ -52,7 +52,7 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
         const input = document.getElementById('nickname-input') as HTMLInputElement;
         if (input && input.value.trim()) {
           updateChildNickname(childId, input.value.trim());
-          Toast.show({ icon: 'success', content: '昵称改好啦！' });
+          Toast.show({ icon: 'success', content: '已更新昵称' });
         }
       },
     });
@@ -60,7 +60,7 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
 
   const handleAddChild = () => {
     Dialog.confirm({
-      title: '添加新宝贝档案',
+      title: '添加宝贝档案',
       content: (
         <div className="mt-2">
           <input
@@ -74,75 +74,65 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
         const input = document.getElementById('new-child-input') as HTMLInputElement;
         if (input && input.value.trim()) {
           addChild(input.value.trim(), '👧');
-          Toast.show({ icon: 'success', content: '已添加宝贝档案！' });
+          Toast.show({ icon: 'success', content: '已添加宝贝档案' });
         }
       },
     });
   };
 
   return (
-    <div className="px-3.5 py-3.5 space-y-5 pb-24 text-[#1F2937]">
+    <div className="px-3 py-2.5 space-y-3 pb-20 text-[#1F2937]">
       {/* 1. 桌面伙伴硬件设备管理 */}
-      <section className="space-y-2.5">
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <h2 className="text-h2 text-[#1F2937]">桌面伙伴设备 ({devices.length})</h2>
-            <p className="text-caption text-[#6B7280]">管理宝贝书桌上的硬件屏幕</p>
-          </div>
+      <section className="space-y-2">
+        <div className="flex items-center justify-between px-0.5">
+          <h2 className="text-h2 text-[#1F2937]">桌面设备 ({devices.length})</h2>
           <button
             type="button"
             onClick={() => setPairModalVisible(true)}
             className="kid-btn kid-btn-primary kid-btn-sm"
           >
-            <IconPlus className="w-3.5 h-3.5" />
-            <span>连接新设备</span>
+            <IconPlus className="w-3 h-3" />
+            <span>配对新设备</span>
           </button>
         </div>
 
         {devices.length === 0 ? (
-          <div className="kid-card text-center py-6">
-            <div className="text-body text-[#6B7280]">
-              还没有连接桌面设备，点击右上角【连接新设备】开始配对吧！
-            </div>
+          <div className="kid-card text-center py-5 text-body text-[#9CA3AF]">
+            暂未绑定设备，点击右上角配对
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="kid-list">
             {devices.map(device => {
               const child = children.find(c => c.id === device.childId);
               return (
-                <div key={device.id} className="kid-card space-y-2.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-9 h-9 rounded-full bg-[#DBEAFE] text-[#3B82F6] flex items-center justify-center shrink-0">
-                        <IconDevice className="w-4 h-4" />
+                <div key={device.id} className="kid-list-row">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-8 h-8 rounded-lg bg-[#EFF6FF] text-[#3B82F6] flex items-center justify-center shrink-0">
+                      <IconDevice className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-semibold text-[13px] text-[#1F2937] truncate">
+                          {device.alias}
+                        </span>
+                        <span className="kid-status-chip kid-status-complete shrink-0">
+                          ● 已连接
+                        </span>
                       </div>
-                      <div className="min-w-0">
-                        <h3 className="text-h3 text-[#1F2937] truncate">{device.alias}</h3>
-                        <p className="text-caption text-[#6B7280] truncate">
-                          专属宝贝：{child?.nickname || '未指定'}
-                        </p>
+                      <div className="text-caption text-[#6B7280] mt-0.5 truncate">
+                        {child?.nickname || '未分配'} · <span className="font-mono text-[10px] text-[#9CA3AF]">{device.macAddress}</span>
                       </div>
                     </div>
-
-                    <span className="kid-status-chip kid-status-complete shrink-0">
-                      <IconCheck className="w-3.5 h-3.5" />
-                      <span>已连接</span>
-                    </span>
                   </div>
 
-                  <div className="pt-2.5 border-t border-[#E5E7EB] flex items-center justify-between gap-2">
-                    <div className="text-mono text-[#6B7280] truncate">
-                      {device.deviceModel.replace('Waveshare ', '')} · {device.macAddress}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleUnbind(device.id, device.alias)}
-                      className="kid-btn kid-btn-ghost kid-btn-sm !h-7 !min-h-[28px] !px-2.5 !text-[11px] shrink-0"
-                    >
-                      <DeleteOutline />
-                      <span>断开</span>
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleUnbind(device.id, device.alias)}
+                    className="kid-btn kid-btn-danger-ghost kid-btn-sm !h-6 !min-h-[24px] !px-2 !text-[11px] shrink-0"
+                  >
+                    <DeleteOutline />
+                    <span>断开</span>
+                  </button>
                 </div>
               );
             })}
@@ -151,15 +141,15 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
       </section>
 
       {/* 2. 宝贝档案列表 */}
-      <section className="space-y-2.5">
-        <div className="flex items-center justify-between">
-          <h3 className="text-h2 text-[#1F2937]">家庭宝贝档案 ({children.length})</h3>
+      <section className="space-y-2">
+        <div className="flex items-center justify-between px-0.5">
+          <h3 className="text-h2 text-[#1F2937]">宝贝档案 ({children.length})</h3>
           <button
             type="button"
             onClick={handleAddChild}
             className="kid-btn kid-btn-secondary kid-btn-sm"
           >
-            <IconPlus className="w-3.5 h-3.5" />
+            <IconPlus className="w-3 h-3" />
             <span>添加宝贝</span>
           </button>
         </div>
@@ -172,21 +162,16 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
               onClick={() => handleEditNickname(child.id, child.nickname)}
               className="kid-list-row w-full text-left"
             >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-9 h-9 rounded-full bg-[#FEF3C7] border border-[#FACC15] flex items-center justify-center text-lg shrink-0">
-                  {child.avatarIcon || '🧒'}
-                </div>
-                <div className="min-w-0">
-                  <div className="font-headline font-bold text-[14px] text-[#1F2937] flex items-center gap-1.5">
-                    <span className="truncate">{child.nickname}</span>
-                    <EditSOutline className="text-[#3B82F6] text-xs shrink-0" />
-                  </div>
-                  <div className="text-caption text-[#6B7280]">点击可修改宝贝昵称</div>
-                </div>
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-base leading-none">{child.avatarIcon || '🧒'}</span>
+                <span className="font-semibold text-[13px] text-[#1F2937] truncate">
+                  {child.nickname}
+                </span>
+                <EditSOutline className="text-[#9CA3AF] text-xs shrink-0" />
               </div>
 
-              <span className="kid-status-chip kid-status-new shrink-0">
-                <IconCoin className="w-4 h-4" />
+              <span className="inline-flex items-center gap-1 text-caption font-bold text-[#B45309] shrink-0">
+                <IconCoin className="w-3.5 h-3.5" />
                 <span>{child.coinsBalance} 金币</span>
               </span>
             </button>
@@ -194,33 +179,22 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
         </div>
       </section>
 
-      {/* 3. 家庭与手机桌面安装 */}
-      <section className="space-y-2.5">
-        <h3 className="text-h2 text-[#1F2937]">系统与安装信息</h3>
+      {/* 3. 系统与桌面安装 */}
+      <section className="space-y-2">
+        <h3 className="text-h2 text-[#1F2937] px-0.5">系统设置</h3>
         <div className="kid-list">
           <div className="kid-list-row">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-[#DBEAFE] text-[#3B82F6] flex items-center justify-center shrink-0">
-                <IconStar className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="font-headline font-bold text-[14px] text-[#1F2937]">家庭空间</div>
-                <div className="text-caption text-[#6B7280]">{family.timezone}</div>
-              </div>
-            </div>
-            <span className="font-headline font-bold text-[14px] text-[#1F2937]">{family.name}</span>
+            <span className="font-semibold text-[13px] text-[#1F2937]">家庭空间</span>
+            <span className="text-body text-[#6B7280]">{family.name} ({family.timezone})</span>
           </div>
 
           <div className="kid-list-row">
             <div>
-              <div className="font-headline font-bold text-[14px] text-[#1F2937]">安装到手机桌面</div>
-              <div className="text-caption text-[#6B7280]">像原生 App 一样随时打开</div>
+              <div className="font-semibold text-[13px] text-[#1F2937]">添加到手机主屏幕</div>
+              <div className="text-caption text-[#9CA3AF]">支持全屏快捷打开</div>
             </div>
             {installState.isStandalone ? (
-              <span className="kid-status-chip kid-status-complete">
-                <IconCheck className="w-3.5 h-3.5" />
-                <span>已安装</span>
-              </span>
+              <span className="kid-status-chip kid-status-complete">已安装</span>
             ) : (
               <button
                 type="button"
@@ -229,20 +203,19 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
                     await installState.triggerInstall();
                   } else {
                     Toast.show({
-                      content: '请在浏览器菜单中点击「添加到主屏幕」哦！',
+                      content: '请在浏览器菜单中点击「添加到主屏幕」',
                     });
                   }
                 }}
-                className="kid-btn kid-btn-secondary kid-btn-sm"
+                className="kid-btn kid-btn-ghost kid-btn-sm"
               >
-                <span>立即安装</span>
+                <span>安装</span>
               </button>
             )}
           </div>
         </div>
       </section>
 
-      {/* 绑定弹窗 */}
       <DevicePairModal
         visible={pairModalVisible}
         onClose={() => setPairModalVisible(false)}

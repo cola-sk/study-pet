@@ -21,14 +21,14 @@
 html, body {
   margin: 0;
   padding: 0;
-  background-color: #FFFFFF;
+  background-color: #F6F7F9;
   color: #1F2937;
   touch-action: manipulation;
   overscroll-behavior-y: none;
   -webkit-tap-highlight-color: transparent;
   font-family: var(--adm-font-family);
-  font-size: 14px;
-  line-height: 1.45;
+  font-size: 13px;
+  line-height: 1.4;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -36,311 +36,271 @@ h1, h2, h3, h4, .font-headline {
   font-family: 'Fredoka', 'Nunito', 'PingFang SC', 'Hiragino Maru Gothic ProN', 'Microsoft YaHei', sans-serif;
 }
 
-/* KidLearn Mobile-Calibrated Typography Scale (紧凑高信息密度移动端字阶) */
+/* 紧凑清晰的移动端字阶 */
 .text-hero {
   font-family: 'Fredoka', 'Nunito', 'PingFang SC', sans-serif;
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 700;
   line-height: 1.2;
 }
 .text-h1 {
   font-family: 'Fredoka', 'Nunito', 'PingFang SC', sans-serif;
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 700;
   line-height: 1.25;
 }
 .text-h2 {
   font-family: 'Fredoka', 'Nunito', 'PingFang SC', sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   line-height: 1.3;
 }
 .text-h3 {
   font-family: 'Fredoka', 'Nunito', 'PingFang SC', sans-serif;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   line-height: 1.3;
 }
 .text-body-lg {
   font-family: 'Nunito', 'PingFang SC', sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  line-height: 1.45;
+  line-height: 1.4;
 }
 .text-body {
   font-family: 'Nunito', 'PingFang SC', sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
-  line-height: 1.45;
+  line-height: 1.4;
 }
 .text-caption {
   font-family: 'Nunito', 'PingFang SC', sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.35;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.3;
 }
 .text-mono {
   font-family: 'Roboto Mono', monospace;
   font-size: 11px;
   font-weight: 400;
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
-/* KidLearn Cards (紧凑移动端内边距 14px 16px + 4px 立体阴影) */
+/* 简洁紧凑卡片 (去重边框与厚阴影，保留柔和层次) */
 .kid-card {
-  background-color: #F9FAFB;
-  border: 2px solid #E5E7EB;
-  border-radius: 16px;
-  padding: 14px 16px;
-  box-shadow: 0 4px 0 #D1D5DB;
-  transition: transform 150ms ease, box-shadow 150ms ease;
-}
-.kid-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  background-color: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .kid-card-highlight {
-  background-color: #FEF3C7;
-  border: 2px solid #FACC15;
-  border-radius: 16px;
-  padding: 14px 16px;
-  box-shadow: 0 4px 0 #EAB308;
-  transition: transform 150ms ease, box-shadow 150ms ease;
-}
-.kid-card-highlight:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  background-color: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 2px rgba(245, 158, 11, 0.06);
 }
 
-/* KidLearn Buttons (紧凑精致尺寸 + 2px/3px 按压位移) */
+/* 简洁按钮体系 */
 .kid-btn {
-  border-radius: 14px;
+  border-radius: 10px;
   font-family: 'Fredoka', 'Nunito', 'PingFang SC', sans-serif;
-  font-weight: 700;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  transition: transform 100ms ease, box-shadow 100ms ease, background-color 150ms ease;
+  gap: 4px;
+  transition: transform 100ms ease, background-color 150ms ease, opacity 150ms ease;
   user-select: none;
   cursor: pointer;
   white-space: nowrap;
 }
 .kid-btn:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
 }
 .kid-btn:active:not(:disabled) {
-  transform: translateY(2px);
+  transform: translateY(1px);
 }
 .kid-btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
-  filter: saturate(0.3);
 }
 
 .kid-btn-primary {
   background-color: #EF4444;
   color: #FFFFFF;
   border: none;
-  box-shadow: 0 3px 0 #B91C1C;
 }
 .kid-btn-primary:hover:not(:disabled) {
   background-color: #DC2626;
-}
-.kid-btn-primary:active:not(:disabled) {
-  box-shadow: 0 1px 0 #B91C1C;
 }
 
 .kid-btn-secondary {
   background-color: #3B82F6;
   color: #FFFFFF;
   border: none;
-  box-shadow: 0 3px 0 #1D4ED8;
 }
 .kid-btn-secondary:hover:not(:disabled) {
   background-color: #2563EB;
 }
-.kid-btn-secondary:active:not(:disabled) {
-  box-shadow: 0 1px 0 #1D4ED8;
-}
 
 .kid-btn-success {
-  background-color: #22C55E;
+  background-color: #10B981;
   color: #FFFFFF;
   border: none;
-  box-shadow: 0 3px 0 #15803D;
 }
 .kid-btn-success:hover:not(:disabled) {
-  background-color: #16A34A;
-}
-.kid-btn-success:active:not(:disabled) {
-  box-shadow: 0 1px 0 #15803D;
+  background-color: #059669;
 }
 
 .kid-btn-ghost {
   background-color: #FFFFFF;
-  color: #EF4444;
-  border: 1.5px solid #EF4444;
+  color: #6B7280;
+  border: 1px solid #D1D5DB;
 }
 .kid-btn-ghost:hover:not(:disabled) {
+  background-color: #F9FAFB;
+  color: #374151;
+}
+
+.kid-btn-danger-ghost {
+  background-color: #FFFFFF;
+  color: #EF4444;
+  border: 1px solid #FECACA;
+}
+.kid-btn-danger-ghost:hover:not(:disabled) {
   background-color: #FEF2F2;
 }
 
-.kid-btn-destructive {
-  background-color: #DC2626;
-  color: #FFFFFF;
-  border: none;
-  box-shadow: 0 3px 0 #991B1B;
-}
-
-/* Mobile-Calibrated Button Sizes */
+/* 按钮紧凑尺寸 */
 .kid-btn-sm {
-  height: 32px;
-  min-height: 32px;
-  padding: 0 12px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0 10px;
   font-size: 12px;
-  border-radius: 12px;
+  border-radius: 8px;
 }
 .kid-btn-md {
-  height: 38px;
-  min-height: 38px;
-  padding: 0 16px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0 14px;
   font-size: 13px;
-  border-radius: 14px;
+  border-radius: 10px;
 }
 .kid-btn-lg {
-  height: 44px;
-  min-height: 44px;
-  padding: 0 22px;
-  font-size: 15px;
-  border-radius: 16px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 18px;
+  font-size: 14px;
+  border-radius: 10px;
 }
 
-/* KidLearn Inputs */
+/* 简洁输入框 */
 .kid-input {
   width: 100%;
-  min-height: 40px;
-  border-radius: 14px;
-  border: 2px solid #9CA3AF;
+  min-height: 36px;
+  border-radius: 10px;
+  border: 1px solid #D1D5DB;
   background-color: #FFFFFF;
-  padding: 7px 12px;
+  padding: 6px 10px;
   font-family: 'Nunito', 'PingFang SC', sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   color: #1F2937;
   transition: border-color 150ms ease, box-shadow 150ms ease;
-}
-.kid-input:hover:not(:disabled) {
-  border-color: #6B7280;
 }
 .kid-input:focus {
   outline: none;
   border-color: #3B82F6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 .kid-input:disabled {
   border-color: #E5E7EB;
   background-color: #F3F4F6;
 }
-.kid-input:not([type="range"]):user-invalid {
-  border-color: #EF4444;
-  background-color: #FEF2F2;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
-}
 
-/* KidLearn Filter Chips (紧凑 34px 高) */
+/* 紧凑筛选标签 */
 .kid-filter-chip {
-  height: 34px;
-  min-height: 34px;
-  padding: 0 14px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0 11px;
   border-radius: 9999px;
   font-family: 'Nunito', 'PingFang SC', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  background-color: #F3F4F6;
-  color: #1F2937;
-  border: 1.5px solid #E5E7EB;
+  gap: 4px;
+  background-color: #FFFFFF;
+  color: #4B5563;
+  border: 1px solid #E5E7EB;
   transition: all 150ms ease;
   cursor: pointer;
   user-select: none;
   white-space: nowrap;
 }
-.kid-filter-chip:hover {
-  background-color: #E5E7EB;
-  border-color: #9CA3AF;
-}
 .kid-filter-chip-selected {
   background-color: #3B82F6;
   color: #FFFFFF;
   border-color: #3B82F6;
-  box-shadow: 0 2px 0 #1D4ED8;
-}
-.kid-filter-chip-selected:hover {
-  background-color: #2563EB;
-  border-color: #2563EB;
 }
 
-/* KidLearn Status Chips (精致 26px 高，同行不换行) */
+/* 轻量状态小标签 */
 .kid-status-chip {
-  height: 26px;
-  padding: 0 10px;
-  border-radius: 9999px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 6px;
   font-family: 'Nunito', 'PingFang SC', sans-serif;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   white-space: nowrap;
 }
 .kid-status-complete {
   background-color: #DCFCE7;
-  color: #166534;
+  color: #15803D;
 }
 .kid-status-locked {
   background-color: #F3F4F6;
   color: #6B7280;
 }
 .kid-status-active {
-  background-color: #DBEAFE;
-  color: #1E40AF;
+  background-color: #EFF6FF;
+  color: #2563EB;
 }
 .kid-status-new {
   background-color: #FEF3C7;
-  color: #92400E;
+  color: #B45309;
 }
 
-/* KidLearn Lists (紧凑 50px 行高) */
+/* 紧凑列表容器与列表行 */
 .kid-list {
-  background-color: #F9FAFB;
-  border: 2px solid #E5E7EB;
-  border-radius: 16px;
-  box-shadow: 0 4px 0 #D1D5DB;
+  background-color: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   overflow: hidden;
 }
 .kid-list-row {
-  min-height: 50px;
-  padding: 9px 14px;
+  min-height: 42px;
+  padding: 8px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  border-bottom: 1px solid #E5E7EB;
+  gap: 8px;
+  border-bottom: 1px solid #F3F4F6;
   transition: background-color 150ms ease;
 }
 .kid-list-row:last-child {
   border-bottom: none;
 }
-.kid-list-row:hover {
-  background-color: #F3F4F6;
-}
 .kid-list-row:active {
-  background-color: #DBEAFE;
+  background-color: #F9FAFB;
 }
 
 textarea {
@@ -350,7 +310,7 @@ textarea {
 
 .adm-popup-body {
   overflow: hidden;
-  border-radius: 22px 22px 0 0;
+  border-radius: 18px 18px 0 0;
 }
 
 @media (forced-colors: active) {
@@ -358,7 +318,7 @@ textarea {
   .kid-card-highlight,
   .kid-list,
   .kid-btn {
-    border: 2px solid CanvasText;
+    border: 1px solid CanvasText;
   }
 }
 
