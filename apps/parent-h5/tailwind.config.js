@@ -8,7 +8,7 @@ module.exports = {
       colors: {
         kid: {
           primary: '#EF4444',
-          secondary: '#3B82F6',
+          secondary: '#18181B',
           tertiary: '#FACC15',
           base: '#FFFFFF',
           raised: '#F9FAFB',
@@ -16,7 +16,7 @@ module.exports = {
           success: '#22C55E',
           warning: '#F59E0B',
           error: '#EF4444',
-          info: '#3B82F6',
+          info: '#3F3F46',
         },
       },
       fontFamily: {

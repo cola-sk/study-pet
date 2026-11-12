@@ -86,7 +86,7 @@ export const PetWalletPage: React.FC = () => {
           </div>
           <div className="bg-[#F9FAFB] rounded-lg py-1.5 px-2">
             <div className="text-caption text-[#6B7280]">累计消耗</div>
-            <div className="text-h3 text-[#2563EB] mt-0.5">-{totalSpent}</div>
+            <div className="text-h3 text-[#3F3F46] mt-0.5">-{totalSpent}</div>
           </div>
         </div>
       </div>

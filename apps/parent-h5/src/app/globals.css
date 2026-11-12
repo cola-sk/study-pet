@@ -119,7 +119,7 @@ h1, h2, h3, h4, .font-headline {
 }
 .kid-btn:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 0 0 2px rgba(24, 24, 27, 0.2);
 }
 .kid-btn:active:not(:disabled) {
   transform: translateY(1px);
@@ -139,12 +139,12 @@ h1, h2, h3, h4, .font-headline {
 }
 
 .kid-btn-secondary {
-  background-color: #3B82F6;
+  background-color: #18181B;
   color: #FFFFFF;
   border: none;
 }
 .kid-btn-secondary:hover:not(:disabled) {
-  background-color: #2563EB;
+  background-color: #27272A;
 }
 
 .kid-btn-success {
@@ -213,15 +213,15 @@ h1, h2, h3, h4, .font-headline {
 }
 .kid-input:focus {
   outline: none;
-  border-color: #3B82F6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  border-color: #18181B;
+  box-shadow: 0 0 0 2px rgba(24, 24, 27, 0.12);
 }
 .kid-input:disabled {
   border-color: #E5E7EB;
   background-color: #F3F4F6;
 }
 
-/* 紧凑筛选标签 */
+/* 紧凑筛选标签（深炭黑选中态，干净高级） */
 .kid-filter-chip {
   height: 28px;
   min-height: 28px;
@@ -243,9 +243,9 @@ h1, h2, h3, h4, .font-headline {
   white-space: nowrap;
 }
 .kid-filter-chip-selected {
-  background-color: #3B82F6;
+  background-color: #18181B;
   color: #FFFFFF;
-  border-color: #3B82F6;
+  border-color: #18181B;
 }
 
 /* 轻量状态小标签 */
@@ -270,8 +270,8 @@ h1, h2, h3, h4, .font-headline {
   color: #6B7280;
 }
 .kid-status-active {
-  background-color: #EFF6FF;
-  color: #2563EB;
+  background-color: #F4F4F5;
+  color: #3F3F46;
 }
 .kid-status-new {
   background-color: #FEF3C7;

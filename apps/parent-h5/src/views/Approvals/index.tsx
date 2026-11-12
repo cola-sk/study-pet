@@ -34,7 +34,7 @@ export const ApprovalsPage: React.FC = () => {
         particleCount: 45,
         spread: 60,
         origin: { y: 0.7 },
-        colors: ['#EF4444', '#3B82F6', '#FACC15', '#22C55E'],
+        colors: ['#EF4444', '#F59E0B', '#FACC15', '#10B981'],
       });
     }
   };
@@ -264,7 +264,7 @@ export const ApprovalsPage: React.FC = () => {
                 <div key={task.id} className="kid-list-row">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] font-semibold text-[#2563EB] bg-[#EFF6FF] px-1.5 py-0.5 rounded shrink-0">
+                      <span className="text-[11px] font-semibold text-[#3F3F46] bg-[#F4F4F5] px-1.5 py-0.5 rounded shrink-0">
                         {child?.nickname || task.childNickname}
                       </span>
                       <span className="font-semibold text-[13px] text-[#1F2937] truncate">

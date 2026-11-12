@@ -225,7 +225,7 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
                         <span
                           className={`w-5 h-5 rounded-[6px] flex items-center justify-center border-2 shrink-0 transition-transform ${
                             checked
-                              ? 'bg-[#3B82F6] border-[#3B82F6] text-white'
+                              ? 'bg-[#18181B] border-[#18181B] text-white'
                               : 'bg-white border-[#9CA3AF]'
                           }`}
                         >

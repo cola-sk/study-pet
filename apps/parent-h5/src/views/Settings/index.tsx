@@ -107,7 +107,7 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
               return (
                 <div key={device.id} className="kid-list-row">
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                    <div className="w-8 h-8 rounded-lg bg-[#EFF6FF] text-[#3B82F6] flex items-center justify-center shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-[#F4F4F5] text-[#3F3F46] flex items-center justify-center shrink-0">
                       <IconDevice className="w-4 h-4" />
                     </div>
                     <div className="min-w-0 flex-1">

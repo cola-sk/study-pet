@@ -28,12 +28,12 @@ export const InstallBanner: React.FC<Props> = ({ installState }) => {
   };
 
   return (
-    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-3 py-2 flex items-center justify-between shadow-md">
+    <div className="bg-[#18181B] text-white px-3 py-2 flex items-center justify-between">
       <div className="flex items-center space-x-2">
-        <span className="text-xl">📱</span>
+        <span className="text-lg">📱</span>
         <div className="text-xs">
           <div className="font-semibold">安装到手机主屏幕</div>
-          <div className="text-blue-100 text-[11px]">全屏无浏览器地址栏，离线秒开</div>
+          <div className="text-zinc-400 text-[11px]">全屏无浏览器地址栏，离线秒开</div>
         </div>
       </div>
       <Button
@@ -41,7 +41,7 @@ export const InstallBanner: React.FC<Props> = ({ installState }) => {
         color="primary"
         fill="solid"
         onClick={handleInstall}
-        className="!bg-white !text-blue-600 !border-0 font-medium !px-3 shadow-sm"
+        className="!bg-white !text-[#18181B] !border-0 font-semibold !px-3"
       >
         <span className="flex items-center gap-1">
           <DownlandOutline /> 安装
