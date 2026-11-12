@@ -1,18 +1,18 @@
 // 学习宠物助手 - 自定义轻量级 Service Worker
-const CACHE_NAME = 'study-pet-pwa-v5';
+const CACHE_NAME = 'study-pet-pwa-v6';
 
 const PRECACHE_URLS = [
   '/',
   '/manifest.webmanifest',
-  '/favicon.ico?v=2',
-  '/icons/paw-app-icon.svg?v=2',
-  '/icons/apple-touch-icon.png?v=2',
-  '/icons/icon-192x192.png?v=2',
-  '/icons/icon-512x512.png?v=2',
-  '/icons/icon-maskable-512x512.png?v=2',
-  '/icons/shortcut-task.png?v=2',
-  '/icons/shortcut-add.png?v=2',
-  '/splash/launch-screen.png?v=2',
+  '/favicon.ico?v=3',
+  '/icons/paw-app-icon.svg?v=3',
+  '/icons/apple-touch-icon.png?v=3',
+  '/icons/icon-192x192.png?v=3',
+  '/icons/icon-512x512.png?v=3',
+  '/icons/icon-maskable-512x512.png?v=3',
+  '/icons/shortcut-task.png?v=3',
+  '/icons/shortcut-add.png?v=3',
+  '/splash/launch-screen.png?v=3',
 ];
 
 self.addEventListener('install', event => {

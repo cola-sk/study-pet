@@ -11,7 +11,7 @@ The visual foundation is warm ivory, soft white, forest green, and muted terraco
 - Use a simple paw print as the KidLearn brand mark.
 - Keep the existing white paw silhouette on a red background for the app tile; use the red circular mark in the website header.
 - Keep the paw silhouette centered and inside the safe area so it remains legible when an operating system masks the icon into a circle or squircle.
-- In the small website roundel, let the paw occupy roughly half to three-fifths of the circle; on the home-screen tile, let it use about 70% of the safe area.
+- In the small website roundel, let the paw occupy roughly half to three-fifths of the circle; on the home-screen tile, let it use about 90% of the safe area.
 - Use the same artwork for the browser favicon, Apple touch icon, PWA icons, home-screen shortcuts, and install guide.
 - Keep the master artwork in `apps/parent-h5/public/icons/paw-app-icon.svg`; regenerate its PNG and ICO derivatives when the mark changes.
 - Render child, pet, clothing, and shop imagery only when it comes from a value explicitly selected or uploaded for that record. Do not synthesize default emoji or show a placeholder image when the value is empty.
