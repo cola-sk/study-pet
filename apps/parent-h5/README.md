@@ -11,7 +11,7 @@
   - **沉浸式体验**：从桌面图标启动时全屏（Standalone）运行，无浏览器地址栏和回退条。
 - ⚡ **离线秒开与三级缓存**：通过 Service Worker (Workbox) 实现 App Shell 资源预缓存与只读 API 降级缓存，断网也能正常查看今日任务与金币账本。
 - 🗄️ **Vercel + Supabase 原生适配**：
-  - 生产数据库方案基于 Supabase (PostgreSQL)，配有完整建表语句与发币防重 RPC（见 `../supabase/schema.sql`）。
+  - 生产数据库方案基于 Supabase (PostgreSQL)，配有完整建表语句与发币防重 RPC（见 `../../supabase/schema.sql`）。
   - 内置智能本地存储（LocalStorage / Zustand Persist）降级模式：未配置 Supabase 环境变量时自动使用本地状态，开箱即测即用！
   - 自带 `vercel.json`，一键部署到 Vercel。
 

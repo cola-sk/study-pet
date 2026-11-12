@@ -1,0 +1,11 @@
+{
+  "name": "study-pet",
+  "version": "1.0.0",
+  "private": true,
+  "description": "学习任务养成宠物桌面设备与家长端 PWA 全栈系统 (Monorepo)",
+  "scripts": {
+    "dev:h5": "pnpm --filter parent-h5 dev",
+    "build:h5": "pnpm --filter parent-h5 build",
+    "preview:h5": "pnpm --filter parent-h5 preview"
+  }
+}

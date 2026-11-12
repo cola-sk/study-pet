@@ -6,3 +6,9 @@ dist-ssr/
 .env.local
 .env.*.local
 *.log
+
+# ESP-IDF 固件编译产物
+build/
+sdkconfig
+sdkconfig.old
+
