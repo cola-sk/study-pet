@@ -1,0 +1,11 @@
+menu "Study Pet network"
+config STUDY_PET_WIFI_SSID
+    string "2.4 GHz Wi-Fi SSID"
+    default ""
+    help
+        Network credentials are stored in the local ignored sdkconfig and compiled
+        into the firmware. Use a development network and do not share the binary.
+config STUDY_PET_WIFI_PASSWORD
+    string "Wi-Fi password"
+    default ""
+endmenu

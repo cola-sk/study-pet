@@ -14,15 +14,8 @@ import { triggerHaptic } from '../utils/haptic';
 import { shootCoinsConfetti } from '../utils/confetti';
 import { supabase, isSupabaseConfigured } from '../services/supabase';
 
-// 初始默认商品字典
-const DEFAULT_SHOP_ITEMS: ShopItem[] = [
-  { id: 'item-1', name: '新鲜小苹果', category: 'food', price: 5, description: '脆甜多汁的小红富士' },
-  { id: 'item-2', name: '美味小蛋糕', category: 'food', price: 12, description: '香甜草莓奶油蛋糕' },
-  { id: 'item-3', name: '纯净矿泉水', category: 'water', price: 5, description: '清凉解渴矿泉水' },
-  { id: 'item-4', name: '清凉椰子汁', category: 'water', price: 10, description: '天然甘甜椰子水' },
-  { id: 'item-5', name: '水手服套装', category: 'clothes', price: 40, description: '帅气精神的水手校服' },
-  { id: 'item-6', name: '恐龙连体衣', category: 'clothes', price: 60, description: '超萌绿色小恐龙' },
-];
+// 商品由用户自行录入。
+const DEFAULT_SHOP_ITEMS: ShopItem[] = [];
 
 // One-time cleanup for emoji that older demo data injected into persisted profiles.
 const LEGACY_DEFAULT_CHILD_AVATARS = new Set(['👦', '👧', '🧒']);
@@ -36,220 +29,14 @@ const INITIAL_FAMILY: Family = {
   createdAt: '2026-11-12T08:00:00Z',
 };
 
-// 预设二胎家庭示范数据：天天（大宝）与 果果（二宝）
-const INITIAL_CHILDREN: Child[] = [
-  {
-    id: 'child-101',
-    familyId: 'fam-101',
-    nickname: '天天 (大宝)',
-    coinsBalance: 25,
-  },
-  {
-    id: 'child-102',
-    familyId: 'fam-101',
-    nickname: '果果 (二宝)',
-    coinsBalance: 15,
-  },
-];
-
-// 预设已关联的两台微雪 ESP32 硬件设备
-const INITIAL_DEVICES: Device[] = [
-  {
-    id: 'dev-101',
-    familyId: 'fam-101',
-    childId: 'child-101',
-    alias: '天天的书桌设备',
-    deviceModel: '微雪 ESP32-S3-Touch-LCD-2.8',
-    macAddress: 'DC:54:75:A8:B2:10',
-    status: 'paired',
-    firmwareVersion: 'v1.0.2',
-    lastSeenAt: '2分钟前',
-  },
-  {
-    id: 'dev-102',
-    familyId: 'fam-101',
-    childId: 'child-102',
-    alias: '果果的小房间设备',
-    deviceModel: '微雪 ESP32-S3-Touch-LCD-2.8',
-    macAddress: 'DC:54:75:A8:C3:44',
-    status: 'paired',
-    firmwareVersion: 'v1.0.2',
-    lastSeenAt: '5分钟前',
-  },
-];
-
-// 每个孩子拥有的独立宠物小窝
-const INITIAL_PETS: Record<string, PetState> = {
-  'child-101': {
-    id: 'pet-101',
-    familyId: 'fam-101',
-    childId: 'child-101',
-    petName: '天天的汪汪',
-    foodCount: 2,
-    waterCount: 1,
-    updatedAt: '2026-11-12T08:00:00Z',
-  },
-  'child-102': {
-    id: 'pet-102',
-    familyId: 'fam-101',
-    childId: 'child-102',
-    petName: '果果的喵喵',
-    foodCount: 3,
-    waterCount: 2,
-    updatedAt: '2026-11-12T08:00:00Z',
-  },
-};
-
-const INITIAL_TEMPLATES: TaskTemplate[] = [
-  {
-    id: 'tpl-1',
-    familyId: 'fam-101',
-    title: '自主阅读课外书 15 分钟',
-    description: '读完并在自己设备上打卡，家长确认后发金币',
-    rewardCoins: 10,
-    confirmType: 'parent_confirm',
-    frequencyType: 'daily',
-    frequencyConfig: {},
-    targetScope: 'all', // 全员共同任务！
-    targetChildIds: [],
-    isActive: true,
-    createdAt: '2026-11-10T10:00:00Z',
-  },
-  {
-    id: 'tpl-2',
-    familyId: 'fam-101',
-    title: '大宝中考英语听力 20 分钟',
-    description: '保持专注，完成两篇听力练习',
-    rewardCoins: 15,
-    confirmType: 'parent_confirm',
-    frequencyType: 'weekly_days',
-    frequencyConfig: { days: [1, 3, 5] },
-    targetScope: 'specific', // 仅大宝天天专属任务
-    targetChildIds: ['child-101'],
-    isActive: true,
-    createdAt: '2026-11-10T10:00:00Z',
-  },
-  {
-    id: 'tpl-3',
-    familyId: 'fam-101',
-    title: '睡前自主整理书包与桌面',
-    description: '收拾文具，免确认直接发金币',
-    rewardCoins: 5,
-    confirmType: 'auto_confirm',
-    frequencyType: 'daily',
-    frequencyConfig: {},
-    targetScope: 'all', // 全员共同任务
-    targetChildIds: [],
-    isActive: true,
-    createdAt: '2026-11-10T10:00:00Z',
-  },
-];
-
+// 新安装不创建演示孩子、设备、任务或流水。
+const INITIAL_CHILDREN: Child[] = [];
+const INITIAL_DEVICES: Device[] = [];
+const INITIAL_PETS: Record<string, PetState> = {};
+const INITIAL_TEMPLATES: TaskTemplate[] = [];
+const INITIAL_INSTANCES: TaskInstance[] = [];
+const INITIAL_TRANSACTIONS: WalletTransaction[] = [];
 const getTodayStr = () => new Date().toISOString().split('T')[0];
-
-const INITIAL_INSTANCES: TaskInstance[] = [
-  // 天天提交的自主阅读
-  {
-    id: 'inst-1',
-    templateId: 'tpl-1',
-    familyId: 'fam-101',
-    childId: 'child-101',
-    childNickname: '天天 (大宝)',
-    deviceId: 'dev-101',
-    deviceAlias: '天天的书桌设备',
-    targetDate: getTodayStr(),
-    title: '自主阅读课外书 15 分钟',
-    description: '在微雪屏幕上完成了打卡',
-    rewardCoins: 10,
-    confirmType: 'parent_confirm',
-    status: 'submitted', // 待家长确认
-    submittedAt: '10:25',
-    rewardGranted: false,
-    createdAt: '2026-11-12T00:00:00Z',
-  },
-  // 果果提交的自主阅读 (全员任务，果果也有独立一份！)
-  {
-    id: 'inst-2',
-    templateId: 'tpl-1',
-    familyId: 'fam-101',
-    childId: 'child-102',
-    childNickname: '果果 (二宝)',
-    deviceId: 'dev-102',
-    deviceAlias: '果果的小房间设备',
-    targetDate: getTodayStr(),
-    title: '自主阅读课外书 15 分钟',
-    description: '果果读了绘本小恐龙故事',
-    rewardCoins: 10,
-    confirmType: 'parent_confirm',
-    status: 'submitted', // 待家长确认
-    submittedAt: '10:40',
-    rewardGranted: false,
-    createdAt: '2026-11-12T00:00:00Z',
-  },
-  // 天天的专属英语听力
-  {
-    id: 'inst-3',
-    templateId: 'tpl-2',
-    familyId: 'fam-101',
-    childId: 'child-101',
-    childNickname: '天天 (大宝)',
-    deviceId: 'dev-101',
-    deviceAlias: '天天的书桌设备',
-    targetDate: getTodayStr(),
-    title: '大宝中考英语听力 20 分钟',
-    description: '今天周三，进行中',
-    rewardCoins: 15,
-    confirmType: 'parent_confirm',
-    status: 'pending',
-    rewardGranted: false,
-    createdAt: '2026-11-12T00:00:00Z',
-  },
-  // 睡前整理书包 (已完成免确认)
-  {
-    id: 'inst-4',
-    templateId: 'tpl-3',
-    familyId: 'fam-101',
-    childId: 'child-101',
-    childNickname: '天天 (大宝)',
-    deviceId: 'dev-101',
-    deviceAlias: '天天的书桌设备',
-    targetDate: getTodayStr(),
-    title: '睡前自主整理书包与桌面',
-    description: '免确认已自动发币',
-    rewardCoins: 5,
-    confirmType: 'auto_confirm',
-    status: 'completed',
-    submittedAt: '08:15',
-    reviewedAt: '08:15',
-    rewardGranted: true,
-    createdAt: '2026-11-12T00:00:00Z',
-  },
-];
-
-const INITIAL_TRANSACTIONS: WalletTransaction[] = [
-  {
-    id: 'tx-1',
-    familyId: 'fam-101',
-    childId: 'child-101',
-    childNickname: '天天 (大宝)',
-    amount: 5,
-    balanceAfter: 25,
-    type: 'task_reward',
-    description: '天天 完成任务: 睡前整理书包',
-    createdAt: '今天 08:15',
-  },
-  {
-    id: 'tx-2',
-    familyId: 'fam-101',
-    childId: 'child-102',
-    childNickname: '果果 (二宝)',
-    amount: 15,
-    balanceAfter: 15,
-    type: 'task_reward',
-    description: '果果 初始学习奖励金币',
-    createdAt: '昨天 19:30',
-  },
-];
 
 interface AppState {
   family: Family;
@@ -545,29 +332,12 @@ export const useAppStore = create<AppState>()(
         triggerHaptic(10);
       },
 
-      pairDevice: async (pairCode: string, alias: string, childId: string) => {
-        triggerHaptic(20);
+      pairDevice: async (pairCode: string) => {
         if (!/^\d{6}$/.test(pairCode)) {
-          return { success: false, message: '请输入微雪屏幕上显示的 6 位纯数字配对码' };
+          return { success: false, message: '请输入设备显示的 6 位配对码' };
         }
-
-        const newDevice: Device = {
-          id: `dev-${Date.now()}`,
-          familyId: get().family.id,
-          childId,
-          alias: alias || '微雪 ESP32 桌面设备',
-          deviceModel: '微雪 ESP32-S3-Touch-LCD-2.8',
-          macAddress: `DC:54:75:${Math.floor(Math.random() * 89 + 10)}:${Math.floor(Math.random() * 89 + 10)}:${Math.floor(Math.random() * 89 + 10)}`,
-          status: 'paired',
-          firmwareVersion: 'v1.0.2',
-          lastSeenAt: '刚刚',
-        };
-
-        set(state => ({
-          devices: [...state.devices, newDevice],
-        }));
-
-        return { success: true, message: `微雪设备【${newDevice.alias}】绑定成功！` };
+        // 配对服务尚未实现：绝不能把随机生成的本地设备当成真实设备。
+        return { success: false, message: '真实设备配对服务尚未接入，请稍后重试' };
       },
 
       unbindDevice: (deviceId: string) => {
@@ -630,19 +400,31 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'study_pet_parent_storage_v2', // v2 with multi-device support
-      version: 1,
+      version: 2,
       migrate: (persistedState, _version) => {
         const state = persistedState as AppState;
+        // 仅移除旧版本固定 ID 的演示记录；用户新建记录保留。
+        const demoChildren = new Set(['child-101', 'child-102']);
+        const demoDevices = new Set(['dev-101', 'dev-102']);
+        const demoTemplates = new Set(['tpl-1', 'tpl-2', 'tpl-3']);
+        const demoInstances = new Set(['inst-1', 'inst-2', 'inst-3', 'inst-4']);
+        const demoTransactions = new Set(['tx-1', 'tx-2']);
+        const demoShopItems = new Set(['item-1', 'item-2', 'item-3', 'item-4', 'item-5', 'item-6']);
         return {
           ...state,
-          children: (state.children || []).map(child => ({
+          devices: (state.devices || []).filter(device => !demoDevices.has(device.id)),
+          templates: (state.templates || []).filter(template => !demoTemplates.has(template.id)),
+          instances: (state.instances || []).filter(instance => !demoInstances.has(instance.id)),
+          transactions: (state.transactions || []).filter(transaction => !demoTransactions.has(transaction.id)),
+          selectedChildId: demoChildren.has(state.selectedChildId) ? 'all' : state.selectedChildId,
+          children: (state.children || []).filter(child => !demoChildren.has(child.id)).map(child => ({
             ...child,
             avatarIcon: LEGACY_DEFAULT_CHILD_AVATARS.has(child.avatarIcon || '')
               ? undefined
               : child.avatarIcon,
           })),
           pets: Object.fromEntries(
-            Object.entries(state.pets || {}).map(([childId, pet]) => [
+            Object.entries(state.pets || {}).filter(([childId, pet]) => !(demoChildren.has(childId) && ['pet-101', 'pet-102'].includes(pet.id))).map(([childId, pet]) => [
               childId,
               {
                 ...pet,
@@ -655,7 +437,7 @@ export const useAppStore = create<AppState>()(
               },
             ])
           ),
-          shopItems: (state.shopItems || []).map(item => LEGACY_DEFAULT_SHOP_ICONS.has(item.icon || '')
+          shopItems: (state.shopItems || []).filter(item => !demoShopItems.has(item.id)).map(item => LEGACY_DEFAULT_SHOP_ICONS.has(item.icon || '')
             ? { ...item, icon: undefined }
             : item),
         };

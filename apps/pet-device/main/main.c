@@ -3,6 +3,7 @@
 #include "LVGL_Driver.h"
 #include "husky_frames.h"
 #include "esp_random.h"
+#include "network.h"
 
 #define FRAMES(name) {&husky_##name##_01, &husky_##name##_02, &husky_##name##_03, &husky_##name##_04}
 typedef enum { IDLE, EAT, HAPPY, SLEEP, HUNGRY, THIRSTY, DRINK, SLEEPY, LONELY, PET } pet_action_t;
@@ -104,6 +105,7 @@ static lv_obj_t *button(lv_obj_t *parent, int x, int y, const char *text, uint32
 void app_main(void)
 {
     I2C_Init(); LCD_Init(); LVGL_Init();
+    network_start();
     lv_obj_t *screen = lv_scr_act();
     lv_obj_set_style_bg_color(screen, lv_color_hex(0xfff7e7), 0);
     lv_obj_t *title = lv_label_create(screen); lv_label_set_text(title, "Keep going!"); lv_obj_align(title, LV_ALIGN_TOP_LEFT, 8, 12);
