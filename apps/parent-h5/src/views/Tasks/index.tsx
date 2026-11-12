@@ -53,7 +53,7 @@ export const TasksPage: React.FC = () => {
     if (tpl.targetScope === 'all') {
       return (
         <span className="kid-status-chip kid-status-active">
-          <IconStar className="w-4 h-4 text-[#3B82F6]" />
+          <IconStar className="w-3 h-3 text-[#3B82F6]" />
           <span>全部宝贝</span>
         </span>
       );
@@ -64,50 +64,50 @@ export const TasksPage: React.FC = () => {
       .join('、');
     return (
       <span className="kid-status-chip kid-status-new">
-        <IconSparkle className="w-4 h-4 text-[#F59E0B]" />
+        <IconSparkle className="w-3 h-3 text-[#F59E0B]" />
         <span>{targetNames || '指定宝贝'}</span>
       </span>
     );
   };
 
   return (
-    <div className="px-4 py-6 space-y-8 pb-32">
+    <div className="px-3.5 py-3.5 space-y-4 pb-24">
       {/* 顶部标题与新建按钮 */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+      <div className="flex items-center justify-between gap-2">
         <div>
-          <h2 className="text-h2 text-[#1F2937]">任务闯关库</h2>
-          <p className="text-body text-[#6B7280] mt-1">设置每日好习惯，让宝贝赢取金币星星</p>
+          <h2 className="text-h2 text-[#1F2937]">任务闯关库 ({templates.length})</h2>
+          <p className="text-caption text-[#6B7280]">设置每日好习惯，让宝贝赢取金币星星</p>
         </div>
         <button
           type="button"
           onClick={handleCreate}
-          className="kid-btn kid-btn-primary kid-btn-md"
+          className="kid-btn kid-btn-primary kid-btn-sm shrink-0"
         >
-          <IconPlus className="w-5 h-5" />
+          <IconPlus className="w-3.5 h-3.5" />
           <span>添加新任务</span>
         </button>
       </div>
 
       {/* 模板列表 */}
       {templates.length === 0 ? (
-        <div className="kid-card text-center py-12">
+        <div className="kid-card text-center py-8">
           <Empty description="还没有闯关任务，点击上方【添加新任务】开始吧！" />
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-3">
           {templates.map(tpl => (
             <div
               key={tpl.id}
               className={`kid-card ${!tpl.isActive ? 'opacity-65' : ''}`}
             >
-              <div className="flex items-start justify-between gap-4">
-                <div className="space-y-2 min-w-0 flex-1">
-                  <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-start justify-between gap-2.5">
+                <div className="space-y-1 min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="text-h3 text-[#1F2937]">{tpl.title}</h3>
                     {renderTargetBadge(tpl)}
                   </div>
                   {tpl.description && (
-                    <p className="text-body text-[#4B5563]">{tpl.description}</p>
+                    <p className="text-body text-[#4B5563] line-clamp-1">{tpl.description}</p>
                   )}
                 </div>
 
@@ -116,36 +116,36 @@ export const TasksPage: React.FC = () => {
                     checked={tpl.isActive}
                     onChange={() => toggleTemplate(tpl.id)}
                     style={{
-                      '--width': '54px',
-                      '--height': '32px',
+                      '--width': '42px',
+                      '--height': '24px',
                       '--checked-color': '#22C55E',
                     }}
                   />
                 </div>
               </div>
 
-              {/* 底部状态胶囊与操作按钮 (>=48px 触控高度) */}
-              <div className="mt-6 pt-4 border-t-2 border-[#E5E7EB] flex flex-wrap items-center justify-between gap-4">
-                <div className="flex items-center gap-2.5 flex-wrap">
+              {/* 底部状态胶囊与操作按钮 */}
+              <div className="mt-3 pt-2.5 border-t border-[#E5E7EB] flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="kid-status-chip kid-status-new">
-                    <IconCoin className="w-5 h-5" />
+                    <IconCoin className="w-3.5 h-3.5" />
                     <span>+{tpl.rewardCoins} 金币</span>
                   </span>
                   <span className="kid-status-chip kid-status-active">
-                    <IconStar className="w-4 h-4" />
+                    <IconStar className="w-3 h-3" />
                     <span>{renderFrequencyText(tpl)}</span>
                   </span>
                   <span className="kid-status-chip kid-status-complete">
-                    <IconCheck className="w-4 h-4" />
-                    <span>{tpl.confirmType === 'parent_confirm' ? '家长表扬发币' : '完成即发币'}</span>
+                    <IconCheck className="w-3 h-3" />
+                    <span>{tpl.confirmType === 'parent_confirm' ? '家长表扬' : '完成即得'}</span>
                   </span>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => handleEdit(tpl)}
-                    className="kid-btn kid-btn-secondary kid-btn-sm"
+                    className="kid-btn kid-btn-secondary kid-btn-sm !h-7 !min-h-[28px] !px-2.5 !text-[11px]"
                   >
                     <EditSOutline />
                     <span>修改</span>
@@ -153,7 +153,7 @@ export const TasksPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleDelete(tpl)}
-                    className="kid-btn kid-btn-ghost kid-btn-sm"
+                    className="kid-btn kid-btn-ghost kid-btn-sm !h-7 !min-h-[28px] !px-2.5 !text-[11px]"
                   >
                     <DeleteOutline />
                     <span>移除</span>

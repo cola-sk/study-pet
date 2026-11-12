@@ -22,9 +22,9 @@ export const PetWalletPage: React.FC = () => {
     .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
   return (
-    <div className="px-4 py-6 space-y-8 pb-32 text-[#1F2937]">
+    <div className="px-3.5 py-3.5 space-y-4 pb-24 text-[#1F2937]">
       {/* KidLearn Filter Chips 切换宝贝 */}
-      <div className="flex items-center gap-3 overflow-x-auto pb-2" role="tablist" aria-label="选择孩子">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1" role="tablist" aria-label="选择孩子">
         {children.map(child => {
           const isSelected = currentChildId === child.id;
           return (
@@ -36,131 +36,131 @@ export const PetWalletPage: React.FC = () => {
               onClick={() => setCurrentChildId(child.id)}
               className={`kid-filter-chip ${isSelected ? 'kid-filter-chip-selected' : ''}`}
             >
-              <span className="text-lg leading-none">{child.avatarIcon || '🧒'}</span>
+              <span className="text-sm leading-none">{child.avatarIcon || '🧒'}</span>
               <span>{child.nickname}的乐园</span>
             </button>
           );
         })}
       </div>
 
-      {/* 宠物展示大舞台 (Surface Highlight #FEF3C7) */}
-      <div className="kid-card-highlight text-center relative">
-        <div className="flex items-center justify-between mb-4">
+      {/* 宠物展示舞台 (紧凑横向+双栏布局) */}
+      <div className="kid-card-highlight">
+        <div className="flex items-center justify-between mb-3">
           <span className="kid-status-chip kid-status-active">
-            <IconStar className="w-4 h-4 text-[#3B82F6]" />
+            <IconStar className="w-3.5 h-3.5 text-[#3B82F6]" />
             <span>{currentChild?.nickname}的伙伴</span>
           </span>
           <span className="kid-status-chip kid-status-complete">
-            <IconCheck className="w-4 h-4" />
+            <IconCheck className="w-3.5 h-3.5" />
             <span>活力满满</span>
           </span>
         </div>
 
-        {/* 50% Circle Avatar */}
-        <div className="py-2 flex flex-col items-center justify-center">
-          <div className="relative">
-            <div className="w-28 h-28 rounded-full bg-[#FFFFFF] border-4 border-[#FACC15] flex items-center justify-center text-6xl shadow-kid-md">
-              {pet?.petAvatar || '🐶'}
-            </div>
-            {pet?.currentClothesItem && (
-              <div className="mt-2 inline-flex items-center gap-1.5 bg-[#FFFFFF] border-2 border-[#3B82F6] px-3 py-1 rounded-full text-caption text-[#1E40AF] shadow-kid-sm">
-                <span>{pet.currentClothesItem.icon}</span>
-                <span>穿戴: {pet.currentClothesItem.name}</span>
-              </div>
-            )}
+        <div className="flex items-center gap-3.5">
+          <div className="w-16 h-16 rounded-full bg-[#FFFFFF] border-2 border-[#FACC15] flex items-center justify-center text-4xl shadow-kid-sm shrink-0">
+            {pet?.petAvatar || '🐶'}
           </div>
-
-          <h2 className="text-h2 text-[#1F2937] mt-4">
-            {pet?.petName || `${currentChild?.nickname}的小伙伴`}
-          </h2>
-          <p className="text-body text-[#6B7280] mt-1">
-            快在桌面设备上用金币给它买好吃的吧！
-          </p>
-
-          {/* 食物与饮水背包 */}
-          <div className="mt-6 w-full grid grid-cols-2 gap-4">
-            <div className="bg-[#FFFFFF] border-2 border-[#E5E7EB] rounded-[20px] p-4 flex items-center justify-center gap-3 shadow-kid-sm">
-              <span className="text-3xl">🍎</span>
-              <div className="text-left">
-                <div className="text-caption text-[#6B7280]">美味食物</div>
-                <div className="text-h3 text-[#1F2937]">{pet?.foodCount || 0} 份</div>
-              </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-h2 text-[#1F2937]">
+                {pet?.petName || `${currentChild?.nickname}的小伙伴`}
+              </h2>
+              {pet?.currentClothesItem && (
+                <span className="inline-flex items-center gap-1 bg-[#FFFFFF] border border-[#3B82F6] px-2 py-0.5 rounded-full text-[11px] font-bold text-[#1E40AF]">
+                  <span>{pet.currentClothesItem.icon}</span>
+                  <span>{pet.currentClothesItem.name}</span>
+                </span>
+              )}
             </div>
-            <div className="bg-[#FFFFFF] border-2 border-[#E5E7EB] rounded-[20px] p-4 flex items-center justify-center gap-3 shadow-kid-sm">
-              <span className="text-3xl">💧</span>
-              <div className="text-left">
-                <div className="text-caption text-[#6B7280]">甘甜饮水</div>
-                <div className="text-h3 text-[#1F2937]">{pet?.waterCount || 0} 份</div>
-              </div>
+            <p className="text-caption text-[#6B7280] mt-0.5">
+              快在桌面设备上用金币给它买好吃的吧！
+            </p>
+          </div>
+        </div>
+
+        {/* 食物与饮水背包 */}
+        <div className="mt-3.5 grid grid-cols-2 gap-2.5">
+          <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-[12px] p-2.5 flex items-center gap-2.5">
+            <span className="text-xl">🍎</span>
+            <div>
+              <div className="text-[11px] text-[#6B7280] font-semibold">美味食物</div>
+              <div className="text-h3 text-[#1F2937]">{pet?.foodCount || 0} 份</div>
+            </div>
+          </div>
+          <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-[12px] p-2.5 flex items-center gap-2.5">
+            <span className="text-xl">💧</span>
+            <div>
+              <div className="text-[11px] text-[#6B7280] font-semibold">甘甜饮水</div>
+              <div className="text-h3 text-[#1F2937]">{pet?.waterCount || 0} 份</div>
             </div>
           </div>
         </div>
       </div>
 
       {/* 金币储蓄罐统计 */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="kid-card !p-4 text-center">
+      <div className="grid grid-cols-3 gap-2.5">
+        <div className="kid-card !p-3 text-center">
           <div className="text-caption text-[#6B7280]">现有金币</div>
-          <div className="text-h3 text-[#92400E] mt-1 flex items-center justify-center gap-1">
-            <IconCoin className="w-5 h-5" />
+          <div className="text-h3 text-[#92400E] mt-0.5 flex items-center justify-center gap-1">
+            <IconCoin className="w-4 h-4" />
             <span>{currentChild?.coinsBalance || 0}</span>
           </div>
         </div>
-        <div className="kid-card !p-4 text-center">
+        <div className="kid-card !p-3 text-center">
           <div className="text-caption text-[#6B7280]">今日收获</div>
-          <div className="text-h3 text-[#22C55E] mt-1">+{totalEarnedToday}</div>
+          <div className="text-h3 text-[#22C55E] mt-0.5">+{totalEarnedToday}</div>
         </div>
-        <div className="kid-card !p-4 text-center">
+        <div className="kid-card !p-3 text-center">
           <div className="text-caption text-[#6B7280]">礼物兑换</div>
-          <div className="text-h3 text-[#3B82F6] mt-1">-{totalSpent}</div>
+          <div className="text-h3 text-[#3B82F6] mt-0.5">-{totalSpent}</div>
         </div>
       </div>
 
       {/* 宠物商店 */}
-      <section className="space-y-4">
+      <section className="space-y-2.5">
         <div className="flex items-center justify-between">
-          <h3 className="text-h3 text-[#1F2937]">礼物商店</h3>
+          <h3 className="text-h2 text-[#1F2937]">礼物商店</h3>
           <span className="text-caption text-[#6B7280]">在桌面屏幕可兑换</span>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-2.5">
           {shopItems.map(item => (
-            <div key={item.id} className="kid-card !p-4 text-center flex flex-col items-center">
-              <div className="w-16 h-16 rounded-full bg-[#FEF3C7] border-2 border-[#FACC15] flex items-center justify-center text-4xl mb-3">
+            <div key={item.id} className="kid-card !p-2.5 text-center flex flex-col items-center">
+              <div className="w-11 h-11 rounded-full bg-[#FEF3C7] border border-[#FACC15] flex items-center justify-center text-2xl mb-1.5">
                 {item.icon}
               </div>
-              <div className="font-headline font-bold text-[18px] text-[#1F2937]">{item.name}</div>
-              <div className="mt-2 inline-flex items-center gap-1 bg-[#FEF3C7] text-[#92400E] px-3 py-1 rounded-full font-headline font-bold text-caption">
-                <IconCoin className="w-4 h-4" />
-                <span>{item.price} 金币</span>
+              <div className="font-headline font-bold text-[13px] text-[#1F2937] truncate w-full">{item.name}</div>
+              <div className="mt-1 inline-flex items-center gap-0.5 bg-[#FEF3C7] text-[#92400E] px-2 py-0.5 rounded-full font-headline font-bold text-[11px]">
+                <IconCoin className="w-3 h-3" />
+                <span>{item.price}</span>
               </div>
-              <span className="mt-2 text-caption text-[#6B7280]">
-                {item.category === 'clothes' ? '帅气装扮' : '能量补给'}
+              <span className="mt-1 text-[10px] text-[#6B7280]">
+                {item.category === 'clothes' ? '装扮' : '补给'}
               </span>
             </div>
           ))}
         </div>
       </section>
 
-      {/* 金币奖励记录 (KidLearn Lists) */}
-      <section className="space-y-4">
+      {/* 金币奖励记录 */}
+      <section className="space-y-2.5">
         <div className="flex items-center justify-between">
-          <h3 className="text-h3 text-[#1F2937]">星星金币账本</h3>
+          <h3 className="text-h2 text-[#1F2937]">星星金币账本</h3>
           <span className="text-caption text-[#6B7280]">共 {childTransactions.length} 条</span>
         </div>
 
         <div className="kid-list">
           {childTransactions.map(tx => (
             <div key={tx.id} className="kid-list-row">
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="w-11 h-11 rounded-full bg-[#FEF3C7] border-2 border-[#FACC15] flex items-center justify-center shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                <div className="w-8 h-8 rounded-full bg-[#FEF3C7] border border-[#FACC15] flex items-center justify-center shrink-0">
                   {tx.amount > 0 ? (
-                    <IconSparkle className="w-5 h-5 text-[#F59E0B]" />
+                    <IconSparkle className="w-4 h-4 text-[#F59E0B]" />
                   ) : (
-                    <IconStar className="w-5 h-5 text-[#3B82F6]" />
+                    <IconStar className="w-4 h-4 text-[#3B82F6]" />
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="font-headline font-bold text-[16px] text-[#1F2937] truncate">
+                  <div className="font-headline font-bold text-[13px] text-[#1F2937] truncate">
                     {tx.description}
                   </div>
                   <div className="text-mono text-[#6B7280]">
@@ -180,7 +180,7 @@ export const PetWalletPage: React.FC = () => {
           ))}
 
           {childTransactions.length === 0 && (
-            <div className="p-8 text-center text-body text-[#6B7280]">还没有金币记录哦</div>
+            <div className="p-6 text-center text-body text-[#6B7280]">还没有金币记录哦</div>
           )}
         </div>
       </section>

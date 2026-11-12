@@ -57,29 +57,29 @@ export const DevicePairModal: React.FC<Props> = ({ visible, onClose }) => {
       onMaskClick={onClose}
       position="bottom"
       bodyStyle={{
-        borderTopLeftRadius: '28px',
-        borderTopRightRadius: '28px',
-        padding: '24px',
+        borderTopLeftRadius: '22px',
+        borderTopRightRadius: '22px',
+        padding: '18px 16px',
         background: '#FFFFFF',
       }}
     >
-      <div className="flex flex-col text-[#1F2937] space-y-6">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-[#EF4444] text-white rounded-full flex items-center justify-center shrink-0 shadow-[0_4px_0_#B91C1C]">
-            <IconDevice className="w-7 h-7" />
+      <div className="flex flex-col text-[#1F2937] space-y-3.5">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-[#EF4444] text-white rounded-full flex items-center justify-center shrink-0 shadow-[0_2px_0_#B91C1C]">
+            <IconDevice className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-h3 text-[#1F2937]">连接新的桌面伙伴设备</h3>
-            <p className="text-caption text-[#6B7280] mt-0.5">
+            <h3 className="text-h2 text-[#1F2937]">连接新的桌面伙伴设备</h3>
+            <p className="text-caption text-[#6B7280]">
               打开微雪硬件屏幕查看 6 位数字配对码
             </p>
           </div>
         </div>
 
-        {/* 1. 选择归属宝贝 (KidLearn Radio Buttons 28px) */}
-        <div className="kid-card space-y-3">
+        {/* 1. 选择归属宝贝 */}
+        <div className="kid-card space-y-2">
           <div className="text-caption text-[#1F2937]">1. 这台设备属于哪位宝贝？</div>
-          <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="选择宝贝">
+          <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="选择宝贝">
             {children.map(child => {
               const selected = selectedChildId === child.id;
               return (
@@ -89,14 +89,14 @@ export const DevicePairModal: React.FC<Props> = ({ visible, onClose }) => {
                   role="radio"
                   aria-checked={selected}
                   onClick={() => setSelectedChildId(child.id)}
-                  className="min-h-[48px] p-3 rounded-[20px] bg-white border-2 border-[#E5E7EB] flex items-center gap-3 text-left"
+                  className="p-2.5 rounded-[14px] bg-white border border-[#E5E7EB] flex items-center gap-2 text-left"
                 >
                   <span
-                    className={`w-[28px] h-[28px] rounded-full flex items-center justify-center border-2 shrink-0 ${
+                    className={`w-5 h-5 rounded-full flex items-center justify-center border-2 shrink-0 ${
                       selected ? 'border-[#EF4444] bg-white' : 'border-[#9CA3AF] bg-white'
                     }`}
                   >
-                    {selected && <span className="w-[14px] h-[14px] rounded-full bg-[#EF4444]" />}
+                    {selected && <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444]" />}
                   </span>
                   <span className="text-body font-bold text-[#1F2937] truncate">
                     {child.nickname}
@@ -108,7 +108,7 @@ export const DevicePairModal: React.FC<Props> = ({ visible, onClose }) => {
         </div>
 
         {/* 2. 6 位配对码输入 */}
-        <div className="kid-card space-y-2">
+        <div className="kid-card space-y-1.5">
           <label htmlFor="pair-code-input" className="text-caption text-[#1F2937] block">
             2. 输入屏幕上的 6 位数字配对码：
           </label>
@@ -122,12 +122,12 @@ export const DevicePairModal: React.FC<Props> = ({ visible, onClose }) => {
               setCode(clean);
             }}
             placeholder="例如 829103"
-            className="kid-input text-center font-mono !text-[24px] font-bold tracking-widest"
+            className="kid-input text-center font-mono !text-[18px] font-bold tracking-widest"
           />
         </div>
 
         {/* 3. 设备名称 */}
-        <div className="kid-card space-y-2">
+        <div className="kid-card space-y-1.5">
           <label htmlFor="device-alias-input" className="text-caption text-[#1F2937] block">
             3. 给设备起个名字（选填）：
           </label>
@@ -142,11 +142,11 @@ export const DevicePairModal: React.FC<Props> = ({ visible, onClose }) => {
         </div>
 
         {/* 操作按钮 */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 pt-1">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 kid-btn kid-btn-ghost kid-btn-lg"
+            className="flex-1 kid-btn kid-btn-ghost kid-btn-md"
           >
             稍后再连
           </button>
@@ -154,7 +154,7 @@ export const DevicePairModal: React.FC<Props> = ({ visible, onClose }) => {
             type="button"
             disabled={loading}
             onClick={handlePair}
-            className="flex-[2] kid-btn kid-btn-primary kid-btn-lg"
+            className="flex-[2] kid-btn kid-btn-primary kid-btn-md"
           >
             {loading ? '正在连接...' : '确认连接设备！'}
           </button>

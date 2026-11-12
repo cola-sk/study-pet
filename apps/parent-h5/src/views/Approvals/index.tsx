@@ -76,9 +76,9 @@ export const ApprovalsPage: React.FC = () => {
 
   return (
     <PullToRefresh onRefresh={async () => { await new Promise(r => setTimeout(r, 600)); }}>
-      <div className="px-4 py-6 space-y-8 pb-32">
-        {/* KidLearn Filter Chips (Default: #F3F4F6, Selected: #3B82F6, 9999px pill) */}
-        <div className="flex items-center gap-3 overflow-x-auto pb-2" role="tablist" aria-label="选择孩子">
+      <div className="px-3.5 py-3.5 space-y-4 pb-24">
+        {/* KidLearn Filter Chips */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1" role="tablist" aria-label="选择孩子">
           <button
             type="button"
             role="tab"
@@ -86,10 +86,10 @@ export const ApprovalsPage: React.FC = () => {
             onClick={() => setSelectedChildId('all')}
             className={`kid-filter-chip ${selectedChildId === 'all' ? 'kid-filter-chip-selected' : ''}`}
           >
-            <IconStar className="w-4 h-4" />
+            <IconStar className="w-3.5 h-3.5" />
             <span>全部宝贝</span>
             {totalPendingCount > 0 && (
-              <span className="bg-[#FACC15] text-[#1F2937] text-xs font-bold px-2 py-0.5 rounded-full">
+              <span className="bg-[#FACC15] text-[#1F2937] text-[11px] font-bold px-1.5 py-0.2 rounded-full">
                 {totalPendingCount}
               </span>
             )}
@@ -107,10 +107,10 @@ export const ApprovalsPage: React.FC = () => {
                 onClick={() => setSelectedChildId(child.id)}
                 className={`kid-filter-chip ${isSelected ? 'kid-filter-chip-selected' : ''}`}
               >
-                <span className="text-lg leading-none">{child.avatarIcon || '🧒'}</span>
+                <span className="text-sm leading-none">{child.avatarIcon || '🧒'}</span>
                 <span>{child.nickname}</span>
                 {childPendingCount > 0 && (
-                  <span className="bg-[#FACC15] text-[#1F2937] text-xs font-bold px-2 py-0.5 rounded-full">
+                  <span className="bg-[#FACC15] text-[#1F2937] text-[11px] font-bold px-1.5 py-0.2 rounded-full">
                     {childPendingCount}
                   </span>
                 )}
@@ -119,8 +119,8 @@ export const ApprovalsPage: React.FC = () => {
           })}
         </div>
 
-        {/* 宝贝与宠物闯关状态大卡片 (KidLearn Cards: #F9FAFB, 2px border, 20px corners, 24px padding, shadow-playful) */}
-        <section className="space-y-6">
+        {/* 宝贝与宠物闯关状态卡片 (紧凑布局) */}
+        <section className="space-y-3">
           {(selectedChildId === 'all' ? children : children.filter(c => c.id === selectedChildId)).map(child => {
             const pet = pets[child.id];
             const device = devices.find(d => d.childId === child.id);
@@ -131,37 +131,37 @@ export const ApprovalsPage: React.FC = () => {
 
             return (
               <div key={child.id} className="kid-card">
-                <div className="flex items-start justify-between gap-4 flex-wrap">
-                  <div className="flex items-center gap-4">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-3 min-w-0">
                     {/* 50% Circle Avatar */}
-                    <div className="w-16 h-16 rounded-full bg-[#FEF3C7] border-2 border-[#FACC15] flex items-center justify-center text-3xl shadow-kid-sm shrink-0">
+                    <div className="w-11 h-11 rounded-full bg-[#FEF3C7] border-2 border-[#FACC15] flex items-center justify-center text-2xl shrink-0">
                       {pet?.currentClothesItem?.icon || pet?.petAvatar || '🐶'}
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h2 className="text-h3 text-[#1F2937]">{child.nickname}</h2>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h2 className="text-h3 text-[#1F2937] truncate">{child.nickname}</h2>
                         <span className="kid-status-chip kid-status-new">
-                          <IconSparkle className="w-4 h-4 text-[#F59E0B]" />
+                          <IconSparkle className="w-3 h-3 text-[#F59E0B]" />
                           <span>{pet?.petName || '伴学小宠'}</span>
                         </span>
                       </div>
-                      <div className="text-caption text-[#6B7280] mt-1 flex items-center gap-1.5">
-                        <IconDevice className="w-4 h-4 text-[#3B82F6]" />
-                        <span>{device?.alias || '未连接桌面伙伴设备'}</span>
+                      <div className="text-caption text-[#6B7280] mt-0.5 flex items-center gap-1 truncate">
+                        <IconDevice className="w-3.5 h-3.5 text-[#3B82F6] shrink-0" />
+                        <span className="truncate">{device?.alias || '未连接桌面设备'}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* 设备状态 Status Chip */}
-                  <div>
+                  <div className="shrink-0">
                     {device ? (
                       <span className="kid-status-chip kid-status-complete">
-                        <IconCheck className="w-4 h-4" />
-                        <span>设备在线</span>
+                        <IconCheck className="w-3.5 h-3.5" />
+                        <span>在线</span>
                       </span>
                     ) : (
                       <span className="kid-status-chip kid-status-locked">
-                        <IconLock className="w-4 h-4" />
+                        <IconLock className="w-3.5 h-3.5" />
                         <span>待配对</span>
                       </span>
                     )}
@@ -169,24 +169,24 @@ export const ApprovalsPage: React.FC = () => {
                 </div>
 
                 {/* 星星金币与闯关进度 */}
-                <div className="mt-6 pt-4 border-t-2 border-[#E5E7EB] space-y-3">
+                <div className="mt-3 pt-2.5 border-t border-[#E5E7EB] space-y-2">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 bg-[#FEF3C7] border-2 border-[#FACC15] px-4 py-1.5 rounded-full">
-                      <IconCoin className="w-5 h-5" />
-                      <span className="font-headline font-bold text-[18px] text-[#92400E]">
+                    <div className="inline-flex items-center gap-1.5 bg-[#FEF3C7] border border-[#FACC15] px-2.5 py-0.5 rounded-full">
+                      <IconCoin className="w-4 h-4" />
+                      <span className="font-headline font-bold text-[14px] text-[#92400E]">
                         {child.coinsBalance} 金币
                       </span>
                     </div>
 
-                    <div className="text-caption text-[#1F2937] flex items-center gap-1.5">
-                      <IconStar className="w-5 h-5 text-[#FACC15]" />
-                      <span>今日闯关: <strong>{childCompleted} / {childTotal}</strong></span>
+                    <div className="text-caption text-[#1F2937] flex items-center gap-1">
+                      <IconStar className="w-4 h-4 text-[#FACC15]" />
+                      <span>今日闯关: <strong>{childCompleted}/{childTotal}</strong></span>
                     </div>
                   </div>
 
-                  {/* Chunky Playful Progress Bar */}
+                  {/* Playful Progress Bar */}
                   <div
-                    className="w-full bg-[#E5E7EB] h-4 rounded-full overflow-hidden p-0.5"
+                    className="w-full bg-[#E5E7EB] h-2.5 rounded-full overflow-hidden"
                     role="progressbar"
                     aria-valuenow={progressPct}
                     aria-valuemin={0}
@@ -203,14 +203,14 @@ export const ApprovalsPage: React.FC = () => {
           })}
         </section>
 
-        {/* 待发奖打卡任务 (Surface Highlight #FEF3C7 for active lessons/rewards) */}
-        <section className="space-y-4">
+        {/* 待发奖打卡任务 */}
+        <section className="space-y-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h3 className="text-h3 text-[#1F2937]">待发奖打卡</h3>
+              <h3 className="text-h2 text-[#1F2937]">待发奖打卡</h3>
               {submittedTasks.length > 0 && (
                 <span className="kid-status-chip kid-status-new">
-                  <IconSparkle className="w-4 h-4 text-[#F59E0B]" />
+                  <IconSparkle className="w-3.5 h-3.5 text-[#F59E0B]" />
                   <span>{submittedTasks.length} 项待表扬</span>
                 </span>
               )}
@@ -218,71 +218,71 @@ export const ApprovalsPage: React.FC = () => {
           </div>
 
           {submittedTasks.length === 0 ? (
-            <div className="kid-card text-center">
-              <div className="w-14 h-14 rounded-full bg-[#DCFCE7] text-[#166534] flex items-center justify-center mx-auto mb-3">
-                <IconCheck className="w-7 h-7" />
+            <div className="kid-card text-center py-5">
+              <div className="w-10 h-10 rounded-full bg-[#DCFCE7] text-[#166534] flex items-center justify-center mx-auto mb-2">
+                <IconCheck className="w-5 h-5" />
               </div>
               <div className="text-h3 text-[#1F2937]">所有打卡都表扬完啦！</div>
-              <p className="text-body text-[#6B7280] mt-1">
+              <p className="text-body text-[#6B7280] mt-0.5">
                 宝贝在桌面设备上完成任务后，会在这里等待你发放金币星星哦
               </p>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-3">
               {submittedTasks.map(task => {
                 const child = children.find(c => c.id === task.childId);
                 return (
                   <div key={task.id} className="kid-card-highlight">
-                    <div className="flex items-start justify-between gap-3 flex-wrap">
-                      <div className="space-y-2 flex-1 min-w-[200px]">
-                        <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-start justify-between gap-2.5">
+                      <div className="space-y-1 flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="kid-status-chip kid-status-active">
-                            <IconStar className="w-4 h-4 text-[#3B82F6]" />
+                            <IconStar className="w-3 h-3 text-[#3B82F6]" />
                             <span>{child?.nickname || task.childNickname}</span>
                           </span>
                           {task.deviceAlias && (
                             <span className="text-caption text-[#92400E] flex items-center gap-1">
-                              <IconDevice className="w-4 h-4" />
+                              <IconDevice className="w-3.5 h-3.5" />
                               {task.deviceAlias}
                             </span>
                           )}
                         </div>
 
-                        <h4 className="text-h3 text-[#1F2937]">{task.title}</h4>
+                        <h4 className="text-h3 text-[#1F2937] pt-0.5">{task.title}</h4>
                         <p className="text-body text-[#4B5563]">
                           {task.description || '宝贝在硬件屏幕上完成了这项任务！'}
                         </p>
                       </div>
 
-                      {/* 奖励徽章 (#FACC15 Tertiary) */}
-                      <div className="bg-[#FFFFFF] border-2 border-[#FACC15] rounded-[20px] px-4 py-2 text-center shadow-kid-sm shrink-0">
-                        <div className="flex items-center justify-center gap-1 font-headline font-bold text-[22px] text-[#92400E]">
-                          <IconCoin className="w-6 h-6" />
+                      {/* 奖励徽章 */}
+                      <div className="bg-[#FFFFFF] border-2 border-[#FACC15] rounded-[14px] px-2.5 py-1.5 text-center shrink-0">
+                        <div className="flex items-center justify-center gap-1 font-headline font-bold text-[16px] text-[#92400E]">
+                          <IconCoin className="w-4 h-4" />
                           <span>+{task.rewardCoins}</span>
                         </div>
-                        <div className="text-mono text-[#6B7280] flex items-center justify-center gap-1 mt-0.5">
-                          <IconClock className="w-3.5 h-3.5" />
+                        <div className="text-mono text-[#6B7280] flex items-center justify-center gap-0.5">
+                          <IconClock className="w-3 h-3" />
                           <span>{task.submittedAt || '刚刚'}</span>
                         </div>
                       </div>
                     </div>
 
-                    {/* 按钮组 (>=48px 触控目标 + 3px 按压位移 + 鼓励式文案) */}
-                    <div className="mt-6 pt-4 border-t-2 border-[#FDE047] flex items-center justify-end gap-4 flex-wrap">
+                    {/* 按钮组 */}
+                    <div className="mt-3 pt-2.5 border-t border-[#FDE047] flex items-center justify-end gap-2.5">
                       <button
                         type="button"
                         onClick={() => setRejectingTask(task)}
-                        className="kid-btn kid-btn-ghost kid-btn-md bg-white"
+                        className="kid-btn kid-btn-ghost kid-btn-sm"
                       >
                         <span>再试一次!</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => handleApprove(task)}
-                        className="kid-btn kid-btn-primary kid-btn-md"
+                        className="kid-btn kid-btn-primary kid-btn-sm"
                       >
-                        <IconCheck className="w-5 h-5" />
-                        <span>太棒了！发 +{task.rewardCoins} 金币</span>
+                        <IconCheck className="w-3.5 h-3.5" />
+                        <span>发 +{task.rewardCoins} 金币</span>
                       </button>
                     </div>
                   </div>
@@ -292,10 +292,10 @@ export const ApprovalsPage: React.FC = () => {
           )}
         </section>
 
-        {/* 今日任务闯关清单 (KidLearn Lists: 56px+ row height, 20px container corners, 24px left icon with 12px gap) */}
-        <section className="space-y-4">
+        {/* 今日任务闯关清单 */}
+        <section className="space-y-2.5">
           <div className="flex items-center justify-between">
-            <h3 className="text-h3 text-[#1F2937]">今日闯关地图</h3>
+            <h3 className="text-h2 text-[#1F2937]">今日闯关地图</h3>
             <span className="text-caption text-[#6B7280]">共 {filteredInstances.length} 关</span>
           </div>
 
@@ -304,24 +304,23 @@ export const ApprovalsPage: React.FC = () => {
               const child = children.find(c => c.id === task.childId);
               return (
                 <div key={task.id} className="kid-list-row">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    {/* 24px icon placed left with 12px gap */}
-                    <div className="w-11 h-11 rounded-full bg-[#FEF3C7] border-2 border-[#FACC15] flex items-center justify-center shrink-0">
-                      <IconStar className="w-6 h-6 text-[#F59E0B]" />
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-8 h-8 rounded-full bg-[#FEF3C7] border border-[#FACC15] flex items-center justify-center shrink-0">
+                      <IconStar className="w-4 h-4 text-[#F59E0B]" />
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-headline font-bold text-[16px] text-[#1F2937] truncate">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-headline font-bold text-[14px] text-[#1F2937] truncate">
                           {task.title}
                         </span>
-                        <span className="text-caption text-[#3B82F6] bg-[#DBEAFE] px-2.5 py-0.5 rounded-full">
+                        <span className="text-[11px] font-bold text-[#3B82F6] bg-[#DBEAFE] px-2 py-0.2 rounded-full">
                           {child?.nickname || task.childNickname}
                         </span>
                       </div>
-                      <div className="text-caption text-[#6B7280] flex items-center gap-2 mt-0.5 flex-wrap">
-                        <span className="inline-flex items-center gap-1 text-[#92400E] font-bold">
-                          <IconCoin className="w-4 h-4" />
+                      <div className="text-caption text-[#6B7280] flex items-center gap-1.5 mt-0.5 flex-wrap">
+                        <span className="inline-flex items-center gap-0.5 text-[#92400E] font-bold">
+                          <IconCoin className="w-3.5 h-3.5" />
                           +{task.rewardCoins} 金币
                         </span>
                         {task.deviceAlias && <span>· {task.deviceAlias}</span>}
@@ -336,25 +335,25 @@ export const ApprovalsPage: React.FC = () => {
                   <div className="shrink-0">
                     {task.status === 'completed' && (
                       <span className="kid-status-chip kid-status-complete">
-                        <IconCheck className="w-4 h-4" />
+                        <IconCheck className="w-3.5 h-3.5" />
                         <span>已完成</span>
                       </span>
                     )}
                     {task.status === 'submitted' && (
                       <span className="kid-status-chip kid-status-new">
-                        <IconSparkle className="w-4 h-4 text-[#F59E0B]" />
+                        <IconSparkle className="w-3.5 h-3.5 text-[#F59E0B]" />
                         <span>新提交</span>
                       </span>
                     )}
                     {task.status === 'pending' && (
                       <span className="kid-status-chip kid-status-locked">
-                        <IconLock className="w-4 h-4" />
+                        <IconLock className="w-3.5 h-3.5" />
                         <span>闯关中</span>
                       </span>
                     )}
                     {task.status === 'rejected' && (
                       <span className="kid-status-chip kid-status-active">
-                        <IconStar className="w-4 h-4" />
+                        <IconStar className="w-3.5 h-3.5" />
                         <span>再试一次!</span>
                       </span>
                     )}
@@ -364,7 +363,7 @@ export const ApprovalsPage: React.FC = () => {
             })}
 
             {filteredInstances.length === 0 && (
-              <div className="p-8 text-center text-body text-[#6B7280]">
+              <div className="p-6 text-center text-body text-[#6B7280]">
                 今天还没有安排闯关任务哦
               </div>
             )}
@@ -372,17 +371,17 @@ export const ApprovalsPage: React.FC = () => {
         </section>
       </div>
 
-      {/* 鼓励式“再试一次”弹窗 (Do #9: Forgiving error states -- "Try again!" not "Wrong answer.") */}
+      {/* 鼓励式“再试一次”弹窗 */}
       <Dialog
         visible={Boolean(rejectingTask)}
         title="鼓励宝贝再试一次！"
         content={
-          <div className="space-y-4 pt-2">
+          <div className="space-y-3 pt-1">
             <p className="text-body text-[#4B5563]">
               给【{rejectingTask?.childNickname}】发送一条温暖的提示，让他/她在桌面设备上再试一次：
             </p>
             <div>
-              <label htmlFor="try-again-input" className="text-caption text-[#1F2937] block mb-2">
+              <label htmlFor="try-again-input" className="text-caption text-[#1F2937] block mb-1.5">
                 鼓励提示语：
               </label>
               <textarea

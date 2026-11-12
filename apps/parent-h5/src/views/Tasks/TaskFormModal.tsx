@@ -120,16 +120,16 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
       onMaskClick={onClose}
       position="bottom"
       bodyStyle={{
-        height: '86vh',
-        borderTopLeftRadius: '28px',
-        borderTopRightRadius: '28px',
+        height: '84vh',
+        borderTopLeftRadius: '22px',
+        borderTopRightRadius: '22px',
         background: '#FFFFFF',
       }}
     >
       <div className="flex flex-col h-full text-[#1F2937]">
         {/* Header */}
-        <div className="px-6 py-4 bg-[#F9FAFB] border-b-2 border-[#E5E7EB] flex items-center justify-between">
-          <h3 className="text-h3 text-[#1F2937]">
+        <div className="px-4 py-3 bg-[#F9FAFB] border-b border-[#E5E7EB] flex items-center justify-between">
+          <h3 className="text-h2 text-[#1F2937]">
             {initialTemplate ? '修改闯关任务' : '创建新闯关任务'}
           </h3>
           <button
@@ -142,11 +142,11 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto flex-1 min-h-0 space-y-6">
-          {/* 1. 任务名称与说明 (KidLearn Inputs: 20px radius, 48px min height) */}
-          <div className="kid-card space-y-4">
+        <div className="p-4 overflow-y-auto flex-1 min-h-0 space-y-3.5">
+          {/* 1. 任务名称与说明 */}
+          <div className="kid-card space-y-3">
             <div>
-              <label htmlFor="task-title-input" className="text-caption text-[#1F2937] block mb-2">
+              <label htmlFor="task-title-input" className="text-caption text-[#1F2937] block mb-1.5">
                 任务名称 *
               </label>
               <input
@@ -160,7 +160,7 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
             </div>
 
             <div>
-              <label htmlFor="task-desc-input" className="text-caption text-[#1F2937] block mb-2">
+              <label htmlFor="task-desc-input" className="text-caption text-[#1F2937] block mb-1.5">
                 小提示与规则（选填）
               </label>
               <textarea
@@ -175,11 +175,11 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
             </div>
           </div>
 
-          {/* 2. 派发对象 (KidLearn Radio Buttons 28px + Checkboxes 28px) */}
-          <div className="kid-card space-y-4">
+          {/* 2. 派发对象 */}
+          <div className="kid-card space-y-2.5">
             <div className="text-caption text-[#1F2937]">布置给哪位宝贝？</div>
 
-            <div className="space-y-3" role="radiogroup" aria-label="布置范围">
+            <div className="space-y-2" role="radiogroup" aria-label="布置范围">
               {[
                 { label: '全部宝贝一起闯关（每台设备各自生成）', value: 'all' as TargetScope },
                 { label: '指定宝贝专属任务', value: 'specific' as TargetScope },
@@ -192,15 +192,14 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
                     role="radio"
                     aria-checked={selected}
                     onClick={() => setTargetScope(opt.value)}
-                    className="w-full min-h-[48px] p-3 rounded-[20px] bg-white border-2 border-[#E5E7EB] flex items-center gap-3 text-left hover:border-[#9CA3AF] transition-all"
+                    className="w-full p-2.5 rounded-[14px] bg-white border border-[#E5E7EB] flex items-center gap-2.5 text-left hover:border-[#9CA3AF] transition-all"
                   >
-                    {/* KidLearn 28px Radio Button with 14px dot */}
                     <span
-                      className={`w-[28px] h-[28px] rounded-full flex items-center justify-center border-2 shrink-0 ${
+                      className={`w-5 h-5 rounded-full flex items-center justify-center border-2 shrink-0 ${
                         selected ? 'border-[#EF4444] bg-white' : 'border-[#9CA3AF] bg-white'
                       }`}
                     >
-                      {selected && <span className="w-[14px] h-[14px] rounded-full bg-[#EF4444]" />}
+                      {selected && <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444]" />}
                     </span>
                     <span className="text-body font-semibold text-[#1F2937]">{opt.label}</span>
                   </button>
@@ -209,9 +208,9 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
             </div>
 
             {targetScope === 'specific' && (
-              <div className="pt-3 border-t-2 border-[#E5E7EB] space-y-2">
-                <div className="text-caption text-[#6B7280] mb-2">勾选参与的宝贝（可多选）：</div>
-                <div className="grid grid-cols-2 gap-3">
+              <div className="pt-2.5 border-t border-[#E5E7EB] space-y-2">
+                <div className="text-caption text-[#6B7280]">勾选参与的宝贝（可多选）：</div>
+                <div className="grid grid-cols-2 gap-2">
                   {children.map(child => {
                     const checked = targetChildIds.includes(child.id);
                     return (
@@ -221,17 +220,16 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
                         role="checkbox"
                         aria-checked={checked}
                         onClick={() => toggleChildSelection(child.id)}
-                        className="min-h-[48px] p-3 rounded-[20px] bg-white border-2 border-[#E5E7EB] flex items-center gap-3 text-left"
+                        className="p-2.5 rounded-[14px] bg-white border border-[#E5E7EB] flex items-center gap-2.5 text-left"
                       >
-                        {/* KidLearn 28px Checkbox with 8px radius */}
                         <span
-                          className={`w-[28px] h-[28px] rounded-[8px] flex items-center justify-center border-2 shrink-0 transition-transform ${
+                          className={`w-5 h-5 rounded-[6px] flex items-center justify-center border-2 shrink-0 transition-transform ${
                             checked
-                              ? 'bg-[#3B82F6] border-[#3B82F6] text-white scale-105'
+                              ? 'bg-[#3B82F6] border-[#3B82F6] text-white'
                               : 'bg-white border-[#9CA3AF]'
                           }`}
                         >
-                          {checked && <IconCheck className="w-4 h-4" />}
+                          {checked && <IconCheck className="w-3.5 h-3.5" />}
                         </span>
                         <span className="text-body font-bold text-[#1F2937] truncate">
                           {child.nickname}
@@ -245,13 +243,13 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
           </div>
 
           {/* 3. 奖励金币与表扬方式 */}
-          <div className="kid-card space-y-4">
-            <div className="flex items-center justify-between gap-4">
+          <div className="kid-card space-y-3">
+            <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <IconCoin className="w-6 h-6" />
+                <IconCoin className="w-5 h-5" />
                 <div>
                   <div className="text-caption text-[#1F2937]">奖励金币数量</div>
-                  <div className="text-caption text-[#6B7280]">每次完成可获得的金币</div>
+                  <div className="text-[11px] text-[#6B7280]">每次完成可获得的金币</div>
                 </div>
               </div>
               <Stepper
@@ -263,9 +261,9 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
               />
             </div>
 
-            <div className="pt-3 border-t-2 border-[#E5E7EB] space-y-2">
-              <div className="text-caption text-[#1F2937] mb-2">发币方式：</div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="pt-2.5 border-t border-[#E5E7EB] space-y-2">
+              <div className="text-caption text-[#1F2937]">发币方式：</div>
+              <div className="grid grid-cols-2 gap-2">
                 {[
                   { label: '家长表扬后发币', value: 'parent_confirm' as ConfirmType },
                   { label: '打卡立即发币', value: 'auto_confirm' as ConfirmType },
@@ -287,9 +285,9 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
           </div>
 
           {/* 4. 重复周期 */}
-          <div className="kid-card space-y-4">
+          <div className="kid-card space-y-3">
             <div className="text-caption text-[#1F2937]">闯关频率</div>
-            <div className="flex items-center gap-2.5 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
               {[
                 { label: '每天一次', value: 'daily' as FrequencyType },
                 { label: '每周指定日', value: 'weekly_days' as FrequencyType },
@@ -307,7 +305,7 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
             </div>
 
             {frequencyType === 'weekly_days' && (
-              <div className="pt-3 border-t-2 border-[#E5E7EB] flex flex-wrap gap-2">
+              <div className="pt-2.5 border-t border-[#E5E7EB] flex flex-wrap gap-1.5">
                 {WEEKDAY_OPTIONS.map(day => {
                   const checked = selectedDays.includes(day.value);
                   return (
@@ -315,7 +313,7 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
                       key={day.value}
                       type="button"
                       onClick={() => toggleDaySelection(day.value)}
-                      className={`kid-filter-chip ${checked ? 'kid-filter-chip-selected' : ''}`}
+                      className={`kid-filter-chip !px-3 ${checked ? 'kid-filter-chip-selected' : ''}`}
                     >
                       <span>{day.label}</span>
                     </button>
@@ -325,7 +323,7 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
             )}
 
             {frequencyType === 'interval_days' && (
-              <div className="pt-3 border-t-2 border-[#E5E7EB] flex items-center justify-between">
+              <div className="pt-2.5 border-t border-[#E5E7EB] flex items-center justify-between">
                 <span className="text-body text-[#1F2937]">每隔几天重复一次：</span>
                 <Stepper
                   value={intervalDays}
@@ -338,8 +336,8 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
           </div>
         </div>
 
-        {/* Footer (Large 56px Primary Button) */}
-        <div className="p-6 bg-[#F9FAFB] border-t-2 border-[#E5E7EB] shrink-0">
+        {/* Footer */}
+        <div className="p-4 bg-[#F9FAFB] border-t border-[#E5E7EB] shrink-0">
           <button
             type="button"
             onClick={handleSubmit}
