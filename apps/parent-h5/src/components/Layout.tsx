@@ -1,20 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { SafeArea, TabBar } from 'antd-mobile';
-import {
-  BellOutline,
-  UnorderedListOutline,
-  SmileOutline,
-  SetOutline,
-} from 'antd-mobile-icons';
+import { SafeArea } from 'antd-mobile';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { useAppStore } from '../stores/useAppStore';
 import { OfflineNoticeBar } from './pwa/OfflineNoticeBar';
 import { InstallBanner } from './pwa/InstallBanner';
 import { IosInstallGuideModal } from './pwa/IosInstallGuideModal';
 import { UpdatePrompt } from './pwa/UpdatePrompt';
-import { IconPaw, IconDevice } from './Icons';
+import { IconPaw, IconStar, IconBolt, IconClipboard, IconCoin, IconDevice } from './Icons';
 
 import { ApprovalsPage } from '../views/Approvals';
 import { TasksPage } from '../views/Tasks';
@@ -32,29 +26,29 @@ export const Layout: React.FC = () => {
   const tabs = [
     {
       key: 'approvals',
-      title: '工作台',
-      icon: <BellOutline />,
+      title: '打卡奖励',
+      icon: <IconBolt className="w-6 h-6" />,
       badge: pendingApprovalsCount > 0 ? pendingApprovalsCount : undefined,
     },
     {
       key: 'tasks',
-      title: '任务库',
-      icon: <UnorderedListOutline />,
+      title: '任务闯关',
+      icon: <IconClipboard className="w-6 h-6" />,
     },
     {
       key: 'pet',
-      title: '宠物资产',
-      icon: <SmileOutline />,
+      title: '宠物乐园',
+      icon: <IconCoin className="w-6 h-6" />,
     },
     {
       key: 'settings',
-      title: '终端设置',
-      icon: <SetOutline />,
+      title: '家庭设备',
+      icon: <IconDevice className="w-6 h-6" />,
     },
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F4F6F9] text-slate-900 antialiased">
+    <div className="flex flex-col min-h-screen bg-[#FFFFFF] text-[#1F2937] antialiased">
       {/* 1. iPhone 刘海屏 / 灵动岛顶部安全区适配 */}
       <SafeArea position="top" />
 
@@ -70,29 +64,22 @@ export const Layout: React.FC = () => {
       {/* 5. Service Worker 版本更新提示 */}
       <UpdatePrompt />
 
-      {/* 6. 顶栏导航 (结构化专业左对齐顶栏) */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 select-none">
-        <div className="w-full max-w-xl mx-auto px-4 h-12 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-md bg-slate-900 text-white flex items-center justify-center shadow-xs">
-              <IconPaw className="w-4 h-4" />
+      {/* 6. KidLearn 顶栏导航 */}
+      <header className="sticky top-0 z-40 bg-[#FFFFFF]/95 backdrop-blur-md border-b-2 border-[#E5E7EB] select-none">
+        <div className="w-full max-w-xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-full bg-[#EF4444] text-white flex items-center justify-center shadow-[0_3px_0_#B91C1C] shrink-0">
+              <IconPaw className="w-6 h-6" />
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className="font-bold text-[15px] tracking-tight text-slate-900">StudyPet</span>
-              <span className="text-xs font-medium text-slate-400">家长端控制台</span>
+            <div>
+              <h1 className="text-h3 text-[#1F2937] leading-tight">学习宠物助手</h1>
+              <p className="text-caption text-[#6B7280] leading-none mt-0.5">KidLearn 习惯养成乐园</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200/80">
-              <IconDevice className="w-3.5 h-3.5 text-slate-500" />
-              <span>{children.length} 成员</span>
-              <span className="text-slate-300">·</span>
-              <span className="inline-flex items-center gap-1 text-emerald-700">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                {devices.length} 在线
-              </span>
-            </div>
+          <div className="kid-status-chip kid-status-active">
+            <IconStar className="w-4 h-4 text-[#3B82F6]" />
+            <span>{children.length} 宝贝 · {devices.length} 设备</span>
           </div>
         </div>
       </header>
@@ -105,23 +92,34 @@ export const Layout: React.FC = () => {
         {activeTab === 'settings' && <SettingsPage installState={installState} />}
       </main>
 
-      {/* 8. 底部导航栏与 iPhone 虚拟条底部安全区适配 */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/80 select-none">
-        <div className="max-w-xl mx-auto">
-          <TabBar
-            activeKey={activeTab}
-            onChange={setActiveTab}
-            className="h-[52px]"
-          >
-            {tabs.map(item => (
-              <TabBar.Item
+      {/* 8. KidLearn 底部大触控导航栏 (>=48px 触控高度 + 图标文字配对) */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#FFFFFF] border-t-2 border-[#E5E7EB] shadow-kid-md select-none">
+        <div className="max-w-xl mx-auto px-3 py-2 grid grid-cols-4 gap-2">
+          {tabs.map(item => {
+            const isActive = activeTab === item.key;
+            return (
+              <button
                 key={item.key}
-                icon={item.icon}
-                title={item.title}
-                badge={item.badge}
-              />
-            ))}
-          </TabBar>
+                type="button"
+                onClick={() => setActiveTab(item.key)}
+                className={`relative min-h-[56px] rounded-[20px] px-2 py-1.5 flex flex-col items-center justify-center gap-1 font-headline font-bold text-caption transition-all ${
+                  isActive
+                    ? 'bg-[#FEF3C7] text-[#EF4444] border-2 border-[#FACC15] shadow-[0_3px_0_#EAB308] -translate-y-0.5'
+                    : 'bg-transparent text-[#6B7280] border-2 border-transparent hover:bg-[#F3F4F6]'
+                }`}
+              >
+                <div className="relative">
+                  {item.icon}
+                  {item.badge !== undefined && (
+                    <span className="absolute -top-1.5 -right-3 bg-[#EF4444] text-white text-[12px] font-bold min-w-[20px] h-[20px] px-1 rounded-full flex items-center justify-center border-2 border-white">
+                      {item.badge}
+                    </span>
+                  )}
+                </div>
+                <span className="leading-none">{item.title}</span>
+              </button>
+            );
+          })}
         </div>
         <SafeArea position="bottom" />
       </nav>

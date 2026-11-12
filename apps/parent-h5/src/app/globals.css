@@ -4,102 +4,341 @@
 
 :root {
   color-scheme: light;
-  accent-color: #4F46E5;
-  --adm-color-primary: #4F46E5;
-  --adm-color-success: #059669;
-  --adm-color-warning: #D97706;
-  --adm-color-danger: #DC2626;
-  --adm-border-color: #E2E8F0;
-  --adm-font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+  accent-color: #EF4444;
+  --adm-color-primary: #EF4444;
+  --adm-color-success: #22C55E;
+  --adm-color-warning: #F59E0B;
+  --adm-color-danger: #EF4444;
+  --adm-border-color: #E5E7EB;
+  --adm-font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
 }
 
 ::selection {
-  background-color: #E0E7FF;
-  color: #1E1B4B;
+  background-color: #FEF3C7;
+  color: #1F2937;
 }
 
 html, body {
   margin: 0;
   padding: 0;
-  background-color: #F4F6F9;
-  color: #0F172A;
+  background-color: #FFFFFF;
+  color: #1F2937;
   touch-action: manipulation;
   overscroll-behavior-y: none;
   -webkit-tap-highlight-color: transparent;
   font-family: var(--adm-font-family);
+  font-size: 16px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Ant Design Mobile 精密现代风格覆盖 */
-.adm-tab-bar {
-  --adm-color-primary: #4F46E5;
-  --adm-color-weak: #64748B;
+h1, h2, h3, h4, .font-headline {
+  font-family: 'Fredoka', 'Nunito', 'PingFang SC', 'Hiragino Maru Gothic ProN', 'Microsoft YaHei', sans-serif;
 }
 
-.adm-tabs {
-  --active-line-color: #4F46E5;
-  --active-title-color: #0F172A;
-  --title-font-size: 13px;
+/* KidLearn Typography Scale */
+.text-hero {
+  font-family: 'Fredoka', 'Nunito', 'PingFang SC', sans-serif;
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1.2;
 }
-
-/* 紧凑型结构化分段控制器 (摒弃过度圆角，采用 8px/6px 同心圆角) */
-.segmented {
-  background-color: #E2E8F0;
-  border-radius: 8px;
-  padding: 3px;
+.text-h1 {
+  font-family: 'Fredoka', 'Nunito', 'PingFang SC', sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.25;
 }
-.segmented .adm-tabs-header {
-  border: 0;
-}
-.segmented .adm-tabs-tab-line {
-  display: none;
-}
-.segmented .adm-tabs-tab-list {
-  padding: 0;
-  gap: 3px;
-}
-.segmented .adm-tabs-tab {
-  min-width: max-content;
-  padding: 6px 12px;
-  color: #475569;
-  border-radius: 6px;
-  font-weight: 500;
-  transition: all 0.15s ease;
-}
-.segmented .adm-tabs-tab-active {
-  background: #FFFFFF;
-  color: #0F172A;
+.text-h2 {
+  font-family: 'Fredoka', 'Nunito', 'PingFang SC', sans-serif;
+  font-size: 28px;
   font-weight: 600;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  line-height: 1.3;
+}
+.text-h3 {
+  font-family: 'Fredoka', 'Nunito', 'PingFang SC', sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.text-body-lg {
+  font-family: 'Nunito', 'PingFang SC', sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+.text-body {
+  font-family: 'Nunito', 'PingFang SC', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+.text-caption {
+  font-family: 'Nunito', 'PingFang SC', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.text-mono {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
 }
 
-.adm-button {
-  transition: transform 120ms ease, background-color 120ms ease;
-  font-family: inherit;
+/* KidLearn Cards: surface-raised (#F9FAFB) fill, 2px border-default border, 20px corners, 24px padding, shadow-playful shadow */
+.kid-card {
+  background-color: #F9FAFB;
+  border: 2px solid #E5E7EB;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 6px 0 #D1D5DB;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.kid-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.kid-card-highlight {
+  background-color: #FEF3C7;
+  border: 2px solid #FACC15;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 6px 0 #EAB308;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.kid-card-highlight:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+/* KidLearn Buttons: border-radius: 20px minimum, chunky pressed state shifts down by 3px */
+.kid-btn {
+  border-radius: 20px;
+  font-family: 'Fredoka', 'Nunito', 'PingFang SC', sans-serif;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 100ms ease, box-shadow 100ms ease, background-color 150ms ease;
   user-select: none;
+  cursor: pointer;
 }
-.adm-button:active {
-  transform: scale(0.98);
+.kid-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.35);
 }
-
-.adm-popup .adm-selector {
-  --border-radius: 8px;
-  --color: #F1F5F9;
-  --checked-color: #EEF2FF;
-  --checked-text-color: #4F46E5;
-  --checked-border: 1px solid #6366F1;
+.kid-btn:active:not(:disabled) {
+  transform: translateY(3px);
 }
-
-.adm-tag-default {
-  --background-color: #F1F5F9;
-  --text-color: #334155;
-  --border-color: #CBD5E1;
-  --border-radius: 4px;
+.kid-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: saturate(0.3);
 }
 
-.adm-popup-body {
+.kid-btn-primary {
+  background-color: #EF4444;
+  color: #FFFFFF;
+  border: none;
+  box-shadow: 0 4px 0 #B91C1C;
+}
+.kid-btn-primary:hover:not(:disabled) {
+  background-color: #DC2626;
+}
+.kid-btn-primary:active:not(:disabled) {
+  box-shadow: 0 1px 0 #B91C1C;
+}
+
+.kid-btn-secondary {
+  background-color: #3B82F6;
+  color: #FFFFFF;
+  border: none;
+  box-shadow: 0 4px 0 #1D4ED8;
+}
+.kid-btn-secondary:hover:not(:disabled) {
+  background-color: #2563EB;
+}
+.kid-btn-secondary:active:not(:disabled) {
+  box-shadow: 0 1px 0 #1D4ED8;
+}
+
+.kid-btn-success {
+  background-color: #22C55E;
+  color: #FFFFFF;
+  border: none;
+  box-shadow: 0 4px 0 #15803D;
+}
+.kid-btn-success:hover:not(:disabled) {
+  background-color: #16A34A;
+}
+.kid-btn-success:active:not(:disabled) {
+  box-shadow: 0 1px 0 #15803D;
+}
+
+.kid-btn-ghost {
+  background-color: transparent;
+  color: #EF4444;
+  border: 2px solid #EF4444;
+}
+.kid-btn-ghost:hover:not(:disabled) {
+  background-color: #FEF2F2;
+}
+
+.kid-btn-destructive {
+  background-color: #DC2626;
+  color: #FFFFFF;
+  border: none;
+  box-shadow: 0 4px 0 #991B1B;
+}
+
+/* Button Sizes: Small (40px, 16px, 14px, 80px), Medium (48px, 24px, 16px, 120px), Large (56px, 32px, 18px, 160px) */
+.kid-btn-sm {
+  min-height: 48px; /* Enforcing >=48px touch target per Do #1 */
+  height: 48px;
+  padding: 0 16px;
+  font-size: 14px;
+  min-width: 80px;
+}
+.kid-btn-md {
+  min-height: 48px;
+  height: 48px;
+  padding: 0 24px;
+  font-size: 16px;
+  min-width: 120px;
+}
+.kid-btn-lg {
+  min-height: 56px;
+  height: 56px;
+  padding: 0 32px;
+  font-size: 18px;
+  min-width: 160px;
+}
+
+/* KidLearn Inputs: 20px border radius, 48px minimum tall, 16px Nunito, 16px horizontal padding */
+.kid-input {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 20px;
+  border: 2px solid #9CA3AF;
+  background-color: #FFFFFF;
+  padding: 10px 16px;
+  font-family: 'Nunito', 'PingFang SC', sans-serif;
+  font-size: 16px;
+  color: #1F2937;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.kid-input:hover:not(:disabled) {
+  border-color: #6B7280;
+}
+.kid-input:focus {
+  outline: none;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.35);
+}
+.kid-input:disabled {
+  border-color: #E5E7EB;
+  background-color: #F3F4F6;
+}
+.kid-input:not([type="range"]):user-invalid {
+  border-color: #EF4444;
+  background-color: #FEF2F2;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
+}
+
+/* KidLearn Filter Chips: 9999px pill, 14px Nunito 600, 48px touch target wrapper / 36px visual */
+.kid-filter-chip {
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 9999px;
+  font-family: 'Nunito', 'PingFang SC', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #F3F4F6;
+  color: #1F2937;
+  border: 2px solid #E5E7EB;
+  transition: all 150ms ease;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.kid-filter-chip:hover {
+  background-color: #E5E7EB;
+  border-color: #9CA3AF;
+}
+.kid-filter-chip-selected {
+  background-color: #3B82F6;
+  color: #FFFFFF;
+  border-color: #3B82F6;
+  box-shadow: 0 3px 0 #1D4ED8;
+}
+.kid-filter-chip-selected:hover {
+  background-color: #2563EB;
+  border-color: #2563EB;
+}
+
+/* KidLearn Status Chips: 9999px pill, 14px Nunito 600, 36px tall */
+.kid-status-chip {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 9999px;
+  font-family: 'Nunito', 'PingFang SC', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.kid-status-complete {
+  background-color: #DCFCE7;
+  color: #166534;
+}
+.kid-status-locked {
+  background-color: #F3F4F6;
+  color: #6B7280;
+}
+.kid-status-active {
+  background-color: #DBEAFE;
+  color: #1E40AF;
+}
+.kid-status-new {
+  background-color: #FEF3C7;
+  color: #92400E;
+}
+
+/* KidLearn Lists: 56px min row height, 16px horizontal padding, 1px #E5E7EB divider, 20px container corners */
+.kid-list {
+  background-color: #F9FAFB;
+  border: 2px solid #E5E7EB;
+  border-radius: 20px;
+  box-shadow: 0 6px 0 #D1D5DB;
   overflow: hidden;
-  border-radius: 14px 14px 0 0;
+}
+.kid-list-row {
+  min-height: 64px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid #E5E7EB;
+  transition: background-color 150ms ease;
+}
+.kid-list-row:last-child {
+  border-bottom: none;
+}
+.kid-list-row:hover {
+  background-color: #F3F4F6;
+}
+.kid-list-row:active {
+  background-color: #DBEAFE;
 }
 
 textarea {
@@ -107,21 +346,17 @@ textarea {
   field-sizing: content;
 }
 
-input:not([type="range"]):user-invalid,
-textarea:user-invalid {
-  border-color: #DC2626;
-  background-color: #FEF2F2;
-}
-
-@media (prefers-contrast: more) {
-  :root {
-    --adm-border-color: #64748B;
-  }
+.adm-popup-body {
+  overflow: hidden;
+  border-radius: 28px 28px 0 0;
 }
 
 @media (forced-colors: active) {
-  .card-surface {
-    border: 1px solid CanvasText;
+  .kid-card,
+  .kid-card-highlight,
+  .kid-list,
+  .kid-btn {
+    border: 2px solid CanvasText;
   }
 }
 

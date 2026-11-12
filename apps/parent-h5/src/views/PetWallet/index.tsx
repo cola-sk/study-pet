@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Tabs } from 'antd-mobile';
 import { useAppStore } from '../../stores/useAppStore';
-import { IconCoin, IconDevice } from '../../components/Icons';
+import { IconCoin, IconStar, IconSparkle, IconCheck } from '../../components/Icons';
 
 export const PetWalletPage: React.FC = () => {
   const { children, pets, transactions, shopItems } = useAppStore();
@@ -23,156 +22,165 @@ export const PetWalletPage: React.FC = () => {
     .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
   return (
-    <div className="p-4 space-y-5 pb-24 text-slate-900">
-      {/* 成员切换 Tab */}
-      <div className="segmented select-none">
-        <Tabs activeKey={currentChildId} onChange={setCurrentChildId}>
-          {children.map(child => (
-            <Tabs.Tab
-              title={<span className="text-xs">{child.nickname}</span>}
+    <div className="px-4 py-6 space-y-8 pb-32 text-[#1F2937]">
+      {/* KidLearn Filter Chips 切换宝贝 */}
+      <div className="flex items-center gap-3 overflow-x-auto pb-2" role="tablist" aria-label="选择孩子">
+        {children.map(child => {
+          const isSelected = currentChildId === child.id;
+          return (
+            <button
               key={child.id}
-            />
-          ))}
-        </Tabs>
-      </div>
-
-      {/* 宠物硬件屏幕状态面板 (结构化双栏仪表视窗) */}
-      <div className="card-surface bg-white rounded-xl border border-slate-200/90 shadow-card overflow-hidden">
-        {/* 模拟终端状态顶栏 */}
-        <div className="px-3.5 py-2 bg-slate-900 text-white flex items-center justify-between text-xs">
-          <div className="flex items-center gap-1.5 font-medium">
-            <IconDevice className="w-3.5 h-3.5 text-indigo-400" />
-            <span>{currentChild?.nickname} · 桌面宠物状态监控</span>
-          </div>
-          <span className="text-[11px] text-slate-400 font-mono">SYNC: LIVE</span>
-        </div>
-
-        {/* 主体：左侧形象与装扮，右侧物资指标 */}
-        <div className="p-4 flex items-center gap-4">
-          <div className="w-16 h-16 rounded-lg bg-slate-50 border border-slate-200/90 flex items-center justify-center text-4xl shrink-0">
-            {pet?.petAvatar || '🐶'}
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-bold text-slate-900 text-base">
-                {pet?.petName || `${currentChild?.nickname}的伴学宠`}
-              </h3>
-              {pet?.currentClothesItem ? (
-                <span className="inline-flex items-center gap-1 text-[11px] bg-indigo-50 text-indigo-700 border border-indigo-200/70 px-1.5 py-0.5 rounded font-medium">
-                  <span>{pet.currentClothesItem.icon}</span>
-                  <span>已穿戴: {pet.currentClothesItem.name}</span>
-                </span>
-              ) : (
-                <span className="text-[11px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">
-                  未穿戴饰品
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-slate-500 mt-1">
-              状态良好，可在关联的微雪硬件屏幕上投喂互动
-            </p>
-          </div>
-        </div>
-
-        {/* 底部物资储量条 */}
-        <div className="grid grid-cols-2 divide-x divide-slate-100 border-t border-slate-100 bg-slate-50/60 text-xs">
-          <div className="px-3.5 py-2.5 flex items-center justify-between">
-            <span className="text-slate-500 font-medium">🍎 食物库存</span>
-            <span className="font-mono font-bold text-slate-900 text-sm">{pet?.foodCount || 0} 份</span>
-          </div>
-          <div className="px-3.5 py-2.5 flex items-center justify-between">
-            <span className="text-slate-500 font-medium">💧 饮水库存</span>
-            <span className="font-mono font-bold text-slate-900 text-sm">{pet?.waterCount || 0} 份</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 账户资产三栏总览 (Unified KPI Panel) */}
-      <div className="card-surface bg-white rounded-xl border border-slate-200/90 shadow-card grid grid-cols-3 divide-x divide-slate-100 overflow-hidden">
-        <div className="p-3.5">
-          <div className="text-[11px] text-slate-500 font-medium">可用金币</div>
-          <div className="mt-1 flex items-center gap-1">
-            <IconCoin className="w-4 h-4 shrink-0" />
-            <span className="text-lg font-bold font-mono tabular-nums text-slate-900">
-              {currentChild?.coinsBalance || 0}
-            </span>
-          </div>
-        </div>
-        <div className="p-3.5">
-          <div className="text-[11px] text-slate-500 font-medium">今日赚取</div>
-          <div className="mt-1 text-lg font-bold font-mono tabular-nums text-emerald-600">
-            +{totalEarnedToday}
-          </div>
-        </div>
-        <div className="p-3.5">
-          <div className="text-[11px] text-slate-500 font-medium">累计兑换</div>
-          <div className="mt-1 text-lg font-bold font-mono tabular-nums text-slate-600">
-            -{totalSpent}
-          </div>
-        </div>
-      </div>
-
-      {/* 终端兑换商店目录 */}
-      <section>
-        <div className="flex items-center justify-between mb-2.5">
-          <h3 className="text-sm font-bold text-slate-900 tracking-tight">硬件端商店价目表</h3>
-          <span className="text-xs text-slate-400">孩子在硬件屏幕自主兑换</span>
-        </div>
-        <div className="grid grid-cols-3 gap-2.5">
-          {shopItems.map(item => (
-            <div
-              key={item.id}
-              className="card-surface bg-white rounded-xl p-3 border border-slate-200/90 shadow-card flex flex-col justify-between"
+              type="button"
+              role="tab"
+              aria-selected={isSelected}
+              onClick={() => setCurrentChildId(child.id)}
+              className={`kid-filter-chip ${isSelected ? 'kid-filter-chip-selected' : ''}`}
             >
-              <div className="flex items-start justify-between">
-                <span className="text-2xl leading-none">{item.icon}</span>
-                <span className="text-[10px] bg-slate-100 text-slate-600 border border-slate-200/80 px-1.5 py-0.5 rounded font-medium">
-                  {item.category === 'clothes' ? '装扮' : '补给'}
-                </span>
+              <span className="text-lg leading-none">{child.avatarIcon || '🧒'}</span>
+              <span>{child.nickname}的乐园</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 宠物展示大舞台 (Surface Highlight #FEF3C7) */}
+      <div className="kid-card-highlight text-center relative">
+        <div className="flex items-center justify-between mb-4">
+          <span className="kid-status-chip kid-status-active">
+            <IconStar className="w-4 h-4 text-[#3B82F6]" />
+            <span>{currentChild?.nickname}的伙伴</span>
+          </span>
+          <span className="kid-status-chip kid-status-complete">
+            <IconCheck className="w-4 h-4" />
+            <span>活力满满</span>
+          </span>
+        </div>
+
+        {/* 50% Circle Avatar */}
+        <div className="py-2 flex flex-col items-center justify-center">
+          <div className="relative">
+            <div className="w-28 h-28 rounded-full bg-[#FFFFFF] border-4 border-[#FACC15] flex items-center justify-center text-6xl shadow-kid-md">
+              {pet?.petAvatar || '🐶'}
+            </div>
+            {pet?.currentClothesItem && (
+              <div className="mt-2 inline-flex items-center gap-1.5 bg-[#FFFFFF] border-2 border-[#3B82F6] px-3 py-1 rounded-full text-caption text-[#1E40AF] shadow-kid-sm">
+                <span>{pet.currentClothesItem.icon}</span>
+                <span>穿戴: {pet.currentClothesItem.name}</span>
               </div>
-              <div className="mt-2.5">
-                <div className="font-semibold text-xs text-slate-900 truncate">{item.name}</div>
-                <div className="text-xs text-amber-700 font-mono font-bold mt-0.5 flex items-center gap-0.5">
-                  <IconCoin className="w-3 h-3" />
-                  <span>{item.price}</span>
-                </div>
+            )}
+          </div>
+
+          <h2 className="text-h2 text-[#1F2937] mt-4">
+            {pet?.petName || `${currentChild?.nickname}的小伙伴`}
+          </h2>
+          <p className="text-body text-[#6B7280] mt-1">
+            快在桌面设备上用金币给它买好吃的吧！
+          </p>
+
+          {/* 食物与饮水背包 */}
+          <div className="mt-6 w-full grid grid-cols-2 gap-4">
+            <div className="bg-[#FFFFFF] border-2 border-[#E5E7EB] rounded-[20px] p-4 flex items-center justify-center gap-3 shadow-kid-sm">
+              <span className="text-3xl">🍎</span>
+              <div className="text-left">
+                <div className="text-caption text-[#6B7280]">美味食物</div>
+                <div className="text-h3 text-[#1F2937]">{pet?.foodCount || 0} 份</div>
               </div>
+            </div>
+            <div className="bg-[#FFFFFF] border-2 border-[#E5E7EB] rounded-[20px] p-4 flex items-center justify-center gap-3 shadow-kid-sm">
+              <span className="text-3xl">💧</span>
+              <div className="text-left">
+                <div className="text-caption text-[#6B7280]">甘甜饮水</div>
+                <div className="text-h3 text-[#1F2937]">{pet?.waterCount || 0} 份</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 金币储蓄罐统计 */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="kid-card !p-4 text-center">
+          <div className="text-caption text-[#6B7280]">现有金币</div>
+          <div className="text-h3 text-[#92400E] mt-1 flex items-center justify-center gap-1">
+            <IconCoin className="w-5 h-5" />
+            <span>{currentChild?.coinsBalance || 0}</span>
+          </div>
+        </div>
+        <div className="kid-card !p-4 text-center">
+          <div className="text-caption text-[#6B7280]">今日收获</div>
+          <div className="text-h3 text-[#22C55E] mt-1">+{totalEarnedToday}</div>
+        </div>
+        <div className="kid-card !p-4 text-center">
+          <div className="text-caption text-[#6B7280]">礼物兑换</div>
+          <div className="text-h3 text-[#3B82F6] mt-1">-{totalSpent}</div>
+        </div>
+      </div>
+
+      {/* 宠物商店 */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-h3 text-[#1F2937]">礼物商店</h3>
+          <span className="text-caption text-[#6B7280]">在桌面屏幕可兑换</span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {shopItems.map(item => (
+            <div key={item.id} className="kid-card !p-4 text-center flex flex-col items-center">
+              <div className="w-16 h-16 rounded-full bg-[#FEF3C7] border-2 border-[#FACC15] flex items-center justify-center text-4xl mb-3">
+                {item.icon}
+              </div>
+              <div className="font-headline font-bold text-[18px] text-[#1F2937]">{item.name}</div>
+              <div className="mt-2 inline-flex items-center gap-1 bg-[#FEF3C7] text-[#92400E] px-3 py-1 rounded-full font-headline font-bold text-caption">
+                <IconCoin className="w-4 h-4" />
+                <span>{item.price} 金币</span>
+              </div>
+              <span className="mt-2 text-caption text-[#6B7280]">
+                {item.category === 'clothes' ? '帅气装扮' : '能量补给'}
+              </span>
             </div>
           ))}
         </div>
       </section>
 
-      {/* 金币收支账本流水 */}
-      <section>
-        <div className="flex items-center justify-between mb-2.5">
-          <h3 className="text-sm font-bold text-slate-900 tracking-tight">金币收支账本</h3>
-          <span className="text-xs text-slate-400 font-mono">共 {childTransactions.length} 笔</span>
+      {/* 金币奖励记录 (KidLearn Lists) */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-h3 text-[#1F2937]">星星金币账本</h3>
+          <span className="text-caption text-[#6B7280]">共 {childTransactions.length} 条</span>
         </div>
 
-        <div className="card-surface bg-white rounded-xl shadow-card border border-slate-200/90 divide-y divide-slate-100 overflow-hidden">
+        <div className="kid-list">
           {childTransactions.map(tx => (
-            <div key={tx.id} className="p-3.5 flex items-center justify-between text-xs hover:bg-slate-50/50 transition-colors">
-              <div className="space-y-0.5">
-                <div className="font-semibold text-slate-900 text-sm">{tx.description}</div>
-                <div className="text-xs text-slate-400 font-mono">
-                  {tx.createdAt} · 结余 {tx.balanceAfter}
+            <div key={tx.id} className="kid-list-row">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="w-11 h-11 rounded-full bg-[#FEF3C7] border-2 border-[#FACC15] flex items-center justify-center shrink-0">
+                  {tx.amount > 0 ? (
+                    <IconSparkle className="w-5 h-5 text-[#F59E0B]" />
+                  ) : (
+                    <IconStar className="w-5 h-5 text-[#3B82F6]" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-headline font-bold text-[16px] text-[#1F2937] truncate">
+                    {tx.description}
+                  </div>
+                  <div className="text-mono text-[#6B7280]">
+                    {tx.createdAt} · 余额 {tx.balanceAfter}
+                  </div>
                 </div>
               </div>
-              <div
-                className={`font-bold font-mono text-sm tabular-nums px-2 py-0.5 rounded ${
-                  tx.amount > 0
-                    ? 'text-emerald-700 bg-emerald-50 border border-emerald-200/60'
-                    : 'text-slate-700 bg-slate-100 border border-slate-200'
+
+              <span
+                className={`kid-status-chip ${
+                  tx.amount > 0 ? 'kid-status-complete' : 'kid-status-active'
                 }`}
               >
-                {tx.amount > 0 ? `+${tx.amount}` : tx.amount}
-              </div>
+                {tx.amount > 0 ? `+${tx.amount}` : tx.amount} 金币
+              </span>
             </div>
           ))}
 
           {childTransactions.length === 0 && (
-            <div className="p-6 text-center text-slate-400 text-xs">暂无收支记录</div>
+            <div className="p-8 text-center text-body text-[#6B7280]">还没有金币记录哦</div>
           )}
         </div>
       </section>

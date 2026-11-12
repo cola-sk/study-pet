@@ -1,19 +1,18 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Dialog, Toast, PullToRefresh, Tabs } from 'antd-mobile';
+import { Dialog, Toast, PullToRefresh } from 'antd-mobile';
+import confetti from 'canvas-confetti';
 import { useAppStore } from '../../stores/useAppStore';
 import { TaskInstance } from '../../services/types';
 import {
   IconCoin,
   IconDevice,
   IconCheck,
-  IconClose,
   IconClock,
-  IconBolt,
-  IconClipboard,
-  IconWifi,
-  IconShieldCheck,
+  IconStar,
+  IconSparkle,
+  IconLock,
 } from '../../components/Icons';
 
 export const ApprovalsPage: React.FC = () => {
@@ -29,7 +28,7 @@ export const ApprovalsPage: React.FC = () => {
   } = useAppStore();
 
   const [rejectingTask, setRejectingTask] = useState<TaskInstance | null>(null);
-  const [rejectReason, setRejectReason] = useState('未达到任务要求，需重新做');
+  const [rejectReason, setRejectReason] = useState('加油！再检查一下就能拿到奖励啦！');
 
   // 根据当前筛选的孩子过滤任务
   const filteredInstances = selectedChildId === 'all'
@@ -39,12 +38,24 @@ export const ApprovalsPage: React.FC = () => {
   // 待家长审批的任务（高优）
   const submittedTasks = filteredInstances.filter(i => i.status === 'submitted');
 
+  const triggerRewardConfetti = () => {
+    if (typeof window !== 'undefined' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      confetti({
+        particleCount: 55,
+        spread: 65,
+        origin: { y: 0.7 },
+        colors: ['#EF4444', '#3B82F6', '#FACC15', '#22C55E'],
+      });
+    }
+  };
+
   const handleApprove = async (task: TaskInstance) => {
     const res = await approveTask(task.id);
     if (res.success) {
+      triggerRewardConfetti();
       Toast.show({
         icon: 'success',
-        content: res.message,
+        content: `太棒啦！${res.message}`,
       });
     }
   };
@@ -56,7 +67,7 @@ export const ApprovalsPage: React.FC = () => {
     if (res.success) {
       Toast.show({
         icon: 'success',
-        content: res.message,
+        content: '已发送鼓励提示，让宝贝再试一次！',
       });
     }
   };
@@ -65,223 +76,213 @@ export const ApprovalsPage: React.FC = () => {
 
   return (
     <PullToRefresh onRefresh={async () => { await new Promise(r => setTimeout(r, 600)); }}>
-      <div className="p-4 space-y-5 pb-24">
-        {/* 多孩子/多设备切换筛选 Tabs (8px/6px 紧凑同心结构) */}
-        <div className="segmented select-none">
-          <Tabs activeKey={selectedChildId} onChange={setSelectedChildId}>
-            <Tabs.Tab
-              title={
-                <span className="flex items-center gap-1.5 text-xs">
-                  <span>全部成员</span>
-                  {totalPendingCount > 0 && (
-                    <span className="bg-indigo-600 text-white text-[10px] min-w-[18px] h-[18px] px-1 rounded flex items-center justify-center font-mono font-bold">
-                      {totalPendingCount}
-                    </span>
-                  )}
-                </span>
-              }
-              key="all"
-            />
-            {children.map(child => {
-              const childPendingCount = instances.filter(i => i.childId === child.id && i.status === 'submitted').length;
-              return (
-                <Tabs.Tab
-                  title={
-                    <span className="flex items-center gap-1.5 text-xs">
-                      <span>{child.nickname}</span>
-                      {childPendingCount > 0 && (
-                        <span className="bg-indigo-600 text-white text-[10px] min-w-[18px] h-[18px] px-1 rounded flex items-center justify-center font-mono font-bold">
-                          {childPendingCount}
-                        </span>
-                      )}
-                    </span>
-                  }
-                  key={child.id}
-                />
-              );
-            })}
-          </Tabs>
+      <div className="px-4 py-6 space-y-8 pb-32">
+        {/* KidLearn Filter Chips (Default: #F3F4F6, Selected: #3B82F6, 9999px pill) */}
+        <div className="flex items-center gap-3 overflow-x-auto pb-2" role="tablist" aria-label="选择孩子">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={selectedChildId === 'all'}
+            onClick={() => setSelectedChildId('all')}
+            className={`kid-filter-chip ${selectedChildId === 'all' ? 'kid-filter-chip-selected' : ''}`}
+          >
+            <IconStar className="w-4 h-4" />
+            <span>全部宝贝</span>
+            {totalPendingCount > 0 && (
+              <span className="bg-[#FACC15] text-[#1F2937] text-xs font-bold px-2 py-0.5 rounded-full">
+                {totalPendingCount}
+              </span>
+            )}
+          </button>
+
+          {children.map(child => {
+            const childPendingCount = instances.filter(i => i.childId === child.id && i.status === 'submitted').length;
+            const isSelected = selectedChildId === child.id;
+            return (
+              <button
+                key={child.id}
+                type="button"
+                role="tab"
+                aria-selected={isSelected}
+                onClick={() => setSelectedChildId(child.id)}
+                className={`kid-filter-chip ${isSelected ? 'kid-filter-chip-selected' : ''}`}
+              >
+                <span className="text-lg leading-none">{child.avatarIcon || '🧒'}</span>
+                <span>{child.nickname}</span>
+                {childPendingCount > 0 && (
+                  <span className="bg-[#FACC15] text-[#1F2937] text-xs font-bold px-2 py-0.5 rounded-full">
+                    {childPendingCount}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
-        {/* 顶部成员与硬件终端概览面板 (Bento 结构化数据卡) */}
-        <div className="grid grid-cols-1 gap-3">
+        {/* 宝贝与宠物闯关状态大卡片 (KidLearn Cards: #F9FAFB, 2px border, 20px corners, 24px padding, shadow-playful) */}
+        <section className="space-y-6">
           {(selectedChildId === 'all' ? children : children.filter(c => c.id === selectedChildId)).map(child => {
             const pet = pets[child.id];
             const device = devices.find(d => d.childId === child.id);
             const childTasks = instances.filter(i => i.childId === child.id);
             const childCompleted = childTasks.filter(i => i.status === 'completed').length;
-            const childPending = childTasks.filter(i => i.status === 'submitted').length;
             const childTotal = childTasks.length;
             const progressPct = childTotal > 0 ? Math.round((childCompleted / childTotal) * 100) : 0;
 
             return (
-              <div
-                key={child.id}
-                className="card-surface bg-white rounded-xl border border-slate-200/90 shadow-card overflow-hidden"
-              >
-                {/* 卡片上半部：成员信息与关联硬件终端状态 */}
-                <div className="p-3.5 flex items-center justify-between border-b border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-xl border border-slate-200/80 shrink-0">
+              <div key={child.id} className="kid-card">
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <div className="flex items-center gap-4">
+                    {/* 50% Circle Avatar */}
+                    <div className="w-16 h-16 rounded-full bg-[#FEF3C7] border-2 border-[#FACC15] flex items-center justify-center text-3xl shadow-kid-sm shrink-0">
                       {pet?.currentClothesItem?.icon || pet?.petAvatar || '🐶'}
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <h2 className="text-sm font-bold text-slate-900">{child.nickname}</h2>
-                        <span className="text-[11px] bg-indigo-50 text-indigo-700 border border-indigo-200/60 px-1.5 py-0.5 rounded font-medium">
-                          宠物: {pet?.petName || '伴学宠'}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h2 className="text-h3 text-[#1F2937]">{child.nickname}</h2>
+                        <span className="kid-status-chip kid-status-new">
+                          <IconSparkle className="w-4 h-4 text-[#F59E0B]" />
+                          <span>{pet?.petName || '伴学小宠'}</span>
                         </span>
                       </div>
-                      <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5">
-                        <IconDevice className="w-3.5 h-3.5 text-slate-400" />
-                        <span>{device?.alias || '暂未绑定桌面硬件'}</span>
+                      <div className="text-caption text-[#6B7280] mt-1 flex items-center gap-1.5">
+                        <IconDevice className="w-4 h-4 text-[#3B82F6]" />
+                        <span>{device?.alias || '未连接桌面伙伴设备'}</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* 硬件连接状态标签 */}
-                  <div className="text-right shrink-0">
-                    <div
-                      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium border ${
-                        device
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
-                          : 'bg-slate-100 text-slate-500 border-slate-200'
-                      }`}
-                    >
-                      <IconWifi className="w-3 h-3" />
-                      <span>{device ? '终端在线' : '未连接'}</span>
-                    </div>
+                  {/* 设备状态 Status Chip */}
+                  <div>
+                    {device ? (
+                      <span className="kid-status-chip kid-status-complete">
+                        <IconCheck className="w-4 h-4" />
+                        <span>设备在线</span>
+                      </span>
+                    ) : (
+                      <span className="kid-status-chip kid-status-locked">
+                        <IconLock className="w-4 h-4" />
+                        <span>待配对</span>
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                {/* 卡片下半部：三栏精密指标矩阵 (KPI Strip) */}
-                <div className="grid grid-cols-3 divide-x divide-slate-100 bg-slate-50/50">
-                  <div className="px-3.5 py-2.5">
-                    <div className="text-[11px] text-slate-500 font-medium">账户金币</div>
-                    <div className="mt-0.5 flex items-center gap-1">
-                      <IconCoin className="w-4 h-4 shrink-0" />
-                      <span className="text-base font-bold text-slate-900 font-mono tabular-nums">
-                        {child.coinsBalance}
+                {/* 星星金币与闯关进度 */}
+                <div className="mt-6 pt-4 border-t-2 border-[#E5E7EB] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 bg-[#FEF3C7] border-2 border-[#FACC15] px-4 py-1.5 rounded-full">
+                      <IconCoin className="w-5 h-5" />
+                      <span className="font-headline font-bold text-[18px] text-[#92400E]">
+                        {child.coinsBalance} 金币
                       </span>
+                    </div>
+
+                    <div className="text-caption text-[#1F2937] flex items-center gap-1.5">
+                      <IconStar className="w-5 h-5 text-[#FACC15]" />
+                      <span>今日闯关: <strong>{childCompleted} / {childTotal}</strong></span>
                     </div>
                   </div>
 
-                  <div className="px-3.5 py-2.5">
-                    <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium">
-                      <span>今日完成</span>
-                      <span className="font-mono font-semibold text-slate-700">{childCompleted}/{childTotal}</span>
-                    </div>
-                    <div className="mt-2 w-full bg-slate-200 h-1.5 rounded-sm overflow-hidden" role="progressbar" aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100}>
-                      <div
-                        className="bg-indigo-600 h-full transition-all duration-300"
-                        style={{ width: `${progressPct}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="px-3.5 py-2.5">
-                    <div className="text-[11px] text-slate-500 font-medium">待我确认</div>
-                    <div className="mt-0.5 flex items-baseline gap-1">
-                      <span
-                        className={`text-base font-bold font-mono tabular-nums ${
-                          childPending > 0 ? 'text-amber-600' : 'text-slate-400'
-                        }`}
-                      >
-                        {childPending}
-                      </span>
-                      <span className="text-[11px] text-slate-400">项</span>
-                    </div>
+                  {/* Chunky Playful Progress Bar */}
+                  <div
+                    className="w-full bg-[#E5E7EB] h-4 rounded-full overflow-hidden p-0.5"
+                    role="progressbar"
+                    aria-valuenow={progressPct}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                  >
+                    <div
+                      className="bg-[#22C55E] h-full rounded-full transition-all duration-500"
+                      style={{ width: `${Math.max(progressPct, childCompleted > 0 ? 12 : 0)}%` }}
+                    />
                   </div>
                 </div>
               </div>
             );
           })}
-        </div>
+        </section>
 
-        {/* 待确认审批工单列表 (Structured Approval Tickets) */}
-        <section>
-          <div className="flex items-center justify-between mb-2.5">
-            <div className="flex items-center gap-1.5">
-              <IconBolt className="w-4 h-4 text-amber-500" />
-              <h3 className="text-sm font-bold text-slate-900 tracking-tight">待审批打卡工单</h3>
+        {/* 待发奖打卡任务 (Surface Highlight #FEF3C7 for active lessons/rewards) */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h3 className="text-h3 text-[#1F2937]">待发奖打卡</h3>
               {submittedTasks.length > 0 && (
-                <span className="bg-amber-100 text-amber-800 border border-amber-200/80 text-xs px-1.5 py-0.5 rounded font-mono font-bold">
-                  {submittedTasks.length}
+                <span className="kid-status-chip kid-status-new">
+                  <IconSparkle className="w-4 h-4 text-[#F59E0B]" />
+                  <span>{submittedTasks.length} 项待表扬</span>
                 </span>
               )}
             </div>
-            <span className="text-xs text-slate-400">硬件端提交后实时同步</span>
           </div>
 
           {submittedTasks.length === 0 ? (
-            <div className="card-surface bg-white rounded-xl p-6 text-center border border-slate-200/90 shadow-card">
-              <div className="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-200/70 text-emerald-600 flex items-center justify-center mx-auto mb-2">
-                <IconShieldCheck className="w-5 h-5" />
+            <div className="kid-card text-center">
+              <div className="w-14 h-14 rounded-full bg-[#DCFCE7] text-[#166534] flex items-center justify-center mx-auto mb-3">
+                <IconCheck className="w-7 h-7" />
               </div>
-              <div className="text-sm text-slate-800 font-semibold">所有打卡工单已处理完毕</div>
-              <div className="text-xs text-slate-400 mt-1">孩子在微雪桌面屏幕上打卡后，工单将在此处呈现</div>
+              <div className="text-h3 text-[#1F2937]">所有打卡都表扬完啦！</div>
+              <p className="text-body text-[#6B7280] mt-1">
+                宝贝在桌面设备上完成任务后，会在这里等待你发放金币星星哦
+              </p>
             </div>
           ) : (
-            <div className="space-y-2.5">
+            <div className="space-y-6">
               {submittedTasks.map(task => {
                 const child = children.find(c => c.id === task.childId);
                 return (
-                  <div
-                    key={task.id}
-                    className="card-surface bg-white rounded-xl border border-slate-200/90 border-l-[3px] border-l-indigo-600 shadow-card overflow-hidden"
-                  >
-                    {/* 工单顶栏元数据 */}
-                    <div className="px-3.5 py-2 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-slate-800 bg-white border border-slate-200/90 px-1.5 py-0.5 rounded">
-                          {child?.nickname || task.childNickname}
-                        </span>
-                        {task.deviceAlias && (
-                          <span className="text-slate-500 flex items-center gap-1">
-                            <IconDevice className="w-3.5 h-3.5 text-slate-400" />
-                            {task.deviceAlias}
+                  <div key={task.id} className="kid-card-highlight">
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <div className="space-y-2 flex-1 min-w-[200px]">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="kid-status-chip kid-status-active">
+                            <IconStar className="w-4 h-4 text-[#3B82F6]" />
+                            <span>{child?.nickname || task.childNickname}</span>
                           </span>
-                        )}
-                      </div>
-                      <div className="text-slate-400 font-mono flex items-center gap-1">
-                        <IconClock className="w-3.5 h-3.5" />
-                        <span>{task.submittedAt || '刚刚'}</span>
-                      </div>
-                    </div>
+                          {task.deviceAlias && (
+                            <span className="text-caption text-[#92400E] flex items-center gap-1">
+                              <IconDevice className="w-4 h-4" />
+                              {task.deviceAlias}
+                            </span>
+                          )}
+                        </div>
 
-                    {/* 工单主体内容 */}
-                    <div className="p-3.5 flex items-start justify-between gap-3">
-                      <div className="min-w-0 flex-1">
-                        <div className="font-bold text-slate-900 text-[15px] leading-snug">{task.title}</div>
-                        <div className="text-xs text-slate-500 mt-1">{task.description || '已在硬件终端完成打卡提交'}</div>
+                        <h4 className="text-h3 text-[#1F2937]">{task.title}</h4>
+                        <p className="text-body text-[#4B5563]">
+                          {task.description || '宝贝在硬件屏幕上完成了这项任务！'}
+                        </p>
                       </div>
 
-                      <div className="shrink-0 bg-amber-50/90 border border-amber-200/80 rounded-lg px-2.5 py-1.5 text-right">
-                        <div className="text-sm font-bold font-mono text-amber-700 flex items-center gap-1">
-                          <IconCoin className="w-3.5 h-3.5" />
+                      {/* 奖励徽章 (#FACC15 Tertiary) */}
+                      <div className="bg-[#FFFFFF] border-2 border-[#FACC15] rounded-[20px] px-4 py-2 text-center shadow-kid-sm shrink-0">
+                        <div className="flex items-center justify-center gap-1 font-headline font-bold text-[22px] text-[#92400E]">
+                          <IconCoin className="w-6 h-6" />
                           <span>+{task.rewardCoins}</span>
                         </div>
-                        <div className="text-[10px] text-amber-600/90 font-medium text-center">奖励金币</div>
+                        <div className="text-mono text-[#6B7280] flex items-center justify-center gap-1 mt-0.5">
+                          <IconClock className="w-3.5 h-3.5" />
+                          <span>{task.submittedAt || '刚刚'}</span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* 工单操作底栏 */}
-                    <div className="px-3.5 py-2.5 bg-slate-50/40 border-t border-slate-100 flex items-center justify-end gap-2 select-none">
+                    {/* 按钮组 (>=48px 触控目标 + 3px 按压位移 + 鼓励式文案) */}
+                    <div className="mt-6 pt-4 border-t-2 border-[#FDE047] flex items-center justify-end gap-4 flex-wrap">
                       <button
                         type="button"
                         onClick={() => setRejectingTask(task)}
-                        className="px-3 py-1.5 rounded-md border border-slate-300 bg-white hover:bg-slate-50 active:scale-[0.98] text-slate-700 text-xs font-medium inline-flex items-center gap-1 transition-all"
+                        className="kid-btn kid-btn-ghost kid-btn-md bg-white"
                       >
-                        <IconClose className="w-3.5 h-3.5 text-slate-500" />
-                        <span>驳回重做</span>
+                        <span>再试一次!</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => handleApprove(task)}
-                        className="px-3.5 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white text-xs font-semibold inline-flex items-center gap-1 shadow-xs transition-all"
+                        className="kid-btn kid-btn-primary kid-btn-md"
                       >
-                        <IconCheck className="w-3.5 h-3.5" />
-                        <span>批准并发币</span>
+                        <IconCheck className="w-5 h-5" />
+                        <span>太棒了！发 +{task.rewardCoins} 金币</span>
                       </button>
                     </div>
                   </div>
@@ -291,70 +292,70 @@ export const ApprovalsPage: React.FC = () => {
           )}
         </section>
 
-        {/* 今日全部任务执行矩阵 */}
-        <section>
-          <div className="flex items-center justify-between mb-2.5">
-            <div className="flex items-center gap-1.5">
-              <IconClipboard className="w-4 h-4 text-slate-600" />
-              <h3 className="text-sm font-bold text-slate-900 tracking-tight">今日任务执行明细</h3>
-            </div>
-            <span className="text-xs text-slate-400 font-mono">共 {filteredInstances.length} 项</span>
+        {/* 今日任务闯关清单 (KidLearn Lists: 56px+ row height, 20px container corners, 24px left icon with 12px gap) */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-h3 text-[#1F2937]">今日闯关地图</h3>
+            <span className="text-caption text-[#6B7280]">共 {filteredInstances.length} 关</span>
           </div>
 
-          <div className="card-surface bg-white rounded-xl border border-slate-200/90 shadow-card divide-y divide-slate-100 overflow-hidden">
+          <div className="kid-list">
             {filteredInstances.map(task => {
               const child = children.find(c => c.id === task.childId);
               return (
-                <div key={task.id} className="p-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/50 transition-colors">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 border border-slate-200/80 px-1.5 py-0.5 rounded shrink-0">
-                        {child?.nickname || task.childNickname}
-                      </span>
-                      <span className="text-sm font-semibold text-slate-900 truncate">{task.title}</span>
+                <div key={task.id} className="kid-list-row">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    {/* 24px icon placed left with 12px gap */}
+                    <div className="w-11 h-11 rounded-full bg-[#FEF3C7] border-2 border-[#FACC15] flex items-center justify-center shrink-0">
+                      <IconStar className="w-6 h-6 text-[#F59E0B]" />
                     </div>
-                    <div className="text-xs text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
-                      <span className="inline-flex items-center gap-1 font-mono font-medium text-amber-700">
-                        <IconCoin className="w-3.5 h-3.5" />
-                        +{task.rewardCoins}
-                      </span>
-                      {task.deviceAlias && (
-                        <>
-                          <span className="text-slate-300">·</span>
-                          <span className="text-slate-400">{task.deviceAlias}</span>
-                        </>
-                      )}
-                      {task.rejectReason && (
-                        <span className="text-red-600 bg-red-50 px-1.5 py-0.5 rounded text-[11px]">
-                          原因: {task.rejectReason}
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-headline font-bold text-[16px] text-[#1F2937] truncate">
+                          {task.title}
                         </span>
-                      )}
+                        <span className="text-caption text-[#3B82F6] bg-[#DBEAFE] px-2.5 py-0.5 rounded-full">
+                          {child?.nickname || task.childNickname}
+                        </span>
+                      </div>
+                      <div className="text-caption text-[#6B7280] flex items-center gap-2 mt-0.5 flex-wrap">
+                        <span className="inline-flex items-center gap-1 text-[#92400E] font-bold">
+                          <IconCoin className="w-4 h-4" />
+                          +{task.rewardCoins} 金币
+                        </span>
+                        {task.deviceAlias && <span>· {task.deviceAlias}</span>}
+                        {task.rejectReason && (
+                          <span className="text-[#F59E0B]">· 提示: {task.rejectReason}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
+                  {/* KidLearn Status Chips */}
                   <div className="shrink-0">
                     {task.status === 'completed' && (
-                      <span className="inline-flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2 py-0.5 rounded font-medium">
-                        <IconCheck className="w-3 h-3" />
-                        已发币
+                      <span className="kid-status-chip kid-status-complete">
+                        <IconCheck className="w-4 h-4" />
+                        <span>已完成</span>
                       </span>
                     )}
                     {task.status === 'submitted' && (
-                      <span className="inline-flex items-center gap-1 text-xs bg-amber-50 text-amber-700 border border-amber-200/80 px-2 py-0.5 rounded font-medium">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                        待确认
+                      <span className="kid-status-chip kid-status-new">
+                        <IconSparkle className="w-4 h-4 text-[#F59E0B]" />
+                        <span>新提交</span>
                       </span>
                     )}
                     {task.status === 'pending' && (
-                      <span className="inline-flex items-center gap-1 text-xs bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded font-medium">
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                        待提交
+                      <span className="kid-status-chip kid-status-locked">
+                        <IconLock className="w-4 h-4" />
+                        <span>闯关中</span>
                       </span>
                     )}
                     {task.status === 'rejected' && (
-                      <span className="inline-flex items-center gap-1 text-xs bg-red-50 text-red-700 border border-red-200/80 px-2 py-0.5 rounded font-medium">
-                        <IconClose className="w-3 h-3" />
-                        已驳回
+                      <span className="kid-status-chip kid-status-active">
+                        <IconStar className="w-4 h-4" />
+                        <span>再试一次!</span>
                       </span>
                     )}
                   </div>
@@ -363,47 +364,49 @@ export const ApprovalsPage: React.FC = () => {
             })}
 
             {filteredInstances.length === 0 && (
-              <div className="p-6 text-center text-slate-400 text-xs">
-                当前筛选下暂无任务记录
+              <div className="p-8 text-center text-body text-[#6B7280]">
+                今天还没有安排闯关任务哦
               </div>
             )}
           </div>
         </section>
       </div>
 
-      {/* 驳回确认弹窗 */}
+      {/* 鼓励式“再试一次”弹窗 (Do #9: Forgiving error states -- "Try again!" not "Wrong answer.") */}
       <Dialog
         visible={Boolean(rejectingTask)}
-        title="驳回打卡任务"
+        title="鼓励宝贝再试一次！"
         content={
-          <div className="space-y-3 pt-2">
-            <p className="text-xs text-slate-500">
-              驳回后，任务将退回至【{rejectingTask?.childNickname}】桌面终端的“待提交”列表。
+          <div className="space-y-4 pt-2">
+            <p className="text-body text-[#4B5563]">
+              给【{rejectingTask?.childNickname}】发送一条温暖的提示，让他/她在桌面设备上再试一次：
             </p>
-            <label htmlFor="reject-reason-textarea" className="text-xs font-semibold text-slate-800 block">
-              驳回说明：
-            </label>
-            <textarea
-              id="reject-reason-textarea"
-              className="w-full border border-slate-300 bg-slate-50 rounded-lg p-2.5 text-xs text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none"
-              rows={3}
-              value={rejectReason}
-              onChange={e => setRejectReason(e.target.value)}
-              placeholder="请输入驳回原因或改进建议..."
-            />
+            <div>
+              <label htmlFor="try-again-input" className="text-caption text-[#1F2937] block mb-2">
+                鼓励提示语：
+              </label>
+              <textarea
+                id="try-again-input"
+                className="kid-input"
+                rows={3}
+                value={rejectReason}
+                onChange={e => setRejectReason(e.target.value)}
+                placeholder="例如：加油！把字写工整一点就能拿到奖励星星啦！"
+              />
+            </div>
           </div>
         }
         actions={[
           [
             {
               key: 'cancel',
-              text: '取消',
+              text: '返回',
               onClick: () => setRejectingTask(null),
             },
             {
               key: 'confirm',
-              text: '确认驳回',
-              danger: true,
+              text: '发送鼓励提示',
+              bold: true,
               onClick: handleConfirmReject,
             },
           ],

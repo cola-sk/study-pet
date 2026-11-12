@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Popup, Input, TextArea, Stepper, Selector, Toast } from 'antd-mobile';
+import { Popup, Stepper, Toast } from 'antd-mobile';
 import { TaskTemplate, ConfirmType, FrequencyType, TargetScope } from '../../services/types';
 import { useAppStore } from '../../stores/useAppStore';
+import { IconCheck, IconCoin } from '../../components/Icons';
 
 interface Props {
   visible: boolean;
@@ -58,19 +59,31 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
     }
   }, [initialTemplate, visible, children]);
 
+  const toggleChildSelection = (childId: string) => {
+    setTargetChildIds(prev =>
+      prev.includes(childId) ? prev.filter(id => id !== childId) : [...prev, childId]
+    );
+  };
+
+  const toggleDaySelection = (day: number) => {
+    setSelectedDays(prev =>
+      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+    );
+  };
+
   const handleSubmit = () => {
     if (!title.trim()) {
-      Toast.show({ icon: 'fail', content: '请输入任务名称' });
+      Toast.show({ icon: 'fail', content: '请先给任务起个名字哦！' });
       return;
     }
 
     if (frequencyType === 'weekly_days' && selectedDays.length === 0) {
-      Toast.show({ icon: 'fail', content: '请至少选择一个星期周期' });
+      Toast.show({ icon: 'fail', content: '请至少勾选一天哦！' });
       return;
     }
 
     if (targetScope === 'specific' && targetChildIds.length === 0) {
-      Toast.show({ icon: 'fail', content: '请至少选择一个指派的成员/设备' });
+      Toast.show({ icon: 'fail', content: '请至少勾选一位宝贝哦！' });
       return;
     }
 
@@ -92,19 +105,14 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
 
     if (initialTemplate) {
       updateTemplate(initialTemplate.id, payload);
-      Toast.show({ icon: 'success', content: '任务模板已更新' });
+      Toast.show({ icon: 'success', content: '任务修改好啦！' });
     } else {
       addTemplate(payload);
-      Toast.show({ icon: 'success', content: '已新建任务并分发至各设备' });
+      Toast.show({ icon: 'success', content: '新任务已发送到宝贝的设备上！' });
     }
 
     onClose();
   };
-
-  const childOptions = children.map(c => ({
-    label: c.nickname,
-    value: c.id,
-  }));
 
   return (
     <Popup
@@ -112,86 +120,139 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
       onMaskClick={onClose}
       position="bottom"
       bodyStyle={{
-        height: '82vh',
-        borderTopLeftRadius: '14px',
-        borderTopRightRadius: '14px',
-        background: '#F4F6F9',
+        height: '86vh',
+        borderTopLeftRadius: '28px',
+        borderTopRightRadius: '28px',
+        background: '#FFFFFF',
       }}
     >
-      <div className="flex flex-col h-full text-slate-900">
+      <div className="flex flex-col h-full text-[#1F2937]">
         {/* Header */}
-        <div className="px-4 py-3 bg-white border-b border-slate-200/90 flex items-center justify-between">
-          <h3 className="font-bold text-slate-900 text-sm">
-            {initialTemplate ? '编辑任务模板' : '新建任务模板'}
+        <div className="px-6 py-4 bg-[#F9FAFB] border-b-2 border-[#E5E7EB] flex items-center justify-between">
+          <h3 className="text-h3 text-[#1F2937]">
+            {initialTemplate ? '修改闯关任务' : '创建新闯关任务'}
           </h3>
           <button
             type="button"
             onClick={onClose}
-            className="text-xs font-medium text-slate-500 hover:text-slate-800 px-2 py-1 rounded"
+            className="kid-btn kid-btn-ghost kid-btn-sm"
           >
             关闭
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-4 overflow-y-auto flex-1 min-h-0 space-y-3 text-sm">
-          {/* 布置目标范围（核心多设备支持） */}
-          <div className="card-surface bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-card space-y-2.5">
-            <label className="font-bold text-slate-800 block text-xs">分发范围（终端与成员）</label>
-            <Selector
-              options={[
-                { label: '全员共同任务 (每台设备独立生成)', value: 'all' },
-                { label: '指定成员 (单独设备专属)', value: 'specific' },
-              ]}
-              value={[targetScope]}
-              onChange={v => v.length && setTargetScope(v[0] as TargetScope)}
-              columns={1}
-            />
+        <div className="p-6 overflow-y-auto flex-1 min-h-0 space-y-6">
+          {/* 1. 任务名称与说明 (KidLearn Inputs: 20px radius, 48px min height) */}
+          <div className="kid-card space-y-4">
+            <div>
+              <label htmlFor="task-title-input" className="text-caption text-[#1F2937] block mb-2">
+                任务名称 *
+              </label>
+              <input
+                id="task-title-input"
+                type="text"
+                placeholder="例如：自主阅读绘本 15 分钟"
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                className="kid-input"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="task-desc-input" className="text-caption text-[#1F2937] block mb-2">
+                小提示与规则（选填）
+              </label>
+              <textarea
+                id="task-desc-input"
+                placeholder="例如：读完后在桌面屏幕上点一下完成哦"
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+                rows={2}
+                maxLength={100}
+                className="kid-input"
+              />
+            </div>
+          </div>
+
+          {/* 2. 派发对象 (KidLearn Radio Buttons 28px + Checkboxes 28px) */}
+          <div className="kid-card space-y-4">
+            <div className="text-caption text-[#1F2937]">布置给哪位宝贝？</div>
+
+            <div className="space-y-3" role="radiogroup" aria-label="布置范围">
+              {[
+                { label: '全部宝贝一起闯关（每台设备各自生成）', value: 'all' as TargetScope },
+                { label: '指定宝贝专属任务', value: 'specific' as TargetScope },
+              ].map(opt => {
+                const selected = targetScope === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => setTargetScope(opt.value)}
+                    className="w-full min-h-[48px] p-3 rounded-[20px] bg-white border-2 border-[#E5E7EB] flex items-center gap-3 text-left hover:border-[#9CA3AF] transition-all"
+                  >
+                    {/* KidLearn 28px Radio Button with 14px dot */}
+                    <span
+                      className={`w-[28px] h-[28px] rounded-full flex items-center justify-center border-2 shrink-0 ${
+                        selected ? 'border-[#EF4444] bg-white' : 'border-[#9CA3AF] bg-white'
+                      }`}
+                    >
+                      {selected && <span className="w-[14px] h-[14px] rounded-full bg-[#EF4444]" />}
+                    </span>
+                    <span className="text-body font-semibold text-[#1F2937]">{opt.label}</span>
+                  </button>
+                );
+              })}
+            </div>
 
             {targetScope === 'specific' && (
-              <div className="pt-2.5 border-t border-slate-100">
-                <div className="text-xs text-slate-500 mb-1.5">选择目标成员：</div>
-                <Selector
-                  options={childOptions}
-                  multiple
-                  value={targetChildIds}
-                  onChange={setTargetChildIds}
-                  columns={2}
-                />
+              <div className="pt-3 border-t-2 border-[#E5E7EB] space-y-2">
+                <div className="text-caption text-[#6B7280] mb-2">勾选参与的宝贝（可多选）：</div>
+                <div className="grid grid-cols-2 gap-3">
+                  {children.map(child => {
+                    const checked = targetChildIds.includes(child.id);
+                    return (
+                      <button
+                        key={child.id}
+                        type="button"
+                        role="checkbox"
+                        aria-checked={checked}
+                        onClick={() => toggleChildSelection(child.id)}
+                        className="min-h-[48px] p-3 rounded-[20px] bg-white border-2 border-[#E5E7EB] flex items-center gap-3 text-left"
+                      >
+                        {/* KidLearn 28px Checkbox with 8px radius */}
+                        <span
+                          className={`w-[28px] h-[28px] rounded-[8px] flex items-center justify-center border-2 shrink-0 transition-transform ${
+                            checked
+                              ? 'bg-[#3B82F6] border-[#3B82F6] text-white scale-105'
+                              : 'bg-white border-[#9CA3AF]'
+                          }`}
+                        >
+                          {checked && <IconCheck className="w-4 h-4" />}
+                        </span>
+                        <span className="text-body font-bold text-[#1F2937] truncate">
+                          {child.nickname}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>
 
-          <div className="card-surface bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-card space-y-3">
-            <div>
-              <label className="font-bold text-slate-800 block text-xs mb-1">任务名称 *</label>
-              <Input
-                placeholder="例如：自主阅读课外书 15 分钟"
-                value={title}
-                onChange={setTitle}
-                className="!text-sm border border-slate-200 bg-slate-50 px-2.5 py-1.5 rounded-lg text-slate-900"
-              />
-            </div>
-
-            <div>
-              <label className="font-bold text-slate-800 block text-xs mb-1">打卡标准与说明（选填）</label>
-              <TextArea
-                placeholder="例如：完成后在桌面硬件屏幕上点击提交"
-                value={description}
-                onChange={setDescription}
-                rows={2}
-                maxLength={100}
-                showCount
-                className="!text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-200"
-              />
-            </div>
-          </div>
-
-          <div className="card-surface bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-card space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="font-bold text-slate-800 text-xs block">奖励金币数</label>
-                <span className="text-[11px] text-slate-400">单次达标发放的金币额度</span>
+          {/* 3. 奖励金币与表扬方式 */}
+          <div className="kid-card space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <IconCoin className="w-6 h-6" />
+                <div>
+                  <div className="text-caption text-[#1F2937]">奖励金币数量</div>
+                  <div className="text-caption text-[#6B7280]">每次完成可获得的金币</div>
+                </div>
               </div>
               <Stepper
                 value={rewardCoins}
@@ -202,49 +263,70 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
               />
             </div>
 
-            <div className="pt-2.5 border-t border-slate-100">
-              <label className="font-bold text-slate-800 text-xs block mb-1.5">审核机制</label>
-              <Selector
-                options={[
-                  { label: '需家长审批后发币 (学习类推荐)', value: 'parent_confirm' },
-                  { label: '终端提交立即发币 (日常习惯类)', value: 'auto_confirm' },
-                ]}
-                value={[confirmType]}
-                onChange={v => v.length && setConfirmType(v[0] as ConfirmType)}
-                columns={1}
-              />
+            <div className="pt-3 border-t-2 border-[#E5E7EB] space-y-2">
+              <div className="text-caption text-[#1F2937] mb-2">发币方式：</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {[
+                  { label: '家长表扬后发币', value: 'parent_confirm' as ConfirmType },
+                  { label: '打卡立即发币', value: 'auto_confirm' as ConfirmType },
+                ].map(opt => {
+                  const selected = confirmType === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setConfirmType(opt.value)}
+                      className={`kid-filter-chip ${selected ? 'kid-filter-chip-selected' : ''}`}
+                    >
+                      <span>{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
-          <div className="card-surface bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-card space-y-3">
-            <label className="font-bold text-slate-800 text-xs block">重复周期</label>
-            <Selector
-              options={[
-                { label: '每日重复', value: 'daily' },
-                { label: '指定星期', value: 'weekly_days' },
-                { label: '间隔天数', value: 'interval_days' },
-              ]}
-              value={[frequencyType]}
-              onChange={v => v.length && setFrequencyType(v[0] as FrequencyType)}
-              columns={3}
-            />
+          {/* 4. 重复周期 */}
+          <div className="kid-card space-y-4">
+            <div className="text-caption text-[#1F2937]">闯关频率</div>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              {[
+                { label: '每天一次', value: 'daily' as FrequencyType },
+                { label: '每周指定日', value: 'weekly_days' as FrequencyType },
+                { label: '每隔几天', value: 'interval_days' as FrequencyType },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setFrequencyType(opt.value)}
+                  className={`kid-filter-chip ${frequencyType === opt.value ? 'kid-filter-chip-selected' : ''}`}
+                >
+                  <span>{opt.label}</span>
+                </button>
+              ))}
+            </div>
 
             {frequencyType === 'weekly_days' && (
-              <div className="pt-2">
-                <div className="text-xs text-slate-500 mb-1.5">选择生效星期：</div>
-                <Selector
-                  options={WEEKDAY_OPTIONS}
-                  multiple
-                  value={selectedDays}
-                  onChange={setSelectedDays}
-                  columns={4}
-                />
+              <div className="pt-3 border-t-2 border-[#E5E7EB] flex flex-wrap gap-2">
+                {WEEKDAY_OPTIONS.map(day => {
+                  const checked = selectedDays.includes(day.value);
+                  return (
+                    <button
+                      key={day.value}
+                      type="button"
+                      onClick={() => toggleDaySelection(day.value)}
+                      className={`kid-filter-chip ${checked ? 'kid-filter-chip-selected' : ''}`}
+                    >
+                      <span>{day.label}</span>
+                    </button>
+                  );
+                })}
               </div>
             )}
 
             {frequencyType === 'interval_days' && (
-              <div className="pt-2 flex items-center justify-between">
-                <span className="text-xs text-slate-600">间隔天数（每 N 天）：</span>
+              <div className="pt-3 border-t-2 border-[#E5E7EB] flex items-center justify-between">
+                <span className="text-body text-[#1F2937]">每隔几天重复一次：</span>
                 <Stepper
                   value={intervalDays}
                   onChange={v => setIntervalDays(v)}
@@ -256,14 +338,14 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="p-3.5 bg-white border-t border-slate-200/90 shrink-0">
+        {/* Footer (Large 56px Primary Button) */}
+        <div className="p-6 bg-[#F9FAFB] border-t-2 border-[#E5E7EB] shrink-0">
           <button
             type="button"
             onClick={handleSubmit}
-            className="w-full py-2.5 rounded-lg font-semibold text-sm bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white shadow-xs transition-all select-none"
+            className="w-full kid-btn kid-btn-primary kid-btn-lg"
           >
-            {initialTemplate ? '保存模板配置' : '创建并下发至终端'}
+            {initialTemplate ? '保存任务修改' : '发布闯关任务！'}
           </button>
         </div>
       </div>

@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: '学习宠物助手 - 家长端',
+  title: '学习宠物助手 - KidLearn 家长端',
   description: '好习惯与学习任务桌面养成宠物管理系统 - 家长端',
   manifest: '/manifest.webmanifest',
   icons: {
@@ -22,7 +22,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
-  themeColor: '#F4F6F9',
+  themeColor: '#FFFFFF',
 };
 
 export default function RootLayout({
@@ -33,6 +33,12 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Nunito:wght@400;600;700;800&family=Roboto+Mono:wght@400;600;700&display=swap"
+          rel="stylesheet"
+        />
         <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
         <link rel="apple-touch-startup-image" href="/splash/launch-screen.png" />
       </head>

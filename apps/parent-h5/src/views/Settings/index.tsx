@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { List, Dialog, Toast } from 'antd-mobile';
+import { Dialog, Toast } from 'antd-mobile';
 import { DeleteOutline, EditSOutline } from 'antd-mobile-icons';
 import { DevicePairModal } from './DevicePairModal';
 import { useAppStore } from '../../stores/useAppStore';
 import { PWAInstallState } from '../../hooks/usePWAInstall';
-import { IconDevice, IconPlus, IconWifi, IconCoin, IconUser } from '../../components/Icons';
+import { IconDevice, IconPlus, IconCheck, IconCoin, IconStar } from '../../components/Icons';
 
 interface Props {
   installState: PWAInstallState;
@@ -26,33 +26,33 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
 
   const handleUnbind = (deviceId: string, alias: string) => {
     Dialog.confirm({
-      title: '解除设备绑定',
-      content: `确定要解除设备「${alias}」的绑定吗？解除后该微雪屏幕需重新配对。`,
-      confirmText: '确定解绑',
-      cancelText: '取消',
+      title: '解除设备连接？',
+      content: `确定要断开设备「${alias}」吗？断开后可以随时重新配对哦。`,
+      confirmText: '确定断开',
+      cancelText: '返回',
       onConfirm: () => {
         unbindDevice(deviceId);
-        Toast.show({ icon: 'success', content: '已解除该设备绑定' });
+        Toast.show({ icon: 'success', content: '已解除设备绑定' });
       },
     });
   };
 
   const handleEditNickname = (childId: string, currentName: string) => {
     Dialog.confirm({
-      title: '修改成员昵称',
+      title: '修改宝贝昵称',
       content: (
         <input
           id="nickname-input"
           defaultValue={currentName}
-          placeholder="请输入成员昵称"
-          className="w-full border border-slate-300 bg-slate-50 rounded-lg p-2.5 text-sm mt-2 text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          placeholder="请输入宝贝昵称"
+          className="kid-input mt-3"
         />
       ),
       onConfirm: () => {
         const input = document.getElementById('nickname-input') as HTMLInputElement;
         if (input && input.value.trim()) {
           updateChildNickname(childId, input.value.trim());
-          Toast.show({ icon: 'success', content: '昵称已更新' });
+          Toast.show({ icon: 'success', content: '昵称改好啦！' });
         }
       },
     });
@@ -60,13 +60,13 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
 
   const handleAddChild = () => {
     Dialog.confirm({
-      title: '添加新成员档案',
+      title: '添加新宝贝档案',
       content: (
-        <div className="space-y-2 mt-2">
+        <div className="mt-3">
           <input
             id="new-child-input"
             placeholder="例如：小宝 / 豆豆"
-            className="w-full border border-slate-300 bg-slate-50 rounded-lg p-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            className="kid-input"
           />
         </div>
       ),
@@ -74,73 +74,74 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
         const input = document.getElementById('new-child-input') as HTMLInputElement;
         if (input && input.value.trim()) {
           addChild(input.value.trim(), '👧');
-          Toast.show({ icon: 'success', content: '已添加成员档案' });
+          Toast.show({ icon: 'success', content: '已添加宝贝档案！' });
         }
       },
     });
   };
 
   return (
-    <div className="p-4 space-y-5 pb-24 text-slate-900">
-      {/* 硬件终端设备列表（支持多设备） */}
-      <section className="card-surface bg-white rounded-xl shadow-card border border-slate-200/90 overflow-hidden">
-        <div className="px-4 py-3 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <IconDevice className="w-4 h-4 text-indigo-600" />
-            <div>
-              <h3 className="font-bold text-slate-900 text-xs">已绑定桌面硬件终端 ({devices.length})</h3>
-            </div>
+    <div className="px-4 py-6 space-y-8 pb-32 text-[#1F2937]">
+      {/* 1. 桌面伙伴硬件设备管理 */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <h2 className="text-h2 text-[#1F2937]">桌面伙伴设备</h2>
+            <p className="text-body text-[#6B7280]">管理宝贝书桌上的硬件屏幕</p>
           </div>
           <button
             type="button"
             onClick={() => setPairModalVisible(true)}
-            className="rounded-md text-xs px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white font-semibold inline-flex items-center gap-1 shadow-xs transition-all select-none"
+            className="kid-btn kid-btn-primary kid-btn-md"
           >
-            <IconPlus className="w-3 h-3" />
-            <span>配对新终端</span>
+            <IconPlus className="w-5 h-5" />
+            <span>连接新设备</span>
           </button>
         </div>
 
         {devices.length === 0 ? (
-          <div className="text-center py-8 text-xs text-slate-400">
-            暂未绑定任何硬件终端，点击右上角【配对新终端】开始连接
+          <div className="kid-card text-center py-8">
+            <div className="text-body text-[#6B7280]">
+              还没有连接桌面设备，点击上方【连接新设备】开始配对吧！
+            </div>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="space-y-6">
             {devices.map(device => {
               const child = children.find(c => c.id === device.childId);
               return (
-                <div key={device.id} className="p-3.5 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-slate-900 text-sm">{device.alias}</span>
-                      <span className="inline-flex items-center gap-1 text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-1.5 py-0.5 rounded font-medium">
-                        <IconWifi className="w-3 h-3" />
-                        在线
-                      </span>
+                <div key={device.id} className="kid-card space-y-4">
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-[#DBEAFE] text-[#3B82F6] flex items-center justify-center shrink-0">
+                        <IconDevice className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h3 className="text-h3 text-[#1F2937]">{device.alias}</h3>
+                        <p className="text-caption text-[#6B7280]">
+                          专属宝贝：{child?.nickname || '未指定'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <span className="kid-status-chip kid-status-complete">
+                      <IconCheck className="w-4 h-4" />
+                      <span>已连接</span>
+                    </span>
+                  </div>
+
+                  <div className="pt-4 border-t-2 border-[#E5E7EB] flex items-center justify-between gap-3 flex-wrap">
+                    <div className="text-mono text-[#6B7280]">
+                      型号: {device.deviceModel.replace('Waveshare ', '')} · MAC: {device.macAddress}
                     </div>
                     <button
                       type="button"
                       onClick={() => handleUnbind(device.id, device.alias)}
-                      className="text-slate-400 hover:text-red-600 text-xs flex items-center gap-1 transition-colors select-none"
+                      className="kid-btn kid-btn-ghost kid-btn-sm"
                     >
-                      <DeleteOutline /> 解除绑定
+                      <DeleteOutline />
+                      <span>断开</span>
                     </button>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2 bg-slate-50 rounded-lg p-2.5 border border-slate-100 text-xs">
-                    <div>
-                      <div className="text-[10px] text-slate-400">绑定成员</div>
-                      <div className="font-semibold text-slate-800 mt-0.5">{child?.nickname || '未指定'}</div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] text-slate-400">终端型号</div>
-                      <div className="font-medium text-slate-700 mt-0.5 truncate">{device.deviceModel.replace('Waveshare ', '')}</div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] text-slate-400">MAC 标识</div>
-                      <div className="font-mono text-[11px] text-slate-500 mt-0.5 truncate">{device.macAddress}</div>
-                    </div>
                   </div>
                 </div>
               );
@@ -149,95 +150,96 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
         )}
       </section>
 
-      {/* 成员档案管理 */}
-      <section className="card-surface bg-white rounded-xl shadow-card border border-slate-200/90 overflow-hidden">
-        <div className="px-4 py-3 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <IconUser className="w-4 h-4 text-slate-600" />
-            <span className="font-bold text-xs text-slate-900">成员档案管理 ({children.length})</span>
-          </div>
+      {/* 2. 宝贝档案列表 (KidLearn Lists: 56px+ row, 20px corners) */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-h3 text-[#1F2937]">家庭宝贝档案 ({children.length})</h3>
           <button
             type="button"
             onClick={handleAddChild}
-            className="text-indigo-600 hover:text-indigo-700 text-xs font-semibold inline-flex items-center gap-1 select-none"
+            className="kid-btn kid-btn-secondary kid-btn-sm"
           >
-            <IconPlus className="w-3 h-3" />
-            <span>添加成员</span>
+            <IconPlus className="w-4 h-4" />
+            <span>添加宝贝</span>
           </button>
         </div>
-        <List>
+
+        <div className="kid-list">
           {children.map(child => (
-            <List.Item
+            <button
               key={child.id}
-              prefix={
-                <div className="w-8 h-8 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center text-base">
+              type="button"
+              onClick={() => handleEditNickname(child.id, child.nickname)}
+              className="kid-list-row w-full text-left"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-[#FEF3C7] border-2 border-[#FACC15] flex items-center justify-center text-2xl shrink-0">
                   {child.avatarIcon || '🧒'}
                 </div>
-              }
-              extra={
-                <span className="inline-flex items-center gap-1 text-amber-700 font-mono font-bold text-xs bg-amber-50 border border-amber-200/70 px-2 py-0.5 rounded">
-                  <IconCoin className="w-3 h-3" />
-                  {child.coinsBalance}
-                </span>
-              }
-              clickable
-              onClick={() => handleEditNickname(child.id, child.nickname)}
-              arrow
-            >
-              <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-xs text-slate-900">{child.nickname}</span>
-                <EditSOutline className="text-slate-400 text-xs" />
+                <div>
+                  <div className="font-headline font-bold text-[18px] text-[#1F2937] flex items-center gap-2">
+                    <span>{child.nickname}</span>
+                    <EditSOutline className="text-[#3B82F6] text-base" />
+                  </div>
+                  <div className="text-caption text-[#6B7280]">点击可修改宝贝昵称</div>
+                </div>
               </div>
-            </List.Item>
+
+              <span className="kid-status-chip kid-status-new">
+                <IconCoin className="w-5 h-5" />
+                <span>{child.coinsBalance} 金币</span>
+              </span>
+            </button>
           ))}
-        </List>
+        </div>
       </section>
 
-      {/* 系统与客户端配置 */}
-      <section className="card-surface bg-white rounded-xl shadow-card border border-slate-200/90 overflow-hidden">
-        <div className="px-4 py-3 bg-slate-50/70 border-b border-slate-100 font-bold text-xs text-slate-900">
-          系统与客户端状态
+      {/* 3. 家庭与手机桌面安装 */}
+      <section className="space-y-4">
+        <h3 className="text-h3 text-[#1F2937]">系统与安装信息</h3>
+        <div className="kid-list">
+          <div className="kid-list-row">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-full bg-[#DBEAFE] text-[#3B82F6] flex items-center justify-center">
+                <IconStar className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="font-headline font-bold text-[16px] text-[#1F2937]">家庭空间</div>
+                <div className="text-caption text-[#6B7280]">{family.timezone}</div>
+              </div>
+            </div>
+            <span className="font-headline font-bold text-[16px] text-[#1F2937]">{family.name}</span>
+          </div>
+
+          <div className="kid-list-row">
+            <div>
+              <div className="font-headline font-bold text-[16px] text-[#1F2937]">安装到手机桌面</div>
+              <div className="text-caption text-[#6B7280]">像原生 App 一样随时打开</div>
+            </div>
+            {installState.isStandalone ? (
+              <span className="kid-status-chip kid-status-complete">
+                <IconCheck className="w-4 h-4" />
+                <span>已安装</span>
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={async () => {
+                  if (installState.isInstallable) {
+                    await installState.triggerInstall();
+                  } else {
+                    Toast.show({
+                      content: '请在浏览器菜单中点击「添加到主屏幕」哦！',
+                    });
+                  }
+                }}
+                className="kid-btn kid-btn-secondary kid-btn-sm"
+              >
+                <span>立即安装</span>
+              </button>
+            )}
+          </div>
         </div>
-        <List>
-          <List.Item extra={<span className="text-xs font-medium text-slate-700">{family.name}</span>}>
-            <span className="text-xs text-slate-600">家庭空间</span>
-          </List.Item>
-          <List.Item extra={<span className="text-xs font-mono text-slate-500">{family.timezone}</span>}>
-            <span className="text-xs text-slate-600">任务结算时区</span>
-          </List.Item>
-          <List.Item
-            extra={
-              installState.isStandalone ? (
-                <span className="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2 py-0.5 rounded font-medium">
-                  独立 App 模式
-                </span>
-              ) : (
-                <span className="text-[11px] bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded font-medium">
-                  浏览器网页模式
-                </span>
-              )
-            }
-          >
-            <span className="text-xs text-slate-600">客户端形态</span>
-          </List.Item>
-          {!installState.isStandalone && (
-            <List.Item
-              clickable
-              onClick={async () => {
-                if (installState.isInstallable) {
-                  await installState.triggerInstall();
-                } else {
-                  Toast.show({
-                    content: '请使用 Safari 或 Chrome，在系统菜单中选择「添加到主屏幕」',
-                  });
-                }
-              }}
-              arrow
-            >
-              <span className="text-xs text-indigo-600 font-semibold">安装至手机主屏幕 (PWA)</span>
-            </List.Item>
-          )}
-        </List>
       </section>
 
       {/* 绑定弹窗 */}

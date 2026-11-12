@@ -1,48 +1,137 @@
----
-name: StudyPet Precision Modern Design System
-description: 学习任务养成宠物 (StudyPet) 精密结构化现代极简设计规范 (Linear / Stripe Dashboard 风格)
-colors:
-  background: '#F4F6F9'         # 通透浅冷灰画布
-  surface: '#FFFFFF'            # 纯白高对比容器
-  surface-subtle: '#F8FAFC'     # 卡片内嵌分栏底色
-  
-  foreground: '#0F172A'         # Slate-900 深邃墨色主文字
-  foreground-muted: '#475569'   # Slate-600 次级信息
-  foreground-subtle: '#94A3B8'  # Slate-400 辅助标注
-  
-  border: '#E2E8F0'             # 1px 精密结构分割线
-  
-  primary: '#4F46E5'            # Indigo-600 科技感靛蓝主色
-  primary-surface: '#EEF2FF'
-  primary-border: '#C7D2FE'
-  
-  success: '#059669'            # Emerald-600 终端在线/已发币
-  success-surface: '#ECFDF5'
-  
-  warning: '#D97706'            # Amber-600 金币激励/待确认
-  warning-surface: '#FFFBEB'
-  
-  danger: '#DC2626'             # Red-600 驳回/异常
+# KidLearn Design System
 
-rounded:
-  badge: "4px"                  # rounded (紧凑标签)
-  control: "6px"                # rounded-md (按钮/分段子项)
-  input: "8px"                  # rounded-lg (输入框/内层块)
-  card: "12px"                  # rounded-xl (外层主面板，严禁使用 24px+ 气泡圆角)
+## Overview
 
-shadows:
-  card: "0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.02)"
+KidLearn is a bright, chunky, and friendly design system built for children's educational apps targeting ages 5-12. Every element uses rounded, approachable shapes with generous sizing to ensure comfort and accessibility for young learners. The system prioritizes large touch targets, clear visual hierarchy, reward-oriented feedback, and COPPA-compliant patterns. Colors are vivid but carefully balanced to avoid sensory overload.
+
 ---
 
-# StudyPet 精密结构化设计系统规范 (design.md)
+## Colors
 
-## 1. 核心设计原则：Architectural Precision (结构化精密感，告别简陋与气泡圆角)
+- **Color Primary** (#EF4444): Primary actions, highlights
+- **Color Secondary** (#3B82F6): Secondary actions, links
+- **Color Tertiary** (#FACC15): Rewards, stars, badges
+- **Surface Base** (#FFFFFF): Page background
+- **Surface Raised** (#F9FAFB): Card background
+- **Surface Highlight** (#FEF3C7): Active lesson highlight
+- **Color Success** (#22C55E): Correct answer, completion
+- **Color Warning** (#F59E0B): Try again prompts
+- **Color Error** (#EF4444): Incorrect answer feedback
+- **Color Info** (#3B82F6): Hints, tips
 
-1. **克制同心圆角体系 (Concentric & Crisp Radius)**：
-   - 严禁使用 `rounded-3xl` (24px) 和泛滥的 `rounded-full` 胶囊按钮；
-   - 外层面板统一采用 `rounded-xl` (12px)，内部按钮与选择器采用 `rounded-md` (6px) / `rounded-lg` (8px)，状态徽章采用 `rounded` (4px)，呈现利落、严谨的现代工业软件质感。
-2. **Bento 矩阵与工单式信息架构 (Bento KPI & Ticket Architecture)**：
-   - **成员状态卡**：上半部展示成员与硬件终端在线状态，下半部采用 `grid-cols-3 divide-x` 三栏数据矩阵（账户金币、今日完成进度条、待审批数），使用 `font-mono tabular-nums` 等宽数字对齐；
-   - **待确认工单卡**：采用左侧 `3px` 靛蓝状态边条 + 顶栏设备/时间元数据 + 主体任务与右侧金币盒 + 底栏双按钮操作区，告别“白框堆文字”的简陋感。
-3. **定制矢量图标体系 (Vector SVG System)**：
-   - 使用统一的 `1.75px` 描边 SVG 矢量图标（金币、硬件终端、Wi-Fi 信号、闪电工单、盾牌审核）替代廉价的裸 Emoji。
+## Typography
+
+- **Headline Font**: Fredoka
+- **Body Font**: Nunito
+- **Mono Font**: Roboto Mono
+
+- **text-hero**: Fredoka 48px bold, 1.2 line height
+- **text-h1**: Fredoka 36px bold, 1.25 line height
+- **text-h2**: Fredoka 28px semibold, 1.3 line height
+- **text-h3**: Fredoka 22px semibold, 1.35 line height
+- **text-body-lg**: Nunito 18px regular, 1.6 line height
+- **text-body**: Nunito 16px regular, 1.6 line height
+- **text-caption**: Nunito 14px semibold, 1.5 line height
+- **text-mono**: Roboto Mono 14px regular, 1.5 line height
+
+---
+
+## Spacing
+
+Base unit: **8px**. Use generous padding throughout to create breathing room for young users.
+- **space-1**: 8px — Inline icon gaps
+- **space-2**: 16px — Between label and input
+- **space-3**: 24px — Card inner padding
+- **space-4**: 32px — Between components
+- **space-5**: 40px — Section padding
+- **space-6**: 48px — Large section gaps
+- **space-8**: 64px — Page-level vertical rhythm
+
+## Border Radius
+
+- **radius-sm** (12px): Small elements, chips
+- **radius-md** (20px): Buttons, cards, inputs
+- **radius-lg** (28px): Large cards, modals
+- **radius-pill** (9999px): Pills, tags, small controls
+- **radius-circle** (50%): Avatars, icons
+
+## Elevation (Material-Style Playful Depth)
+
+- **shadow-sm**: 2px offset, 4px blur, #000000 at 8%. Resting cards.
+- **shadow-md**: 4px offset, 12px blur, #000000 at 12%. Raised cards, menus.
+- **shadow-lg**: 8px offset, 24px blur, #000000 at 16%. Modals, popovers.
+- **shadow-playful**: 6px offset, 0px blur, #D1D5DB. Chunky offset shadow.
+- **shadow-focus**: 4px ring #3B82F6 at 35%. Focus rings.
+
+## Components
+
+### Buttons
+All buttons use `border-radius: 20px` minimum, with a chunky pressed state that shifts down by 3px.
+#### Variants
+- **Primary**: #EF4444 fill, #FFFFFF text, no border.
+- **Secondary**: #3B82F6 fill, #FFFFFF text, no border.
+- **Ghost**: transparent fill, #EF4444 text, 2px #EF4444 border.
+- **Destructive**: #DC2626 fill, #FFFFFF text, no border.
+#### Sizes
+Sizes: Small (40px, 16px, 14px, 80px), Medium (48px, 24px, 16px, 120px), Large (56px, 32px, 18px, 160px).
+#### Disabled State
+0.45 opacity, disabled cursor.
+- No hover or pressed transform
+- Background desaturated
+
+### Cards
+surface-raised (#F9FAFB) fill, 2px border-default border, 20px corners, 24px padding, shadow-playful shadow, Hover: Translate Y -4px, shadow-md.
+
+### Inputs
+- **Default**: #9CA3AF border color, #FFFFFF fill, no shadow.
+- **Hover**: #6B7280 border color, #FFFFFF fill, no shadow.
+- **Focus**: #3B82F6 border color, #FFFFFF fill, shadow-focus shadow.
+- **Error**: #EF4444 border color, #FEF2F2 fill, 4px ring #EF4444 at 20% shadow.
+- **Disabled**: #E5E7EB border color, #F3F4F6 fill, no shadow.
+20px border radius. 48px minimum tall, 16px (Nunito) font size, 16px/horizontal padding.
+
+### Chips
+#### Filter Chips
+- **Default**: #F3F4F6 fill, #1F2937 text, 1px #E5E7EB border.
+- **Selected**: #3B82F6 fill, #FFFFFF text, 1px #3B82F6 border.
+- **Hover**: #E5E7EB fill, #1F2937 text, 1px #9CA3AF border.
+#### Status Chips
+- **Complete**: #DCFCE7 fill, #166534 text, Checkmark indicator.
+- **Locked**: #F3F4F6 fill, #9CA3AF text, Lock indicator.
+- **Active**: #DBEAFE fill, #1E40AF text, Star indicator.
+- **New**: #FEF3C7 fill, #92400E text, Sparkle indicator.
+9999px (pill) border radius. 14px Nunito 600. 36px tall.
+
+### Lists
+56px minimum row height, 16px horizontal padding, 1px #E5E7EB divider, #F3F4F6 hover background, #DBEAFE active background, 20px (container) corners, 24px, placed left with 12px gap icon size.
+
+### Checkboxes
+- **Unchecked**: #FFFFFF fill, 2px #9CA3AF border.
+- **Checked**: #3B82F6 fill, 2px #3B82F6 border, #FFFFFF checkmark.
+- **Disabled**: #F3F4F6 fill, 2px #E5E7EB border, #9CA3AF checkmark.
+28px (larger for kids), 8px border radius. shadow-focus focus ring.
+- Animated bounce on check
+
+### Radio Buttons
+- **Unselected**: #FFFFFF fill, 2px #9CA3AF border.
+- **Selected**: #FFFFFF fill, 2px #EF4444 border, #EF4444 dot.
+- **Disabled**: #F3F4F6 fill, 2px #E5E7EB border, #9CA3AF dot.
+28px. 14px dot diameter, shadow-focus focus ring.
+
+### Tooltips
+#1F2937 fill, #FFFFFF text, 14px Nunito font size, 10px 16px padding, 12px corners, 220px max width, 8px triangle arrow, 300ms show, 100ms hide delay, shadow-md shadow.
+
+---
+
+## Do's and Don'ts
+
+1. **Do** ensure all interactive elements meet a minimum 48px touch target.
+2. **Do** use simple, age-appropriate language (aim for a 2nd-grade reading level).
+3. **Do** incorporate reward animations (stars, confetti, bounce) for correct answers and milestones.
+4. **Don't** use more than three bright colors in a single view -- keep it vivid but not overwhelming.
+5. **Do** maintain COPPA compliance: no personal data collection, no external links without parental gate.
+6. **Don't** rely on text alone for navigation -- always pair labels with icons or illustrations.
+7. **Do** provide generous padding and spacing between interactive elements to prevent accidental taps.
+8. **Don't** use time pressure or countdown mechanics that could cause anxiety.
+9. **Do** design forgiving error states -- "Try again!" not "Wrong answer."
+10. **Don't** use thin fonts, low-contrast text, or small UI elements anywhere in the interface.

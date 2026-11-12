@@ -7,12 +7,12 @@ const MainLayout = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="min-h-screen bg-[#F4F6F9] flex flex-col items-center justify-center space-y-3">
-        <div className="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center text-lg font-bold shadow-xs">
-          SP
+      <div className="min-h-screen bg-[#FFFFFF] flex flex-col items-center justify-center space-y-4">
+        <div className="w-16 h-16 rounded-full bg-[#EF4444] text-white flex items-center justify-center text-3xl font-bold shadow-[0_4px_0_#B91C1C]">
+          🐾
         </div>
-        <div className="text-xs text-slate-500 font-medium tracking-wide">
-          正在加载 StudyPet 控制台...
+        <div className="text-body font-bold text-[#1F2937]">
+          正在进入学习宠物乐园...
         </div>
       </div>
     ),

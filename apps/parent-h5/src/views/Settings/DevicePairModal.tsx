@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Popup, Toast, Selector, Input } from 'antd-mobile';
+import { Popup, Toast } from 'antd-mobile';
 import { useAppStore } from '../../stores/useAppStore';
 import { IconDevice } from '../../components/Icons';
 
@@ -25,17 +25,17 @@ export const DevicePairModal: React.FC<Props> = ({ visible, onClose }) => {
 
   const handlePair = async () => {
     if (code.length !== 6) {
-      Toast.show({ icon: 'fail', content: '请输入桌面屏幕上的 6 位数字配对码' });
+      Toast.show({ icon: 'fail', content: '请输入设备屏幕上的 6 位数字配对码哦！' });
       return;
     }
 
     if (!selectedChildId) {
-      Toast.show({ icon: 'fail', content: '请选择该设备归属的成员' });
+      Toast.show({ icon: 'fail', content: '请选择这台设备属于哪位宝贝！' });
       return;
     }
 
     const targetChild = children.find(c => c.id === selectedChildId);
-    const finalAlias = alias.trim() || `${targetChild?.nickname || '孩子'}的桌面设备`;
+    const finalAlias = alias.trim() || `${targetChild?.nickname || '宝贝'}的桌面设备`;
 
     setLoading(true);
     const res = await pairDevice(code, finalAlias, selectedChildId);
@@ -51,92 +51,112 @@ export const DevicePairModal: React.FC<Props> = ({ visible, onClose }) => {
     }
   };
 
-  const childOptions = children.map(c => ({
-    label: c.nickname,
-    value: c.id,
-  }));
-
   return (
     <Popup
       visible={visible}
       onMaskClick={onClose}
       position="bottom"
       bodyStyle={{
-        borderTopLeftRadius: '14px',
-        borderTopRightRadius: '14px',
-        padding: '20px 16px',
-        background: '#F4F6F9',
+        borderTopLeftRadius: '28px',
+        borderTopRightRadius: '28px',
+        padding: '24px',
+        background: '#FFFFFF',
       }}
     >
-      <div className="flex flex-col text-slate-900">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-indigo-600 text-white rounded-lg flex items-center justify-center shrink-0 shadow-xs">
-            <IconDevice className="w-5 h-5" />
+      <div className="flex flex-col text-[#1F2937] space-y-6">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 bg-[#EF4444] text-white rounded-full flex items-center justify-center shrink-0 shadow-[0_4px_0_#B91C1C]">
+            <IconDevice className="w-7 h-7" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-slate-900">配对绑定 ESP32 桌面硬件终端</h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              开启硬件屏幕查看 6 位动态配对码，并关联至指定成员
+            <h3 className="text-h3 text-[#1F2937]">连接新的桌面伙伴设备</h3>
+            <p className="text-caption text-[#6B7280] mt-0.5">
+              打开微雪硬件屏幕查看 6 位数字配对码
             </p>
           </div>
         </div>
 
-        {/* 归属成员选择 */}
-        <div className="card-surface w-full bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-card mb-3">
-          <label className="text-xs font-bold text-slate-800 block mb-2">1. 指派归属成员：</label>
-          <Selector
-            options={childOptions}
-            value={[selectedChildId]}
-            onChange={v => v.length && setSelectedChildId(v[0])}
-            columns={2}
-          />
+        {/* 1. 选择归属宝贝 (KidLearn Radio Buttons 28px) */}
+        <div className="kid-card space-y-3">
+          <div className="text-caption text-[#1F2937]">1. 这台设备属于哪位宝贝？</div>
+          <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="选择宝贝">
+            {children.map(child => {
+              const selected = selectedChildId === child.id;
+              return (
+                <button
+                  key={child.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  onClick={() => setSelectedChildId(child.id)}
+                  className="min-h-[48px] p-3 rounded-[20px] bg-white border-2 border-[#E5E7EB] flex items-center gap-3 text-left"
+                >
+                  <span
+                    className={`w-[28px] h-[28px] rounded-full flex items-center justify-center border-2 shrink-0 ${
+                      selected ? 'border-[#EF4444] bg-white' : 'border-[#9CA3AF] bg-white'
+                    }`}
+                  >
+                    {selected && <span className="w-[14px] h-[14px] rounded-full bg-[#EF4444]" />}
+                  </span>
+                  <span className="text-body font-bold text-[#1F2937] truncate">
+                    {child.nickname}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* 6 位配对码输入 */}
-        <div className="card-surface w-full bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-card mb-3">
-          <label className="text-xs font-bold text-slate-800 block mb-2">
-            2. 输入终端 6 位数字配对码：
+        {/* 2. 6 位配对码输入 */}
+        <div className="kid-card space-y-2">
+          <label htmlFor="pair-code-input" className="text-caption text-[#1F2937] block">
+            2. 输入屏幕上的 6 位数字配对码：
           </label>
-          <Input
+          <input
+            id="pair-code-input"
+            type="text"
+            inputMode="numeric"
             value={code}
-            onChange={val => {
-              const clean = val.replace(/\D/g, '').slice(0, 6);
+            onChange={e => {
+              const clean = e.target.value.replace(/\D/g, '').slice(0, 6);
               setCode(clean);
             }}
             placeholder="例如 829103"
-            className="text-center font-mono tracking-widest !text-xl font-bold !h-11 !border !border-slate-300 !bg-slate-50 rounded-lg text-slate-900"
-            type="number"
+            className="kid-input text-center font-mono !text-[24px] font-bold tracking-widest"
           />
-          <span className="text-[11px] text-slate-400 block mt-1.5">终端联网后屏幕将自动显示 6 位配对码</span>
         </div>
 
-        {/* 备注名称 */}
-        <div className="card-surface w-full bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-card mb-4">
-          <label className="text-xs font-bold text-slate-800 block mb-1.5">3. 终端备注名称（选填）：</label>
-          <Input
+        {/* 3. 设备名称 */}
+        <div className="kid-card space-y-2">
+          <label htmlFor="device-alias-input" className="text-caption text-[#1F2937] block">
+            3. 给设备起个名字（选填）：
+          </label>
+          <input
+            id="device-alias-input"
+            type="text"
             value={alias}
-            onChange={setAlias}
-            placeholder="例如：大宝书桌终端"
-            className="!text-xs border border-slate-200 bg-slate-50 px-2.5 py-1.5 rounded-lg text-slate-900"
+            onChange={e => setAlias(e.target.value)}
+            placeholder="例如：大宝书桌的小宠屏幕"
+            className="kid-input"
           />
         </div>
 
         {/* 操作按钮 */}
-        <div className="w-full flex items-center gap-2.5 select-none">
+        <div className="flex items-center gap-4">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-2.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-colors"
+            className="flex-1 kid-btn kid-btn-ghost kid-btn-lg"
           >
-            取消
+            稍后再连
           </button>
           <button
             type="button"
             disabled={loading}
             onClick={handlePair}
-            className="flex-[2] py-2.5 rounded-lg font-semibold text-xs bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white shadow-xs transition-all disabled:opacity-50"
+            className="flex-[2] kid-btn kid-btn-primary kid-btn-lg"
           >
-            {loading ? '配对连接中...' : '确认并绑定终端'}
+            {loading ? '正在连接...' : '确认连接设备！'}
           </button>
         </div>
       </div>
