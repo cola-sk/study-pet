@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { NoticeBar } from 'antd-mobile';
 import { useNetworkStatus } from '../../hooks/useNetworkStatus';

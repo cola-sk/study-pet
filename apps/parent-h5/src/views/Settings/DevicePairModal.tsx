@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Popup, Button, Toast, Selector, Input } from 'antd-mobile';
 import { useAppStore } from '../../stores/useAppStore';

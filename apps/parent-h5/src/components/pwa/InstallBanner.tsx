@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Button, Toast } from 'antd-mobile';
 import { DownlandOutline } from 'antd-mobile-icons';

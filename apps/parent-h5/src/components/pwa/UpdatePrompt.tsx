@@ -1,37 +1,34 @@
-import React from 'react';
-import { Dialog, Toast } from 'antd-mobile';
-import { useRegisterSW } from 'virtual:pwa-register/react';
+'use client';
+
+import React, { useEffect } from 'react';
+import { Dialog } from 'antd-mobile';
 
 export const UpdatePrompt: React.FC = () => {
-  const {
-    needRefresh: [needRefresh, setNeedRefresh],
-    updateServiceWorker,
-  } = useRegisterSW({
-    onRegistered(r?: ServiceWorkerRegistration) {
-      console.log('Service Worker registered successfully:', r);
-    },
-    onRegisterError(error: any) {
-      console.error('Service Worker registration failed:', error);
-    },
-  });
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
 
-  React.useEffect(() => {
-    if (needRefresh) {
-      Dialog.confirm({
-        title: '发现新版本',
-        content: '学习宠物助手有新功能发布，是否立即刷新更新？',
-        confirmText: '立即更新',
-        cancelText: '稍后',
-        onConfirm: async () => {
-          Toast.show({ icon: 'loading', content: '更新中...' });
-          await updateServiceWorker(true);
-        },
-        onCancel: () => {
-          setNeedRefresh(false);
-        },
+    navigator.serviceWorker.ready.then(registration => {
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        if (!newWorker) return;
+
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            Dialog.confirm({
+              title: '发现新版本',
+              content: '学习宠物助手有新功能发布，是否立即刷新应用？',
+              confirmText: '立即更新',
+              cancelText: '稍后',
+              onConfirm: () => {
+                newWorker.postMessage({ type: 'SKIP_WAITING' });
+                window.location.reload();
+              },
+            });
+          }
+        });
       });
-    }
-  }, [needRefresh, setNeedRefresh, updateServiceWorker]);
+    });
+  }, []);
 
   return null;
 };

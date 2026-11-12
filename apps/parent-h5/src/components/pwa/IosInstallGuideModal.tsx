@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Popup, Button } from 'antd-mobile';
 import { PWAInstallState } from '../../hooks/usePWAInstall';

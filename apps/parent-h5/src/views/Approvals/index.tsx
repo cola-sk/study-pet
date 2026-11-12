@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Button, Tag, Dialog, Toast, PullToRefresh, Tabs } from 'antd-mobile';
 import { CheckOutline, CloseOutline, ClockCircleOutline } from 'antd-mobile-icons';

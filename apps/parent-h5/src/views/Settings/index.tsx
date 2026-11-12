@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { List, Button, Dialog, Toast, Tag } from 'antd-mobile';
 import { AddOutline, DeleteOutline, EditSOutline, RedoOutline } from 'antd-mobile-icons';
@@ -24,6 +26,14 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
   } = useAppStore();
 
   const [pairModalVisible, setPairModalVisible] = useState(false);
+  const [serverConfig, setServerConfig] = useState<{ configured?: boolean; url?: string; hasKey?: boolean } | null>(null);
+
+  React.useEffect(() => {
+    fetch('/api/supabase-config')
+      .then(res => res.json())
+      .then(data => setServerConfig(data))
+      .catch(() => {});
+  }, []);
 
   const handleUnbind = (deviceId: string, alias: string) => {
     Dialog.confirm({
@@ -239,7 +249,7 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
         <List>
           <List.Item
             extra={
-              isSupabaseConfigured ? (
+              (isSupabaseConfigured || serverConfig?.configured) ? (
                 <Tag color="success" className="!text-[10px]">● 已连接 Supabase</Tag>
               ) : (
                 <Tag color="default" className="!text-[10px]">本地离线存储模式</Tag>
@@ -251,20 +261,22 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
           <List.Item
             extra={
               <span className="text-[11px] font-mono text-gray-600 max-w-[200px] truncate block text-right">
-                {rawSupabaseUrl ? rawSupabaseUrl.replace(/https:\/\/(.{6}).*(\.supabase\.co)/, 'https://$1***$2') : '⚠️ 未读取到 (为空)'}
+                {rawSupabaseUrl 
+                  ? rawSupabaseUrl.replace(/https:\/\/(.{6}).*(\.supabase\.co)/, 'https://$1***$2')
+                  : (serverConfig?.url || '⚠️ 未读取到环境变量')}
               </span>
             }
           >
-            VITE_SUPABASE_URL
+            SUPABASE_URL
           </List.Item>
           <List.Item
             extra={
               <span className="text-[11px] text-gray-600">
-                {rawSupabaseAnonKey ? '●●●●●● (已配置)' : '⚠️ 未读取到 (为空)'}
+                {(rawSupabaseAnonKey || serverConfig?.hasKey) ? '●●●●●● (已就绪)' : '⚠️ 未读取到凭证'}
               </span>
             }
           >
-            VITE_SUPABASE_ANON_KEY
+            SUPABASE_ANON_KEY
           </List.Item>
         </List>
       </div>

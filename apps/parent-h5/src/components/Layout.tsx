@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { SafeArea, NavBar, TabBar } from 'antd-mobile';
 import {
@@ -13,10 +15,10 @@ import { InstallBanner } from './pwa/InstallBanner';
 import { IosInstallGuideModal } from './pwa/IosInstallGuideModal';
 import { UpdatePrompt } from './pwa/UpdatePrompt';
 
-import { ApprovalsPage } from '../pages/Approvals';
-import { TasksPage } from '../pages/Tasks';
-import { PetWalletPage } from '../pages/PetWallet';
-import { SettingsPage } from '../pages/Settings';
+import { ApprovalsPage } from '../views/Approvals';
+import { TasksPage } from '../views/Tasks';
+import { PetWalletPage } from '../views/PetWallet';
+import { SettingsPage } from '../views/Settings';
 
 export const Layout: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('approvals');

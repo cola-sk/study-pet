@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Popup, Input, TextArea, Stepper, Selector, Button, Toast } from 'antd-mobile';
 import { TaskTemplate, ConfirmType, FrequencyType, TargetScope } from '../../services/types';
