@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --adm-color-primary: #1677FF;
+  --adm-color-success: #00B578;
+  --adm-color-warning: #FF8F1F;
+  --adm-color-danger: #FF3141;
+  --adm-border-color: #E2E8F0;
+  --adm-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #F8FAFC;
+  touch-action: manipulation;
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+  font-family: var(--adm-font-family);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 禁止移动端文字误长按弹出系统操作条 (表单输入控件除外) */
+* {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input, textarea {
+  -webkit-touch-callout: default;
+  -webkit-user-select: auto;
+  user-select: auto;
+}
+
+@keyframes bounceSlow {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-bounce-slow {
+  animation: bounceSlow 3s ease-in-out infinite;
+}
