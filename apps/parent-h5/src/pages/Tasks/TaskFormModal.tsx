@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Popup, Input, TextArea, Stepper, Selector, Button, Toast } from 'antd-mobile';
-import { TaskTemplate, ConfirmType, FrequencyType } from '../../services/types';
+import { TaskTemplate, ConfirmType, FrequencyType, TargetScope } from '../../services/types';
 import { useAppStore } from '../../stores/useAppStore';
 
 interface Props {
@@ -20,7 +20,7 @@ const WEEKDAY_OPTIONS = [
 ];
 
 export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTemplate }) => {
-  const { family, addTemplate, updateTemplate } = useAppStore();
+  const { family, children, addTemplate, updateTemplate } = useAppStore();
 
   const [title, setTitle] = useState(initialTemplate?.title || '');
   const [description, setDescription] = useState(initialTemplate?.description || '');
@@ -29,6 +29,8 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
   const [frequencyType, setFrequencyType] = useState<FrequencyType>(initialTemplate?.frequencyType || 'daily');
   const [selectedDays, setSelectedDays] = useState<number[]>(initialTemplate?.frequencyConfig.days || [1, 3, 5]);
   const [intervalDays, setIntervalDays] = useState<number>(initialTemplate?.frequencyConfig.interval || 2);
+  const [targetScope, setTargetScope] = useState<TargetScope>(initialTemplate?.targetScope || 'all');
+  const [targetChildIds, setTargetChildIds] = useState<string[]>(initialTemplate?.targetChildIds || (children[0] ? [children[0].id] : []));
 
   React.useEffect(() => {
     if (initialTemplate) {
@@ -39,6 +41,8 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
       setFrequencyType(initialTemplate.frequencyType);
       setSelectedDays(initialTemplate.frequencyConfig.days || [1, 3, 5]);
       setIntervalDays(initialTemplate.frequencyConfig.interval || 2);
+      setTargetScope(initialTemplate.targetScope || 'all');
+      setTargetChildIds(initialTemplate.targetChildIds || []);
     } else {
       setTitle('');
       setDescription('');
@@ -47,8 +51,10 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
       setFrequencyType('daily');
       setSelectedDays([1, 3, 5]);
       setIntervalDays(2);
+      setTargetScope('all');
+      setTargetChildIds(children.length > 0 ? [children[0].id] : []);
     }
-  }, [initialTemplate, visible]);
+  }, [initialTemplate, visible, children]);
 
   const handleSubmit = () => {
     if (!title.trim()) {
@@ -58,6 +64,11 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
 
     if (frequencyType === 'weekly_days' && selectedDays.length === 0) {
       Toast.show({ icon: 'fail', content: '请至少选择一个星期周期' });
+      return;
+    }
+
+    if (targetScope === 'specific' && targetChildIds.length === 0) {
+      Toast.show({ icon: 'fail', content: '请至少选择一个指派的孩子/设备' });
       return;
     }
 
@@ -73,6 +84,8 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
         interval: frequencyType === 'interval_days' ? intervalDays : undefined,
         baseDate: frequencyType === 'interval_days' ? new Date().toISOString().split('T')[0] : undefined,
       },
+      targetScope,
+      targetChildIds: targetScope === 'specific' ? targetChildIds : [],
       isActive: true,
     };
 
@@ -81,11 +94,16 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
       Toast.show({ icon: 'success', content: '模板更新成功' });
     } else {
       addTemplate(payload);
-      Toast.show({ icon: 'success', content: '新任务模板已创建' });
+      Toast.show({ icon: 'success', content: '新任务模板已创建并分发' });
     }
 
     onClose();
   };
+
+  const childOptions = children.map(c => ({
+    label: `${c.avatarIcon || '🧒'} ${c.nickname}`,
+    value: c.id,
+  }));
 
   return (
     <Popup
@@ -112,6 +130,33 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
 
         {/* Content */}
         <div className="p-4 overflow-y-auto space-y-4 text-xs">
+          {/* 布置目标范围（核心多设备支持） */}
+          <div className="bg-white rounded-xl p-3 shadow-sm border border-slate-100 space-y-2.5">
+            <label className="font-bold text-gray-800 block text-xs">🎯 布置给谁（设备与孩子）</label>
+            <Selector
+              options={[
+                { label: '👥 全员共同任务 (每台设备独立生成)', value: 'all' },
+                { label: '👤 指定孩子 (单独设备专属)', value: 'specific' },
+              ]}
+              value={[targetScope]}
+              onChange={v => v.length && setTargetScope(v[0] as TargetScope)}
+              columns={1}
+            />
+
+            {targetScope === 'specific' && (
+              <div className="pt-2 border-t border-slate-100">
+                <div className="text-[11px] text-gray-500 mb-1.5">选择指定孩子：</div>
+                <Selector
+                  options={childOptions}
+                  multiple
+                  value={targetChildIds}
+                  onChange={setTargetChildIds}
+                  columns={2}
+                />
+              </div>
+            )}
+          </div>
+
           <div className="bg-white rounded-xl p-3 shadow-sm border border-slate-100 space-y-3">
             <div>
               <label className="font-semibold text-gray-700 block mb-1">任务名称 *</label>
@@ -126,7 +171,7 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
             <div>
               <label className="font-semibold text-gray-700 block mb-1">要求与说明（选填）</label>
               <TextArea
-                placeholder="例如：阅读完成后在微雪桌面设备上点击完成"
+                placeholder="例如：在各自微雪桌面设备屏幕上点击提交"
                 value={description}
                 onChange={setDescription}
                 rows={2}
@@ -141,7 +186,7 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
             <div className="flex items-center justify-between">
               <div>
                 <label className="font-semibold text-gray-700 block">奖励金币数</label>
-                <span className="text-[11px] text-gray-400">推荐范围：5~15 金币</span>
+                <span className="text-[11px] text-gray-400">各设备提交后各得该金额</span>
               </div>
               <Stepper
                 value={rewardCoins}
@@ -157,7 +202,7 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
               <Selector
                 options={[
                   { label: '家长确认后发币 (推荐学习类)', value: 'parent_confirm' },
-                  { label: '孩子提交即发币 (适合自律习惯)', value: 'auto_confirm' },
+                  { label: '孩子提交即发币 (适合生活习惯)', value: 'auto_confirm' },
                 ]}
                 value={[confirmType]}
                 onChange={v => v.length && setConfirmType(v[0] as ConfirmType)}
@@ -204,16 +249,12 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
               </div>
             )}
           </div>
-
-          <div className="text-[11px] text-gray-400 px-1 leading-relaxed">
-            ℹ️ 规则说明：按家庭时区（{family.timezone}）每日 00:00 自动生成今日任务实例。修改模板仅影响未来尚未生成的实例，今日任务保持原样。
-          </div>
         </div>
 
         {/* Footer */}
         <div className="p-4 bg-white border-t border-gray-100">
           <Button block color="primary" size="large" onClick={handleSubmit} className="!rounded-xl font-bold">
-            {initialTemplate ? '保存修改' : '确认创建任务模板'}
+            {initialTemplate ? '保存修改' : '确认创建并分发任务'}
           </Button>
         </div>
       </div>

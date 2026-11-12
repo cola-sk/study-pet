@@ -17,28 +17,36 @@ export const TASK_STATUS = {
   REJECTED: 'rejected',   // 已驳回 (允许孩子重新提交)
 } as const;
 
-// 3. 商店道具分类
+// 3. 任务分发目标范围 (支持多设备/多孩子)
+export const TARGET_SCOPE = {
+  ALL: 'all',           // 全体设备/全员共同任务 (每台绑定的设备各自生成实例)
+  SPECIFIC: 'specific', // 单独指定某台设备/某个孩子专属任务
+} as const;
+
+// 4. 商店道具分类
 export const SHOP_CATEGORY = {
   FOOD: 'food',       // 消耗品：食物
   WATER: 'water',     // 消耗品：饮水
   CLOTHES: 'clothes', // 永久穿戴服饰
 } as const;
 
-// 4. RESTful 核心接口契约路径定义
+// 5. RESTful 核心接口契约路径定义
 export const API_ENDPOINTS = {
   // 设备端接口
-  DEVICE_PAIR: '/api/v1/device/pair',                         // POST: 设备配对 (pairCode: 6位)
-  DEVICE_TODAY_TASKS: '/api/v1/device/tasks/today',           // GET: 获取今日任务清单
+  DEVICE_PAIR: '/api/v1/device/pair',                         // POST: 设备配对 (pairCode, childId, alias)
+  DEVICE_TODAY_TASKS: '/api/v1/device/tasks/today',           // GET: 获取当前设备今日任务清单
   DEVICE_TASK_SUBMIT: '/api/v1/task-instances/:id/submit',    // POST: 孩子在设备提交任务
-  DEVICE_WALLET_BALANCE: '/api/v1/wallet',                    // GET: 查询金币余额与道具
+  DEVICE_WALLET_BALANCE: '/api/v1/wallet',                    // GET: 查询当前设备孩子的金币与道具
   DEVICE_SHOP_BUY: '/api/v1/shop/purchases',                  // POST: 购买道具 (itemId, requestId)
   DEVICE_ITEM_USE: '/api/v1/inventory/:itemId/use',           // POST: 使用食物/水/更换衣服
 
   // 家长端接口
   PARENT_TASK_APPROVE: '/api/v1/task-instances/:id/approve',  // POST: 家长批准任务并原子发币
   PARENT_TASK_REJECT: '/api/v1/task-instances/:id/reject',    // POST: 家长驳回任务 (携带理由)
-  PARENT_TEMPLATES: '/api/v1/task-templates',                 // GET/POST: 任务模板列表与新建
+  PARENT_TEMPLATES: '/api/v1/task-templates',                 // GET/POST: 任务模板列表与新建 (支持 targetScope)
   PARENT_TEMPLATE_STATUS: '/api/v1/task-templates/:id/status',// PATCH: 模板启用/暂停
-  PARENT_WALLET_LOGS: '/api/v1/wallet/transactions',          // GET: 金币收支明细
-  PARENT_PET_SUMMARY: '/api/v1/family/pet-summary',           // GET: 宠物形象、装扮与库存
+  PARENT_WALLET_LOGS: '/api/v1/wallet/transactions',          // GET: 金币收支明细 (可按 childId 筛选)
+  PARENT_PET_SUMMARY: '/api/v1/family/pet-summary',           // GET: 宠物形象、装扮与库存 (支持 childId)
+  PARENT_DEVICES: '/api/v1/devices',                          // GET/DELETE: 设备列表管理与解绑
+  PARENT_CHILDREN: '/api/v1/family/children',                 // GET/POST: 孩子档案管理
 } as const;

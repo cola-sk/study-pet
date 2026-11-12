@@ -6,7 +6,7 @@ import { TaskTemplate } from '../../services/types';
 import { TaskFormModal } from './TaskFormModal';
 
 export const TasksPage: React.FC = () => {
-  const { templates, toggleTemplate, deleteTemplate } = useAppStore();
+  const { templates, children, toggleTemplate, deleteTemplate } = useAppStore();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<TaskTemplate | null>(null);
 
@@ -34,16 +34,27 @@ export const TasksPage: React.FC = () => {
   };
 
   const renderFrequencyText = (tpl: TaskTemplate) => {
-    if (tpl.frequencyType === 'daily') return '每天重复';
+    if (tpl.frequencyType === 'daily') return '每天';
     if (tpl.frequencyType === 'weekly_days') {
       const dayMap: Record<number, string> = { 1: '一', 2: '二', 3: '三', 4: '四', 5: '五', 6: '六', 7: '日' };
       const days = (tpl.frequencyConfig.days || []).map(d => dayMap[d]).join('、');
       return `每周${days}`;
     }
     if (tpl.frequencyType === 'interval_days') {
-      return `每 ${tpl.frequencyConfig.interval || 2} 天一次`;
+      return `每 ${tpl.frequencyConfig.interval || 2} 天`;
     }
-    return '定期执行';
+    return '定期';
+  };
+
+  const renderTargetText = (tpl: TaskTemplate) => {
+    if (tpl.targetScope === 'all') {
+      return <Tag color="primary" className="!text-[10px]">👥 全员设备</Tag>;
+    }
+    const targetNames = children
+      .filter(c => tpl.targetChildIds?.includes(c.id))
+      .map(c => c.nickname)
+      .join('、');
+    return <Tag color="warning" className="!text-[10px]">👤 {targetNames || '指定孩子'}</Tag>;
   };
 
   return (
@@ -52,7 +63,7 @@ export const TasksPage: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-gray-800">任务规则库</h2>
-          <p className="text-xs text-gray-400">系统每日自动根据频率向设备派发任务</p>
+          <p className="text-xs text-gray-400">支持全家设备派发或指定孩子设备专属</p>
         </div>
         <Button
           color="primary"
@@ -84,9 +95,7 @@ export const TasksPage: React.FC = () => {
                 <div className="space-y-1">
                   <div className="flex items-center space-x-2">
                     <span className="font-bold text-gray-800 text-sm">{tpl.title}</span>
-                    <Tag color={tpl.isActive ? 'primary' : 'default'} fill="outline" className="!text-[10px]">
-                      {tpl.isActive ? '运行中' : '已暂停'}
-                    </Tag>
+                    {renderTargetText(tpl)}
                   </div>
                   {tpl.description && (
                     <div className="text-xs text-gray-400 line-clamp-1">{tpl.description}</div>
@@ -112,7 +121,7 @@ export const TasksPage: React.FC = () => {
                     🪙 {tpl.rewardCoins} 金币
                   </span>
                   <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[11px]">
-                    {tpl.confirmType === 'parent_confirm' ? '家长确认' : '免确认'}
+                    {tpl.confirmType === 'parent_confirm' ? '需确认' : '免确认'}
                   </span>
                 </div>
 

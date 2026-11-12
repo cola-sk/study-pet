@@ -31,22 +31,74 @@ const INITIAL_FAMILY: Family = {
   createdAt: '2026-11-12T08:00:00Z',
 };
 
-const INITIAL_CHILD: Child = {
-  id: 'child-101',
-  familyId: 'fam-101',
-  nickname: '天天',
-  coinsBalance: 25,
-  avatarUrl: '',
-};
+// 预设二胎家庭示范数据：天天（大宝）与 果果（二宝）
+const INITIAL_CHILDREN: Child[] = [
+  {
+    id: 'child-101',
+    familyId: 'fam-101',
+    nickname: '天天 (大宝)',
+    coinsBalance: 25,
+    avatarIcon: '👦',
+  },
+  {
+    id: 'child-102',
+    familyId: 'fam-101',
+    nickname: '果果 (二宝)',
+    coinsBalance: 15,
+    avatarIcon: '👧',
+  },
+];
 
-const INITIAL_DEVICE: Device = {
-  id: 'dev-101',
-  familyId: 'fam-101',
-  deviceModel: '微雪 ESP32-S3-Touch-LCD-2.8',
-  macAddress: 'DC:54:75:A8:B2:10',
-  status: 'paired',
-  firmwareVersion: 'v1.0.2',
-  lastSeenAt: '2分钟前',
+// 预设已关联的两台微雪 ESP32 硬件设备
+const INITIAL_DEVICES: Device[] = [
+  {
+    id: 'dev-101',
+    familyId: 'fam-101',
+    childId: 'child-101',
+    alias: '天天的书桌设备',
+    deviceModel: '微雪 ESP32-S3-Touch-LCD-2.8',
+    macAddress: 'DC:54:75:A8:B2:10',
+    status: 'paired',
+    firmwareVersion: 'v1.0.2',
+    lastSeenAt: '2分钟前',
+  },
+  {
+    id: 'dev-102',
+    familyId: 'fam-101',
+    childId: 'child-102',
+    alias: '果果的小房间设备',
+    deviceModel: '微雪 ESP32-S3-Touch-LCD-2.8',
+    macAddress: 'DC:54:75:A8:C3:44',
+    status: 'paired',
+    firmwareVersion: 'v1.0.2',
+    lastSeenAt: '5分钟前',
+  },
+];
+
+// 每个孩子拥有的独立宠物小窝
+const INITIAL_PETS: Record<string, PetState> = {
+  'child-101': {
+    id: 'pet-101',
+    familyId: 'fam-101',
+    childId: 'child-101',
+    petAvatar: '🐶',
+    petName: '天天的汪汪',
+    currentClothesItem: DEFAULT_SHOP_ITEMS[4], // 水手服
+    foodCount: 2,
+    waterCount: 1,
+    updatedAt: '2026-11-12T08:00:00Z',
+  },
+  'child-102': {
+    id: 'pet-102',
+    familyId: 'fam-101',
+    childId: 'child-102',
+    petAvatar: '🐱',
+    petName: '果果的喵喵',
+    currentClothesItem: DEFAULT_SHOP_ITEMS[5], // 恐龙服
+    foodCount: 3,
+    waterCount: 2,
+    updatedAt: '2026-11-12T08:00:00Z',
+  },
 };
 
 const INITIAL_TEMPLATES: TaskTemplate[] = [
@@ -54,35 +106,41 @@ const INITIAL_TEMPLATES: TaskTemplate[] = [
     id: 'tpl-1',
     familyId: 'fam-101',
     title: '自主阅读课外书 15 分钟',
-    description: '读完并在设备上提交，家长确认后发金币',
+    description: '读完并在自己设备上打卡，家长确认后发金币',
     rewardCoins: 10,
     confirmType: 'parent_confirm',
     frequencyType: 'daily',
     frequencyConfig: {},
+    targetScope: 'all', // 全员共同任务！
+    targetChildIds: [],
     isActive: true,
     createdAt: '2026-11-10T10:00:00Z',
   },
   {
     id: 'tpl-2',
     familyId: 'fam-101',
-    title: '练琴 / 练习乐器 20 分钟',
-    description: '保持手型规范，认真弹奏',
+    title: '大宝中考英语听力 20 分钟',
+    description: '保持专注，完成两篇听力练习',
     rewardCoins: 15,
     confirmType: 'parent_confirm',
     frequencyType: 'weekly_days',
     frequencyConfig: { days: [1, 3, 5] },
+    targetScope: 'specific', // 仅大宝天天专属任务
+    targetChildIds: ['child-101'],
     isActive: true,
     createdAt: '2026-11-10T10:00:00Z',
   },
   {
     id: 'tpl-3',
     familyId: 'fam-101',
-    title: '睡前自主整理书包与书桌',
-    description: '整理好明天课程需要的课本与文具',
+    title: '睡前自主整理书包与桌面',
+    description: '收拾文具，免确认直接发金币',
     rewardCoins: 5,
     confirmType: 'auto_confirm',
     frequencyType: 'daily',
     frequencyConfig: {},
+    targetScope: 'all', // 全员共同任务
+    targetChildIds: [],
     isActive: true,
     createdAt: '2026-11-10T10:00:00Z',
   },
@@ -91,14 +149,18 @@ const INITIAL_TEMPLATES: TaskTemplate[] = [
 const getTodayStr = () => new Date().toISOString().split('T')[0];
 
 const INITIAL_INSTANCES: TaskInstance[] = [
+  // 天天提交的自主阅读
   {
     id: 'inst-1',
     templateId: 'tpl-1',
     familyId: 'fam-101',
     childId: 'child-101',
+    childNickname: '天天 (大宝)',
+    deviceId: 'dev-101',
+    deviceAlias: '天天的书桌设备',
     targetDate: getTodayStr(),
     title: '自主阅读课外书 15 分钟',
-    description: '孩子在 ESP32 屏幕上点击了完成提交',
+    description: '在微雪屏幕上完成了打卡',
     rewardCoins: 10,
     confirmType: 'parent_confirm',
     status: 'submitted', // 待家长确认
@@ -106,28 +168,55 @@ const INITIAL_INSTANCES: TaskInstance[] = [
     rewardGranted: false,
     createdAt: '2026-11-12T00:00:00Z',
   },
+  // 果果提交的自主阅读 (全员任务，果果也有独立一份！)
   {
     id: 'inst-2',
-    templateId: 'tpl-2',
+    templateId: 'tpl-1',
     familyId: 'fam-101',
-    childId: 'child-101',
+    childId: 'child-102',
+    childNickname: '果果 (二宝)',
+    deviceId: 'dev-102',
+    deviceAlias: '果果的小房间设备',
     targetDate: getTodayStr(),
-    title: '练琴 / 练习乐器 20 分钟',
-    description: '今天周三，属于计划内日程',
-    rewardCoins: 15,
+    title: '自主阅读课外书 15 分钟',
+    description: '果果读了绘本小恐龙故事',
+    rewardCoins: 10,
     confirmType: 'parent_confirm',
-    status: 'pending', // 待孩子在设备上提交
+    status: 'submitted', // 待家长确认
+    submittedAt: '10:40',
     rewardGranted: false,
     createdAt: '2026-11-12T00:00:00Z',
   },
+  // 天天的专属英语听力
   {
     id: 'inst-3',
+    templateId: 'tpl-2',
+    familyId: 'fam-101',
+    childId: 'child-101',
+    childNickname: '天天 (大宝)',
+    deviceId: 'dev-101',
+    deviceAlias: '天天的书桌设备',
+    targetDate: getTodayStr(),
+    title: '大宝中考英语听力 20 分钟',
+    description: '今天周三，进行中',
+    rewardCoins: 15,
+    confirmType: 'parent_confirm',
+    status: 'pending',
+    rewardGranted: false,
+    createdAt: '2026-11-12T00:00:00Z',
+  },
+  // 睡前整理书包 (已完成免确认)
+  {
+    id: 'inst-4',
     templateId: 'tpl-3',
     familyId: 'fam-101',
     childId: 'child-101',
+    childNickname: '天天 (大宝)',
+    deviceId: 'dev-101',
+    deviceAlias: '天天的书桌设备',
     targetDate: getTodayStr(),
-    title: '睡前自主整理书包与书桌',
-    description: '免家长确认，孩子提交后金币已自动入账',
+    title: '睡前自主整理书包与桌面',
+    description: '免确认已自动发币',
     rewardCoins: 5,
     confirmType: 'auto_confirm',
     status: 'completed',
@@ -143,65 +232,49 @@ const INITIAL_TRANSACTIONS: WalletTransaction[] = [
     id: 'tx-1',
     familyId: 'fam-101',
     childId: 'child-101',
+    childNickname: '天天 (大宝)',
     amount: 5,
     balanceAfter: 25,
     type: 'task_reward',
-    description: '完成任务: 睡前自主整理书包与书桌',
+    description: '天天 完成任务: 睡前整理书包',
     createdAt: '今天 08:15',
   },
   {
     id: 'tx-2',
     familyId: 'fam-101',
-    childId: 'child-101',
-    amount: -10,
-    balanceAfter: 20,
-    type: 'shop_purchase',
-    description: '商店消费: 购买清凉椰子汁 🥥',
-    createdAt: '昨天 19:30',
-  },
-  {
-    id: 'tx-3',
-    familyId: 'fam-101',
-    childId: 'child-101',
-    amount: 10,
-    balanceAfter: 30,
+    childId: 'child-102',
+    childNickname: '果果 (二宝)',
+    amount: 15,
+    balanceAfter: 15,
     type: 'task_reward',
-    description: '完成任务: 自主阅读课外书 15 分钟 (家长确认)',
-    createdAt: '昨天 18:20',
+    description: '果果 初始学习奖励金币',
+    createdAt: '昨天 19:30',
   },
 ];
 
-const INITIAL_PET: PetState = {
-  id: 'pet-101',
-  familyId: 'fam-101',
-  childId: 'child-101',
-  currentClothesItem: DEFAULT_SHOP_ITEMS[4], // 水手服
-  foodCount: 2,
-  waterCount: 1,
-  updatedAt: '2026-11-12T08:00:00Z',
-};
-
 interface AppState {
   family: Family;
-  child: Child;
-  device: Device;
+  children: Child[];
+  devices: Device[];
+  selectedChildId: string; // 'all' 或具体 childId
   templates: TaskTemplate[];
   instances: TaskInstance[];
   transactions: WalletTransaction[];
-  pet: PetState;
+  pets: Record<string, PetState>;
   shopItems: ShopItem[];
-  isSyncing: boolean;
 
   // Actions
+  setSelectedChildId: (childId: string) => void;
   approveTask: (instanceId: string) => Promise<{ success: boolean; message: string; coins?: number }>;
   rejectTask: (instanceId: string, reason: string) => Promise<{ success: boolean; message: string }>;
   addTemplate: (tpl: Omit<TaskTemplate, 'id' | 'createdAt'>) => void;
   updateTemplate: (id: string, updates: Partial<TaskTemplate>) => void;
   deleteTemplate: (id: string) => void;
   toggleTemplate: (id: string) => void;
-  pairDevice: (pairCode: string) => Promise<{ success: boolean; message: string }>;
-  unbindDevice: () => void;
-  updateChildNickname: (nickname: string) => void;
+  pairDevice: (pairCode: string, alias: string, childId: string) => Promise<{ success: boolean; message: string }>;
+  unbindDevice: (deviceId: string) => void;
+  addChild: (nickname: string, avatarIcon?: string) => void;
+  updateChildNickname: (childId: string, nickname: string) => void;
   setTimezone: (timezone: string) => void;
   resetAllData: () => void;
 }
@@ -210,34 +283,38 @@ export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       family: INITIAL_FAMILY,
-      child: INITIAL_CHILD,
-      device: INITIAL_DEVICE,
+      children: INITIAL_CHILDREN,
+      devices: INITIAL_DEVICES,
+      selectedChildId: 'all',
       templates: INITIAL_TEMPLATES,
       instances: INITIAL_INSTANCES,
       transactions: INITIAL_TRANSACTIONS,
-      pet: INITIAL_PET,
+      pets: INITIAL_PETS,
       shopItems: DEFAULT_SHOP_ITEMS,
-      isSyncing: false,
+
+      setSelectedChildId: (childId: string) => {
+        set({ selectedChildId: childId });
+      },
 
       approveTask: async (instanceId: string) => {
-        const { instances, child, family } = get();
+        const { instances, children, family } = get();
         const task = instances.find(i => i.id === instanceId);
-        if (!task) {
-          return { success: false, message: '找不到该任务' };
-        }
+        if (!task) return { success: false, message: '找不到该任务' };
 
         if (task.status === 'completed' && task.rewardGranted) {
           return { success: true, message: '该任务先前已发放奖励', coins: 0 };
         }
 
+        const targetChild = children.find(c => c.id === task.childId);
+        if (!targetChild) return { success: false, message: '找不到该任务归属的孩子' };
+
         triggerHaptic(20);
         shootCoinsConfetti();
 
         const awardedCoins = task.rewardCoins;
-        const newBalance = child.coinsBalance + awardedCoins;
+        const newBalance = targetChild.coinsBalance + awardedCoins;
         const nowTimeStr = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
 
-        // 尝试如果配置了 Supabase，调用 RPC
         if (isSupabaseConfigured && supabase) {
           try {
             await supabase.rpc('approve_task_and_reward', {
@@ -252,16 +329,17 @@ export const useAppStore = create<AppState>()(
         const newTx: WalletTransaction = {
           id: `tx-${Date.now()}`,
           familyId: family.id,
-          childId: child.id,
+          childId: targetChild.id,
+          childNickname: targetChild.nickname,
           amount: awardedCoins,
           balanceAfter: newBalance,
           type: 'task_reward',
-          description: `完成任务: ${task.title} (家长已批准)`,
+          description: `${targetChild.nickname} 完成任务: ${task.title} (家长批准)`,
           createdAt: `今天 ${nowTimeStr}`,
         };
 
         set({
-          child: { ...child, coinsBalance: newBalance },
+          children: children.map(c => (c.id === targetChild.id ? { ...c, coinsBalance: newBalance } : c)),
           instances: instances.map(item =>
             item.id === instanceId
               ? {
@@ -277,7 +355,7 @@ export const useAppStore = create<AppState>()(
 
         return {
           success: true,
-          message: `审批通过！已向${child.nickname}发放 +${awardedCoins} 金币`,
+          message: `审批通过！已向【${targetChild.nickname}】发放 +${awardedCoins} 金币`,
           coins: awardedCoins,
         };
       },
@@ -300,7 +378,6 @@ export const useAppStore = create<AppState>()(
           }
         }
 
-        // 驳回后任务重置为 'pending'，并附带驳回原因，允许孩子在设备端重新提交
         set({
           instances: instances.map(item =>
             item.id === instanceId
@@ -325,26 +402,38 @@ export const useAppStore = create<AppState>()(
           createdAt: new Date().toISOString(),
         };
 
-        // 如果当天适宜执行，自动生成一条今天的任务实例
+        const { children, devices } = get();
         const todayStr = getTodayStr();
-        const newInstance: TaskInstance = {
-          id: `inst-${Date.now()}`,
-          templateId: id,
-          familyId: tpl.familyId,
-          childId: get().child.id,
-          targetDate: todayStr,
-          title: tpl.title,
-          description: tpl.description,
-          rewardCoins: tpl.rewardCoins,
-          confirmType: tpl.confirmType,
-          status: 'pending',
-          rewardGranted: false,
-          createdAt: new Date().toISOString(),
-        };
+
+        // 决定为哪些孩子生成今日任务实例
+        const targetChildren = tpl.targetScope === 'all'
+          ? children
+          : children.filter(c => tpl.targetChildIds.includes(c.id));
+
+        const newInstances: TaskInstance[] = targetChildren.map((child, idx) => {
+          const device = devices.find(d => d.childId === child.id);
+          return {
+            id: `inst-${Date.now()}-${idx}`,
+            templateId: id,
+            familyId: tpl.familyId,
+            childId: child.id,
+            childNickname: child.nickname,
+            deviceId: device?.id,
+            deviceAlias: device?.alias,
+            targetDate: todayStr,
+            title: tpl.title,
+            description: tpl.description,
+            rewardCoins: tpl.rewardCoins,
+            confirmType: tpl.confirmType,
+            status: 'pending',
+            rewardGranted: false,
+            createdAt: new Date().toISOString(),
+          };
+        });
 
         set(state => ({
           templates: [newTemplate, ...state.templates],
-          instances: [newInstance, ...state.instances],
+          instances: [...newInstances, ...state.instances],
         }));
         triggerHaptic(15);
       },
@@ -370,40 +459,68 @@ export const useAppStore = create<AppState>()(
         triggerHaptic(10);
       },
 
-      pairDevice: async (pairCode: string) => {
+      pairDevice: async (pairCode: string, alias: string, childId: string) => {
         triggerHaptic(20);
-        // 模拟配对校验：6位数字
         if (!/^\d{6}$/.test(pairCode)) {
           return { success: false, message: '请输入微雪屏幕上显示的 6 位纯数字配对码' };
         }
 
-        // 绑定成功
+        const newDevice: Device = {
+          id: `dev-${Date.now()}`,
+          familyId: get().family.id,
+          childId,
+          alias: alias || '微雪 ESP32 桌面设备',
+          deviceModel: '微雪 ESP32-S3-Touch-LCD-2.8',
+          macAddress: `DC:54:75:${Math.floor(Math.random() * 89 + 10)}:${Math.floor(Math.random() * 89 + 10)}:${Math.floor(Math.random() * 89 + 10)}`,
+          status: 'paired',
+          firmwareVersion: 'v1.0.2',
+          lastSeenAt: '刚刚',
+        };
+
         set(state => ({
-          device: {
-            ...state.device,
-            status: 'paired',
-            pairCode,
-            lastSeenAt: '刚刚',
-          },
+          devices: [...state.devices, newDevice],
         }));
 
-        return { success: true, message: '微雪 ESP32 设备绑定成功！' };
+        return { success: true, message: `微雪设备【${newDevice.alias}】绑定成功！` };
       },
 
-      unbindDevice: () => {
+      unbindDevice: (deviceId: string) => {
         set(state => ({
-          device: {
-            ...state.device,
-            status: 'unpaired',
-            pairCode: undefined,
-          },
+          devices: state.devices.filter(d => d.id !== deviceId),
         }));
         triggerHaptic(20);
       },
 
-      updateChildNickname: (nickname: string) => {
+      addChild: (nickname: string, avatarIcon = '🧒') => {
+        const id = `child-${Date.now()}`;
+        const newChild: Child = {
+          id,
+          familyId: get().family.id,
+          nickname,
+          coinsBalance: 0,
+          avatarIcon,
+        };
+
+        const newPet: PetState = {
+          id: `pet-${Date.now()}`,
+          familyId: get().family.id,
+          childId: id,
+          petAvatar: '🦊',
+          petName: `${nickname}的小狐狸`,
+          foodCount: 1,
+          waterCount: 1,
+          updatedAt: new Date().toISOString(),
+        };
+
         set(state => ({
-          child: { ...state.child, nickname },
+          children: [...state.children, newChild],
+          pets: { ...state.pets, [id]: newPet },
+        }));
+      },
+
+      updateChildNickname: (childId: string, nickname: string) => {
+        set(state => ({
+          children: state.children.map(c => (c.id === childId ? { ...c, nickname } : c)),
         }));
       },
 
@@ -416,17 +533,18 @@ export const useAppStore = create<AppState>()(
       resetAllData: () => {
         set({
           family: INITIAL_FAMILY,
-          child: INITIAL_CHILD,
-          device: INITIAL_DEVICE,
+          children: INITIAL_CHILDREN,
+          devices: INITIAL_DEVICES,
           templates: INITIAL_TEMPLATES,
           instances: INITIAL_INSTANCES,
           transactions: INITIAL_TRANSACTIONS,
-          pet: INITIAL_PET,
+          pets: INITIAL_PETS,
+          selectedChildId: 'all',
         });
       },
     }),
     {
-      name: 'study_pet_parent_storage_v1',
+      name: 'study_pet_parent_storage_v2', // v2 with multi-device support
     }
   )
 );

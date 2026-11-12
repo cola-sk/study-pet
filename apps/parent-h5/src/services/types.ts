@@ -1,8 +1,10 @@
-// 数据实体与类型定义 (严格对齐 docs/产品方案.md 与 Supabase 结构)
+// 数据实体与类型定义 (支持多设备、多孩子)
 
 export type ConfirmType = 'parent_confirm' | 'auto_confirm';
 
 export type FrequencyType = 'daily' | 'weekly_days' | 'interval_days';
+
+export type TargetScope = 'all' | 'specific';
 
 export interface FrequencyConfig {
   days?: number[]; // [1, 2, 3, 4, 5] 周一到周五
@@ -25,11 +27,14 @@ export interface Child {
   nickname: string;
   coinsBalance: number;
   avatarUrl?: string;
+  avatarIcon?: string; // e.g. '👦' or '👧'
 }
 
 export interface Device {
   id: string;
   familyId?: string;
+  childId?: string; // 归属的具体孩子 ID
+  alias: string; // 设备别名，如“天天的桌面宠物”、“果果的学习机”
   deviceModel: string;
   macAddress?: string;
   pairCode?: string;
@@ -48,6 +53,8 @@ export interface TaskTemplate {
   confirmType: ConfirmType;
   frequencyType: FrequencyType;
   frequencyConfig: FrequencyConfig;
+  targetScope: TargetScope; // 'all' (全体设备/孩子) | 'specific' (指定孩子/设备)
+  targetChildIds: string[]; // 当 targetScope 为 specific 时的目标孩子 ID 列表
   isActive: boolean;
   startDate?: string;
   endDate?: string;
@@ -59,6 +66,9 @@ export interface TaskInstance {
   templateId: string;
   familyId: string;
   childId: string;
+  childNickname?: string; // 孩子昵称快照
+  deviceId?: string;
+  deviceAlias?: string;   // 设备名称快照
   targetDate: string;
   title: string;
   description?: string;
@@ -77,6 +87,7 @@ export interface WalletTransaction {
   id: string;
   familyId: string;
   childId: string;
+  childNickname?: string;
   amount: number;
   balanceAfter: number;
   type: 'task_reward' | 'shop_purchase';
@@ -98,6 +109,8 @@ export interface PetState {
   id: string;
   familyId: string;
   childId: string;
+  petAvatar: string; // '🐶', '🐱' 等
+  petName: string;
   currentClothesItem?: ShopItem | null;
   foodCount: number;
   waterCount: number;

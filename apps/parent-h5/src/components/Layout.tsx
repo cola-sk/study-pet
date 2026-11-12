@@ -21,7 +21,7 @@ import { SettingsPage } from '../pages/Settings';
 export const Layout: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('approvals');
   const installState = usePWAInstall();
-  const { instances, child } = useAppStore();
+  const { instances, children, devices } = useAppStore();
 
   // 待审批的任务数量
   const pendingApprovalsCount = instances.filter(i => i.status === 'submitted').length;
@@ -74,7 +74,7 @@ export const Layout: React.FC = () => {
             <span>🐾</span>
             <span className="font-extrabold text-base tracking-tight">学习宠物助手</span>
             <span className="text-[11px] font-normal text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
-              {child.nickname}的家长
+              {children.length}个孩子 · {devices.length}台设备
             </span>
           </div>
         </NavBar>

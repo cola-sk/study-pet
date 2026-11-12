@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { List, Button, Dialog, Toast, Tag } from 'antd-mobile';
+import { AddOutline, DeleteOutline, EditSOutline } from 'antd-mobile-icons';
 import { DevicePairModal } from './DevicePairModal';
 import { useAppStore } from '../../stores/useAppStore';
 import { isSupabaseConfigured } from '../../services/supabase';
@@ -10,29 +11,38 @@ interface Props {
 }
 
 export const SettingsPage: React.FC<Props> = ({ installState }) => {
-  const { child, family, device, unbindDevice, updateChildNickname, resetAllData } = useAppStore();
+  const { 
+    children, 
+    family, 
+    devices, 
+    unbindDevice, 
+    addChild, 
+    updateChildNickname, 
+    resetAllData 
+  } = useAppStore();
+
   const [pairModalVisible, setPairModalVisible] = useState(false);
 
-  const handleUnbind = () => {
+  const handleUnbind = (deviceId: string, alias: string) => {
     Dialog.confirm({
       title: '解除设备绑定',
-      content: '解除绑定后，微雪 ESP32 屏幕需重新输入配对码绑定，确定要解绑吗？',
+      content: `确定要解除设备「${alias}」的绑定吗？解除后该微雪屏幕需重新配对。`,
       confirmText: '确定解绑',
       cancelText: '取消',
       onConfirm: () => {
-        unbindDevice();
-        Toast.show({ icon: 'success', content: '已解除设备绑定' });
+        unbindDevice(deviceId);
+        Toast.show({ icon: 'success', content: '已解除该设备绑定' });
       },
     });
   };
 
-  const handleEditNickname = () => {
+  const handleEditNickname = (childId: string, currentName: string) => {
     Dialog.confirm({
       title: '修改孩子昵称',
       content: (
         <input
           id="nickname-input"
-          defaultValue={child.nickname}
+          defaultValue={currentName}
           placeholder="请输入孩子昵称"
           className="w-full border border-gray-300 rounded-lg p-2 text-sm mt-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
         />
@@ -40,8 +50,30 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
       onConfirm: () => {
         const input = document.getElementById('nickname-input') as HTMLInputElement;
         if (input && input.value.trim()) {
-          updateChildNickname(input.value.trim());
+          updateChildNickname(childId, input.value.trim());
           Toast.show({ icon: 'success', content: '昵称已更新' });
+        }
+      },
+    });
+  };
+
+  const handleAddChild = () => {
+    Dialog.confirm({
+      title: '添加新孩子档案',
+      content: (
+        <div className="space-y-2 mt-2">
+          <input
+            id="new-child-input"
+            placeholder="例如：小宝 / 豆豆"
+            className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
+      ),
+      onConfirm: () => {
+        const input = document.getElementById('new-child-input') as HTMLInputElement;
+        if (input && input.value.trim()) {
+          addChild(input.value.trim(), '👧');
+          Toast.show({ icon: 'success', content: '已添加孩子档案' });
         }
       },
     });
@@ -50,89 +82,123 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
   const handleResetData = () => {
     Dialog.confirm({
       title: '恢复初始测试数据',
-      content: '该操作将重置今日任务、金币与模板为默认初始数据，是否继续？',
+      content: '该操作将重置多设备、多孩子、今日任务与金币为演示初始数据，是否继续？',
       confirmText: '确定重置',
       onConfirm: () => {
         resetAllData();
-        Toast.show({ icon: 'success', content: '已恢复初始数据' });
+        Toast.show({ icon: 'success', content: '已恢复初始演示数据' });
       },
     });
   };
 
   return (
     <div className="p-4 space-y-4 pb-24">
-      {/* 硬件设备状态卡片 */}
+      {/* 微雪硬件设备列表（支持多设备） */}
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2">
             <span className="text-xl">📺</span>
-            <h3 className="font-bold text-gray-800 text-sm">微雪 ESP32 硬件设备</h3>
+            <div>
+              <h3 className="font-bold text-gray-800 text-sm">已绑定微雪设备 ({devices.length} 台)</h3>
+              <p className="text-[11px] text-gray-400">每台设备独立展示孩子专属宠物</p>
+            </div>
           </div>
-          <Tag color={device.status === 'paired' ? 'success' : 'default'} className="!text-[10px]">
-            {device.status === 'paired' ? '已绑定' : '未绑定'}
-          </Tag>
+          <Button
+            size="mini"
+            color="primary"
+            onClick={() => setPairModalVisible(true)}
+            className="!rounded-lg !text-xs !px-2.5 shadow-sm"
+          >
+            <span className="flex items-center gap-0.5">
+              <AddOutline /> 绑定新设备
+            </span>
+          </Button>
         </div>
 
-        {device.status === 'paired' ? (
-          <div className="space-y-2 text-xs">
-            <div className="flex justify-between text-gray-600">
-              <span className="text-gray-400">设备型号：</span>
-              <span className="font-medium">{device.deviceModel}</span>
-            </div>
-            <div className="flex justify-between text-gray-600">
-              <span className="text-gray-400">MAC 地址：</span>
-              <span className="font-mono">{device.macAddress || 'DC:54:75:A8:B2:10'}</span>
-            </div>
-            <div className="flex justify-between text-gray-600">
-              <span className="text-gray-400">固件版本：</span>
-              <span>{device.firmwareVersion}</span>
-            </div>
-            <div className="flex justify-between text-gray-600">
-              <span className="text-gray-400">连接状态：</span>
-              <span className="text-green-600 font-medium">● 在线活跃 ({device.lastSeenAt})</span>
-            </div>
-
-            <div className="pt-3 mt-2 border-t border-slate-100 flex justify-end">
-              <Button
-                size="mini"
-                color="danger"
-                fill="outline"
-                onClick={handleUnbind}
-                className="!text-xs !rounded-lg"
-              >
-                解除设备绑定
-              </Button>
-            </div>
+        {devices.length === 0 ? (
+          <div className="text-center py-6 text-xs text-gray-400">
+            暂未绑定任何微雪设备，点击右上角【绑定新设备】开始配对
           </div>
         ) : (
-          <div className="text-center py-4 space-y-3">
-            <p className="text-xs text-gray-400">当前尚未绑定微雪 ESP32-S3-Touch-LCD-2.8 开发板</p>
-            <Button
-              color="primary"
-              size="middle"
-              onClick={() => setPairModalVisible(true)}
-              className="!rounded-xl font-bold shadow-sm !px-6"
-            >
-              绑定新设备 (输入 6 位配对码)
-            </Button>
+          <div className="space-y-3">
+            {devices.map(device => {
+              const child = children.find(c => c.id === device.childId);
+              return (
+                <div key={device.id} className="bg-slate-50 rounded-xl p-3 border border-slate-200/80 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-bold text-gray-800 text-xs">{device.alias}</span>
+                      <Tag color="success" className="!text-[9px]">● 在线 ({device.lastSeenAt || '刚刚'})</Tag>
+                    </div>
+                    <button
+                      onClick={() => handleUnbind(device.id, device.alias)}
+                      className="text-red-500 hover:text-red-700 text-xs flex items-center gap-0.5"
+                    >
+                      <DeleteOutline /> 解绑
+                    </button>
+                  </div>
+
+                  <div className="text-[11px] text-gray-500 space-y-1">
+                    <div className="flex justify-between">
+                      <span>主人（孩子）：</span>
+                      <strong className="text-blue-600">{child?.nickname || '未指定'}</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>硬件型号：</span>
+                      <span>{device.deviceModel.replace('Waveshare ', '')}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>MAC 地址：</span>
+                      <span className="font-mono text-gray-400">{device.macAddress}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* 家庭与孩子信息 */}
+      {/* 孩子档案管理（支持多孩子） */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="px-4 py-3 bg-slate-50/50 border-b border-slate-100 font-bold text-xs text-gray-700">
-          家庭基础设置
+        <div className="px-4 py-3 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+          <span className="font-bold text-xs text-gray-700">孩子档案与宠物账号 ({children.length} 位)</span>
+          <button
+            onClick={handleAddChild}
+            className="text-blue-600 text-xs font-semibold flex items-center gap-0.5"
+          >
+            <AddOutline /> 添加孩子
+          </button>
         </div>
         <List>
-          <List.Item
-            extra={child.nickname}
-            onClick={handleEditNickname}
-            clickable
-            arrow
-          >
-            孩子昵称
-          </List.Item>
+          {children.map(child => (
+            <List.Item
+              key={child.id}
+              prefix={<span className="text-xl">{child.avatarIcon || '🧒'}</span>}
+              extra={
+                <span className="text-yellow-600 font-bold text-xs">
+                  🪙 {child.coinsBalance} 金币
+                </span>
+              }
+              clickable
+              onClick={() => handleEditNickname(child.id, child.nickname)}
+              arrow
+            >
+              <div className="flex items-center space-x-2">
+                <span className="font-medium text-xs text-gray-800">{child.nickname}</span>
+                <EditSOutline className="text-gray-400 text-xs" />
+              </div>
+            </List.Item>
+          ))}
+        </List>
+      </div>
+
+      {/* 家庭与系统时区 */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="px-4 py-3 bg-slate-50/50 border-b border-slate-100 font-bold text-xs text-gray-700">
+          家庭基础信息
+        </div>
+        <List>
           <List.Item extra={family.timezone}>
             任务结算时区
           </List.Item>
