@@ -10,6 +10,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 #include "freertos/task.h"
+#include "freertos/queue.h"
+#include "cJSON.h"
 #include "nvs_flash.h"
 #include <string.h>
 #include <time.h>
@@ -17,6 +19,50 @@
 #define CONNECTED_BIT BIT0
 static const char *TAG = "pet_net";
 static EventGroupHandle_t network_events;
+static QueueHandle_t wallet_updates;
+typedef struct { char data[1024]; size_t length; } response_buffer_t;
+static esp_err_t http_event(esp_http_client_event_t *event)
+{
+    response_buffer_t *buffer = event->user_data;
+    if (event->event_id == HTTP_EVENT_ON_DATA && event->data_len > 0) {
+        size_t n = (size_t)event->data_len;
+        if (n > sizeof(buffer->data) - 1 - buffer->length) return ESP_FAIL;
+        memcpy(buffer->data + buffer->length, event->data, n);
+        buffer->length += n; buffer->data[buffer->length] = 0;
+    }
+    return ESP_OK;
+}
+static void sync_wallet(void)
+{
+    if (!CONFIG_STUDY_PET_DEVICE_TOKEN[0]) return;
+    if (strlen(CONFIG_STUDY_PET_DEVICE_TOKEN) != 64) { ESP_LOGW(TAG, "Invalid device credential configuration"); return; }
+    response_buffer_t response = {0};
+    esp_http_client_config_t cfg = {
+        .url = "https://keep.1203.fyi/api/v1/wallet", .crt_bundle_attach = esp_crt_bundle_attach,
+        .timeout_ms = 10000, .event_handler = http_event, .user_data = &response,
+    };
+    esp_http_client_handle_t client = esp_http_client_init(&cfg);
+    if (!client) return;
+    char authorization[72];
+    snprintf(authorization, sizeof(authorization), "Bearer %s", CONFIG_STUDY_PET_DEVICE_TOKEN);
+    esp_http_client_set_header(client, "Authorization", authorization);
+    esp_err_t result = esp_http_client_perform(client);
+    int status = esp_http_client_get_status_code(client);
+    if (result == ESP_OK && status == 200) {
+        cJSON *json = cJSON_Parse(response.data);
+        const cJSON *balance = cJSON_GetObjectItemCaseSensitive(json, "credits");
+        if (cJSON_IsNumber(balance) && balance->valuedouble >= 0 && balance->valuedouble <= 2147483647 && balance->valuedouble == balance->valueint) {
+            unsigned credits = (unsigned)balance->valueint;
+            xQueueOverwrite(wallet_updates, &credits);
+            ESP_LOGI(TAG, "Wallet synchronized");
+        } else ESP_LOGW(TAG, "Invalid wallet response");
+        cJSON_Delete(json);
+    } else ESP_LOGW(TAG, "Wallet request failed: HTTP %d (%s)", status, esp_err_to_name(result));
+    esp_http_client_cleanup(client);
+}
+bool network_take_wallet(unsigned *credits) { return wallet_updates && xQueueReceive(wallet_updates, credits, 0) == pdTRUE; }
+bool network_business_enabled(void) { return CONFIG_STUDY_PET_DEVICE_TOKEN[0] != '\0'; }
+
 
 static void event_handler(void *arg, esp_event_base_t base, int32_t id, void *data)
 {
@@ -83,7 +129,8 @@ static void network_task(void *arg)
                 esp_http_client_cleanup(client);
             }
         }
+        sync_wallet();
         vTaskDelay(pdMS_TO_TICKS(60000));
     }
 }
-void network_start(void) { xTaskCreate(network_task, "pet_network", 8192, NULL, 5, NULL); }
+void network_start(void) { wallet_updates = xQueueCreate(1, sizeof(unsigned)); if (wallet_updates) xTaskCreate(network_task, "pet_network", 8192, NULL, 5, NULL); }

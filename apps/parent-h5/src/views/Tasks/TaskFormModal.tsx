@@ -108,7 +108,7 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
       Toast.show({ icon: 'success', content: '任务修改好啦！' });
     } else {
       addTemplate(payload);
-      Toast.show({ icon: 'success', content: '新任务已发送到宝贝的设备上！' });
+      Toast.show({ icon: 'success', content: '任务已保存在当前浏览器' });
     }
 
     onClose();

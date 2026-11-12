@@ -65,6 +65,7 @@ static void show_menu(lv_event_t *event)
 }
 static void spend(lv_event_t *event)
 {
+    if (network_business_enabled()) { lv_label_set_text(notice, "Shop unavailable"); lv_obj_clear_flag(notice, LV_OBJ_FLAG_HIDDEN); return; }
     bool water = (bool)(uintptr_t)lv_event_get_user_data(event);
     unsigned cost = water ? 5 : 10;
     if (coins < cost) { lv_obj_clear_flag(notice, LV_OBJ_FLAG_HIDDEN); return; }
@@ -109,7 +110,10 @@ void app_main(void)
     lv_obj_t *screen = lv_scr_act();
     lv_obj_set_style_bg_color(screen, lv_color_hex(0xfff7e7), 0);
     lv_obj_t *title = lv_label_create(screen); lv_label_set_text(title, "Keep going!"); lv_obj_align(title, LV_ALIGN_TOP_LEFT, 8, 12);
-    balance = lv_label_create(screen); lv_label_set_text_fmt(balance, "%u credits", coins); lv_obj_align(balance, LV_ALIGN_TOP_RIGHT, -8, 12);
+    balance = lv_label_create(screen);
+    if (network_business_enabled()) { coins = 0; lv_label_set_text(balance, "-- credits"); }
+    else { lv_label_set_text_fmt(balance, "%u credits", coins); }
+    lv_obj_align(balance, LV_ALIGN_TOP_RIGHT, -8, 12);
     pet_image = lv_img_create(screen); lv_img_set_src(pet_image, frames[IDLE][0]); lv_obj_align(pet_image, LV_ALIGN_CENTER, 0, 8);
     lv_obj_add_flag(pet_image, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(pet_image, show_menu, LV_EVENT_CLICKED, NULL);
@@ -122,5 +126,9 @@ void app_main(void)
     lv_obj_align(notice, LV_ALIGN_BOTTOM_MID, 0, -1);
     set_menu(false);
     lv_timer_create(animate_pet, 300, NULL);
-    while (1) { vTaskDelay(pdMS_TO_TICKS(10)); lv_timer_handler(); }
+    while (1) {
+        unsigned updated;
+        if (network_take_wallet(&updated)) { coins = updated; lv_label_set_text_fmt(balance, "%u credits", coins); }
+        vTaskDelay(pdMS_TO_TICKS(10)); lv_timer_handler();
+    }
 }

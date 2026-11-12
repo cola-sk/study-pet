@@ -8,4 +8,9 @@ config STUDY_PET_WIFI_SSID
 config STUDY_PET_WIFI_PASSWORD
     string "Wi-Fi password"
     default ""
+config STUDY_PET_DEVICE_TOKEN
+    string "Device API token (64 lowercase hex characters)"
+    default ""
+    help
+        Device-specific credential. Keep sdkconfig and firmware private.
 endmenu
