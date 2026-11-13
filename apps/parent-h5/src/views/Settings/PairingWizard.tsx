@@ -109,7 +109,7 @@ export function PairingWizard({ visible, onClose, onComplete }: Props) {
             <button type="button" className="kid-btn kid-btn-primary w-full" disabled={!childId || busy} onClick={assign}>{busy ? '正在绑定…' : '完成绑定'}</button>
             <button type="button" className="kid-btn kid-btn-ghost" disabled={busy} onClick={() => { setError(''); setStep(2); }}>上一步</button>
           </>}
-          {step === 4 && <div className="kid-card py-8 text-center space-y-4" role="status"><div className="text-3xl">✓</div><h3 className="text-xl font-bold">设备绑定成功</h3><p className="text-sm text-[#6B7280]">设备已分配给 {completeName}。设备上的积分将在下一次同步时更新。</p><button type="button" className="kid-btn kid-btn-primary w-full" onClick={finish}>完成</button></div>}
+          {step === 4 && <div className="kid-card py-8 text-center space-y-4" role="status"><div className="text-3xl">✓</div><h3 className="text-xl font-bold">设备绑定成功</h3><p className="text-sm text-[#6B7280]">设备已分配给 {completeName}。保持设备联网，通常几秒内会显示金币余额并关闭选择孩子的提示。</p><button type="button" className="kid-btn kid-btn-primary w-full" onClick={finish}>完成</button></div>}
           {error && <p className="text-sm text-[#B45309]" role="alert">{error}</p>}
         </main>
       </div>

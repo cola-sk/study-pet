@@ -15,6 +15,7 @@ static const pet_action_t needs[] = { HUNGRY, THIRSTY, SLEEPY, LONELY };
 static pet_action_t action = IDLE;
 static unsigned coins = 30, frame = 0, cycles = 0, need_ticks = 0;
 static int last_need = -1;
+static bool wallet_notice = false;
 static lv_obj_t *balance, *pet_image, *buttons[4], *notice, *sleep_label, *pair_button, *pair_screen, *pair_input;
 
 static void set_action(pet_action_t next)
@@ -30,7 +31,7 @@ static void set_menu(bool open) {
         if (open) lv_obj_clear_flag(buttons[i], LV_OBJ_FLAG_HIDDEN);
         else lv_obj_add_flag(buttons[i], LV_OBJ_FLAG_HIDDEN);
     }
-    lv_obj_add_flag(notice, LV_OBJ_FLAG_HIDDEN);
+    if (!wallet_notice) lv_obj_add_flag(notice, LV_OBJ_FLAG_HIDDEN);
 }
 static void animate_pet(lv_timer_t *timer)
 {
@@ -165,9 +166,10 @@ void app_main(void)
     set_menu(false);
     lv_timer_create(animate_pet, 300, NULL);
     while (1) {
-        unsigned updated;
+        network_wallet_update_t updated;
         int pairing = network_take_pair_result();
         if (pairing == 1) {
+            wallet_notice = true;
             coins = 0; lv_label_set_text(balance, "-- credits");
             lv_label_set_text(notice, "Select child in app");
             lv_obj_clear_flag(notice, LV_OBJ_FLAG_HIDDEN);
@@ -176,7 +178,17 @@ void app_main(void)
             lv_label_set_text(notice, pairing == 2 ? "Code not accepted" : "Network error; retry");
             lv_obj_clear_flag(notice, LV_OBJ_FLAG_HIDDEN);
         }
-        if (network_take_wallet(&updated)) { coins = updated; lv_label_set_text_fmt(balance, "%u credits", coins); }
+        if (network_take_wallet(&updated)) {
+            if (updated.state == WALLET_READY) {
+                coins = updated.credits; lv_label_set_text_fmt(balance, "%u credits", coins);
+                if (wallet_notice) { lv_obj_add_flag(notice, LV_OBJ_FLAG_HIDDEN); wallet_notice = false; }
+            } else {
+                wallet_notice = true;
+                lv_label_set_text(balance, "-- credits");
+                lv_label_set_text(notice, updated.state == WALLET_WAITING_FOR_CHILD ? "Select child in app" : "Check device in app");
+                lv_obj_clear_flag(notice, LV_OBJ_FLAG_HIDDEN);
+            }
+        }
         vTaskDelay(pdMS_TO_TICKS(10)); lv_timer_handler();
     }
 }

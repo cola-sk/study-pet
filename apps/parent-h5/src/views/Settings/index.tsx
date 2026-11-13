@@ -8,9 +8,9 @@ import { supabase } from '../../services/supabase';
 import { familyApi, FamilyChild, FamilyDevice } from '../../services/familyApi';
 import { PairingWizard } from './PairingWizard';
 
-interface Props { installState: PWAInstallState }
+interface Props { installState: PWAInstallState; onManageChildren: () => void }
 
-export const SettingsPage: React.FC<Props> = ({ installState }) => {
+export const SettingsPage: React.FC<Props> = ({ installState, onManageChildren }) => {
   const [wizardVisible, setWizardVisible] = useState(false);
   const [children, setChildren] = useState<FamilyChild[]>([]);
   const [devices, setDevices] = useState<FamilyDevice[]>([]);
@@ -55,9 +55,7 @@ export const SettingsPage: React.FC<Props> = ({ installState }) => {
             return <div key={device.id} className="kid-list-row"><div className="flex items-center gap-3 min-w-0"><IconDevice className="w-5 h-5 shrink-0" /><div><div className="font-semibold text-sm">{device.alias}</div><div className="text-xs text-[#6B7280]">{child ? `属于 ${child.nickname}` : '等待选择孩子'} · 编号尾号 {device.id.slice(-6)}</div></div></div>{!device.child_id && <button type="button" className="kid-btn kid-btn-ghost kid-btn-sm" onClick={() => setWizardVisible(true)}>继续绑定</button>}</div>;
           })}</div>}
       </section>
-      <section className="space-y-2"><h2 className="text-h2 px-0.5">孩子档案</h2>
-        {loading ? <p className="kid-card text-sm text-[#6B7280]">正在加载…</p> : error ? <p className="kid-card text-sm text-[#6B7280]">暂时无法获取孩子档案。</p> : children.length === 0 ? <p className="kid-card text-sm text-[#6B7280]">添加设备的最后一步可以创建孩子档案。</p> : <div className="kid-list">{children.map(child => <div key={child.id} className="kid-list-row"><span className="font-semibold text-sm">{child.nickname}</span><span className="text-sm text-[#6B7280]">{child.coins_balance} 积分</span></div>)}</div>}
-      </section>
+      <button type="button" className="kid-card w-full text-left flex items-center justify-between gap-3" onClick={onManageChildren}><div><h2 className="text-h2">宝贝与小宠</h2><p className="text-xs text-[#6B7280] mt-1">在同一页面管理宝贝、专属小二哈与奖励金币</p></div><span className="text-sm shrink-0">去管理 →</span></button>
       <section className="space-y-2"><h2 className="text-h2 px-0.5">账号与设置</h2><div className="kid-list">
         <div className="kid-list-row"><div><div className="font-semibold text-sm">家长账号</div><div className="text-xs text-[#6B7280] break-all">{email}</div></div><button type="button" className="kid-btn kid-btn-ghost kid-btn-sm" onClick={() => supabase?.auth.signOut()}>退出登录</button></div>
         <div className="kid-list-row"><div><div className="font-semibold text-sm">添加到手机主屏幕</div><div className="text-xs text-[#6B7280]">支持全屏快捷打开</div></div>{installState.isStandalone ? <span className="kid-status-chip kid-status-complete">已安装</span> : <button type="button" className="kid-btn kid-btn-ghost kid-btn-sm" onClick={async () => { if (installState.isInstallable) await installState.triggerInstall(); else Toast.show({ content: '请在浏览器菜单中点击「添加到主屏幕」' }); }}>安装</button>}</div>

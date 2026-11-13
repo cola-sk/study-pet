@@ -70,18 +70,20 @@ static esp_err_t http_event(esp_http_client_event_t *event)
     }
     return ESP_OK;
 }
-static void sync_wallet(void)
+// Return the next polling interval. Network failures back off separately below.
+static unsigned sync_wallet(void)
 {
     const char *token = active_token();
-    if (!token[0]) return;
-    if (strlen(token) != 64) { ESP_LOGW(TAG, "Invalid device credential configuration"); return; }
+    if (!token[0]) return 60;
+    if (strlen(token) != 64) { ESP_LOGW(TAG, "Invalid device credential configuration"); return 60; }
     response_buffer_t response = {0};
     esp_http_client_config_t cfg = {
         .url = "https://keep.1203.fyi/api/v1/wallet", .crt_bundle_attach = esp_crt_bundle_attach,
         .timeout_ms = 10000, .event_handler = http_event, .user_data = &response,
     };
     esp_http_client_handle_t client = esp_http_client_init(&cfg);
-    if (!client) return;
+    if (!client) return 0;
+    unsigned interval = 0;
     char authorization[72];
     snprintf(authorization, sizeof(authorization), "Bearer %s", token);
     esp_http_client_set_header(client, "Authorization", authorization);
@@ -91,15 +93,31 @@ static void sync_wallet(void)
         cJSON *json = cJSON_Parse(response.data);
         const cJSON *balance = cJSON_GetObjectItemCaseSensitive(json, "credits");
         if (cJSON_IsNumber(balance) && balance->valuedouble >= 0 && balance->valuedouble <= 2147483647 && balance->valuedouble == balance->valueint) {
-            unsigned credits = (unsigned)balance->valueint;
-            xQueueOverwrite(wallet_updates, &credits);
-            ESP_LOGI(TAG, "Wallet synchronized");
+            network_wallet_update_t update = { .state = WALLET_READY, .credits = (unsigned)balance->valueint };
+            xQueueOverwrite(wallet_updates, &update);
+            interval = 5;
+            ESP_LOGD(TAG, "Wallet synchronized");
         } else ESP_LOGW(TAG, "Invalid wallet response");
         cJSON_Delete(json);
+    } else if (result == ESP_OK && status == 409) {
+        cJSON *json = cJSON_Parse(response.data);
+        const cJSON *state = cJSON_GetObjectItemCaseSensitive(json, "state");
+        if (cJSON_IsString(state) && strcmp(state->valuestring, "awaiting_child") == 0) {
+            network_wallet_update_t update = { .state = WALLET_WAITING_FOR_CHILD };
+            xQueueOverwrite(wallet_updates, &update);
+            interval = 3;
+        }
+        cJSON_Delete(json);
+    } else if (result == ESP_OK && (status == 401 || status == 403)) {
+        network_wallet_update_t update = { .state = WALLET_UNAUTHORIZED };
+        xQueueOverwrite(wallet_updates, &update);
+        interval = 60;
+        ESP_LOGW(TAG, "Wallet authorization unavailable: HTTP %d", status);
     } else ESP_LOGW(TAG, "Wallet request failed: HTTP %d (%s)", status, esp_err_to_name(result));
     esp_http_client_cleanup(client);
+    return interval;
 }
-bool network_take_wallet(unsigned *credits) { return wallet_updates && xQueueReceive(wallet_updates, credits, 0) == pdTRUE; }
+bool network_take_wallet(network_wallet_update_t *update) { return wallet_updates && xQueueReceive(wallet_updates, update, 0) == pdTRUE; }
 bool network_business_enabled(void) { return paired || CONFIG_STUDY_PET_DEVICE_TOKEN[0] != '\0'; }
 
 static void perform_pair(const char *code)
@@ -174,6 +192,7 @@ static void network_task(void *arg)
     esp_sntp_setservername(0, "pool.ntp.org");
     esp_sntp_init();
     int64_t next_sync = 0;
+    unsigned retry_seconds = 10;
     for (;;) {
         char code[7];
         bool waiting = xQueueReceive(pair_requests, code, pdMS_TO_TICKS(1000)) == pdTRUE;
@@ -184,14 +203,16 @@ static void network_task(void *arg)
             else { int result = 3; xQueueOverwrite(pair_results, &result); }
         }
         if (online && clock_ready && esp_timer_get_time() >= next_sync) {
-            sync_wallet();
-            next_sync = esp_timer_get_time() + 60000000LL;
+            unsigned interval = sync_wallet();
+            if (!interval) { interval = retry_seconds; retry_seconds = retry_seconds < 30 ? retry_seconds * 2 : 60; }
+            else retry_seconds = 10;
+            next_sync = esp_timer_get_time() + (int64_t)interval * 1000000LL;
         }
     }
 }
 void network_start(void) {
     if (!load_identity()) { ESP_LOGE(TAG, "NVS unavailable; pairing disabled"); return; }
-    wallet_updates = xQueueCreate(1, sizeof(unsigned));
+    wallet_updates = xQueueCreate(1, sizeof(network_wallet_update_t));
     pair_requests = xQueueCreate(1, 7);
     pair_results = xQueueCreate(1, sizeof(int));
     if (wallet_updates && pair_requests && pair_results) xTaskCreate(network_task, "pet_network", 8192, NULL, 5, NULL);

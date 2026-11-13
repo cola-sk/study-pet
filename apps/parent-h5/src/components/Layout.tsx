@@ -52,7 +52,7 @@ export const Layout: React.FC = () => {
     },
     {
       key: 'pet',
-      title: '宠物金币',
+      title: '宝贝与小宠',
       icon: <IconCoin className="w-[18px] h-[18px]" />,
     },
     {
@@ -109,7 +109,7 @@ export const Layout: React.FC = () => {
         {activeTab === 'approvals' && <ApprovalsPage />}
         {activeTab === 'tasks' && <TasksPage />}
         {activeTab === 'pet' && <PetWalletPage />}
-        {activeTab === 'settings' && <SettingsPage installState={installState} />}
+        {activeTab === 'settings' && <SettingsPage installState={installState} onManageChildren={() => setActiveTab('pet')} />}
       </main>
 
       {/* 简洁底部导航栏 */}
