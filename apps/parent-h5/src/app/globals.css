@@ -574,10 +574,14 @@ h1, h2, h3, h4, .font-headline {
 
 /* 简洁按钮体系 */
 .kid-btn {
+  min-height: 40px;
+  padding: 0 14px;
+  font-size: 13px;
   border-radius: 10px;
   font-family: 'Fredoka', 'Nunito', 'PingFang SC', sans-serif;
   font-weight: 600;
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   gap: 4px;
@@ -646,22 +650,22 @@ h1, h2, h3, h4, .font-headline {
 
 /* 按钮紧凑尺寸 */
 .kid-btn-sm {
-  height: 28px;
-  min-height: 28px;
-  padding: 0 10px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 12px;
   font-size: 12px;
   border-radius: 8px;
 }
 .kid-btn-md {
-  height: 34px;
-  min-height: 34px;
+  height: 40px;
+  min-height: 40px;
   padding: 0 14px;
   font-size: 13px;
   border-radius: 10px;
 }
 .kid-btn-lg {
-  height: 40px;
-  min-height: 40px;
+  height: 44px;
+  min-height: 44px;
   padding: 0 18px;
   font-size: 14px;
   border-radius: 10px;
@@ -670,6 +674,7 @@ h1, h2, h3, h4, .font-headline {
 /* 简洁输入框 */
 .kid-input {
   width: 100%;
+  min-width: 0;
   min-height: 36px;
   border-radius: 10px;
   border: 1px solid #D1D5DB;

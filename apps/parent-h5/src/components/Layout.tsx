@@ -34,7 +34,7 @@ export const Layout: React.FC = () => {
     return () => { alive = false; data.subscription.unsubscribe(); };
   }, []);
   const installState = usePWAInstall();
-  const { instances, children, devices } = useAppStore();
+  const { instances } = useAppStore();
 
   const pendingApprovalsCount = instances.filter(i => i.status === 'submitted').length;
 
@@ -99,7 +99,7 @@ export const Layout: React.FC = () => {
           </div>
 
           <span className="family-summary-chip">
-            {children.length}个宝贝 · {devices.length}台设备
+            家庭空间
           </span>
         </div>
       </header>
