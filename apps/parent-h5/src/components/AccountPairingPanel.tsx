@@ -2,6 +2,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../services/supabase';
+import { emailVerificationUrl } from '../services/supabaseConfig';
 
 type Child = { id: string; nickname: string };
 type Device = { id: string; alias: string; child_id: string | null; status: string };
@@ -47,7 +48,7 @@ export function AccountPairingPanel() {
     if (!supabase) { setMessage('Supabase 登录未配置'); return; }
     setPending(true); setMessage('');
     try {
-      const result = register ? await supabase.auth.signUp({ email, password }) : await supabase.auth.signInWithPassword({ email, password });
+      const result = register ? await supabase.auth.signUp({ email, password, options: { emailRedirectTo: emailVerificationUrl } }) : await supabase.auth.signInWithPassword({ email, password });
       if (result.error) throw result.error;
       if (register && !result.data.session) setMessage('请先到邮箱确认注册，再登录。');
     } catch { setMessage('登录或注册失败，请检查邮箱、密码和服务配置。'); }

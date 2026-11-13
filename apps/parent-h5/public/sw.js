@@ -1,5 +1,5 @@
 // 学习宠物助手 - 自定义轻量级 Service Worker
-const CACHE_NAME = 'study-pet-pwa-v6';
+const CACHE_NAME = 'study-pet-pwa-v7';
 
 const PRECACHE_URLS = [
   '/',
@@ -37,6 +37,15 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
+
+  // Verification callbacks must never fall back to a cached logged-in page.
+  if (url.origin === self.location.origin && url.pathname.startsWith('/auth/')) {
+    event.respondWith(fetch(event.request).catch(() => new Response(
+      '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>请联网后验证邮箱</title><body><h1>暂时无法验证邮箱</h1><p>请连接网络后刷新此页面。</p></body></html>',
+      { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } }
+    )));
+    return;
+  }
 
   // 对于 API 请求，优先网络请求
   if (url.pathname.startsWith('/api') || url.hostname.includes('supabase.co')) {
