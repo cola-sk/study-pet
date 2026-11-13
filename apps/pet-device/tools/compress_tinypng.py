@@ -21,7 +21,7 @@ DEVICE = ROOT / 'apps/pet-device'
 FRAMES = DEVICE / 'preview/frames'
 MANIFEST = DEVICE / 'assets/tinypng-manifest.json'
 BACKUP = DEVICE / 'backups/tinypng-originals.local'
-NAMES = [f'{action}_{n:02}.png' for action in ('idle','eat','happy','sleep','hungry','thirsty','drink','sleepy','lonely','pet') for n in range(1,5)]
+NAMES = [f'{action}_{n:02}.png' for action in ('idle','eat','happy','sleep','hungry','thirsty','drink','sleepy','lonely','pet','play','bath','treat','dress','achievement','stretch') for n in range(1,5)]
 def digest(data): return hashlib.sha256(data).hexdigest()
 def key():
     value = os.environ.get('TINYPNG_API_KEY') or os.environ.get('TINIFY_API_KEY')
@@ -51,13 +51,13 @@ def main():
         record = records.get(name)
         if record and hashed == record['output_sha256']:
             total_before += record['input_bytes']; total_after += len(original)
-            print(f'[{index}/40] {name}: cached', flush=True); continue
+            print(f'[{index}/{len(NAMES)}] {name}: cached', flush=True); continue
         if record and hashed == record['input_sha256']:
             cached = BACKUP / (record['output_sha256'] + '.optimized.png')
             if cached.exists() and digest(cached.read_bytes()) == record['output_sha256']:
                 path.write_bytes(cached.read_bytes())
                 total_before += record['input_bytes']; total_after += record['output_bytes']
-                print(f'[{index}/40] {name}: restored cached output', flush=True); continue
+                print(f'[{index}/{len(NAMES)}] {name}: restored cached output', flush=True); continue
         backup = BACKUP / (hashed + '.png')
         if not backup.exists():
             backup.write_bytes(original); backup.chmod(0o600)
@@ -87,7 +87,7 @@ def main():
         save_manifest(records)
         temporary=path.with_suffix('.tmp'); temporary.write_bytes(result); temporary.replace(path)
         total_before+=len(original); total_after+=len(result)
-        print(f'[{index}/40] {name}: {len(original)} -> {len(result)} bytes',flush=True)
+        print(f'[{index}/{len(NAMES)}] {name}: {len(original)} -> {len(result)} bytes',flush=True)
     print(f'TinyPNG API calls this run: {calls}; total {total_before} -> {total_after} bytes ({(1-total_after/total_before)*100:.1f}% smaller)',flush=True)
 if __name__=='__main__':
     try: main()

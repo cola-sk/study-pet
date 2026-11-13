@@ -46,7 +46,7 @@ function renderTaskPreview() {
   if (task) {
     const submit = taskElement('button', task.status === 'completed' ? 'Completed' : task.status === 'submitted' ? 'Waiting for parent' : previewUpdating ? 'Updating...' : task.status === 'rejected' ? 'Try again / Complete' : 'Complete task', 'complete');
     submit.disabled = previewUpdating || task.status === 'completed' || task.status === 'submitted';
-    submit.onclick = () => {task.status = task.parent ? 'submitted' : 'completed'; if (!task.parent) {coins += task.reward; document.querySelector('#credits').textContent = coins + ' credits'; setAction('happy');} updateTaskHome(); renderTaskPreview();}; footer.append(submit);
+    submit.onclick = () => {task.status = task.parent ? 'submitted' : 'completed'; if (!task.parent) {coins += task.reward; document.querySelector('#credits').textContent = coins + ' credits'; setAction('achievement');} updateTaskHome(); renderTaskPreview();}; footer.append(submit);
   } else {
     const prev = taskElement('button', '‹'); prev.disabled = previewOffset === 0; prev.onclick = () => {previewOffset -= 10; renderTaskPreview();};
     const next = taskElement('button', '›'); next.disabled = previewOffset + 10 >= previewTasks.length; next.onclick = () => {previewOffset += 10; renderTaskPreview();};
@@ -55,5 +55,5 @@ function renderTaskPreview() {
 }
 document.querySelector('#tasks-home').onclick = () => {setMenu(false); previewTaskIndex = null; tasksPreview.hidden = false; beginPreviewSync();};
 const approvePreview = document.createElement('button'); approvePreview.textContent = '模拟家长批准待确认任务';
-approvePreview.onclick = () => {const t = previewTasks.find(item => item.status === 'submitted'); if (!t) return; t.status = 'completed'; coins += t.reward; document.querySelector('#credits').textContent = coins + ' credits'; if (previewPet.mood() !== 'sleep') setAction('happy'); updateTaskHome(); if (!tasksPreview.hidden) renderTaskPreview();};
+approvePreview.onclick = () => {const t = previewTasks.find(item => item.status === 'submitted'); if (!t) return; t.status = 'completed'; coins += t.reward; document.querySelector('#credits').textContent = coins + ' credits'; if (previewPet.mood() !== 'sleep') setAction('achievement'); updateTaskHome(); if (!tasksPreview.hidden) renderTaskPreview();};
 document.querySelector('.controls').append(approvePreview);

@@ -62,8 +62,8 @@ static bool persist(bool clear) {
 }
 static bool parse_action(const cJSON *value, shop_action_t *action) {
     if (!cJSON_IsString(value)) return false;
-    const char *names[] = { "eat", "drink", "pet", "happy" };
-    for (unsigned i = 0; i < 4; i++) if (strcmp(value->valuestring, names[i]) == 0) { *action = (shop_action_t)i; return true; }
+    const char *names[] = { "eat", "drink", "pet", "happy", "play", "bath", "treat", "dress" };
+    for (unsigned i = 0; i < sizeof(names)/sizeof(names[0]); i++) if (strcmp(value->valuestring, names[i]) == 0) { *action = (shop_action_t)i; return true; }
     return false;
 }
 static bool copy_string(const cJSON *json, const char *key, char *out, size_t size) {

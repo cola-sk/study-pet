@@ -66,6 +66,18 @@ int main(void) {
     strcpy(old.item_id,item.id);strcpy(old.request_id,"33333333-3333-4333-8333-333333333333");strcpy(old.version,item.version);
     memcpy(stored,&old,sizeof(old));stored_size=sizeof(old);shop_network_init();assert(shop_purchase_pending());tick(true);
     assert(sent_null && shop_take_result(&result) && result.state==PURCHASE_CHANGED && !shop_purchase_pending() && !stored_size);
+    // Every new shop action is accepted from the catalog and purchase response.
+    const char *names[]={"play","bath","treat","dress"};
+    shop_action_t expected[]={SHOP_PLAY,SHOP_BATH,SHOP_TREAT,SHOP_DRESS};
+    purchase_http=200;
+    for(unsigned i=0;i<4;i++) {
+        char response[128];
+        snprintf(catalog_json,sizeof(catalog_json),"{\"bindingVersion\":\"%s\",\"items\":[{\"id\":\"22222222-2222-4222-8222-222222222222\",\"name\":\"Test\",\"price\":1,\"action\":\"%s\",\"updated_at\":\"2026-11-13T00:00:00Z\"}]}",binding,names[i]);
+        snprintf(response,sizeof(response),"{\"credits\":9,\"action\":\"%s\"}",names[i]);purchase_response=response;
+        shop_refresh();tick(true);assert(shop_take_catalog(&catalog) && catalog.available && catalog.items[0].action==expected[i]);
+        assert(shop_request_purchase(&catalog.items[0]));tick(true);
+        assert(shop_take_result(&result) && result.state==PURCHASE_OK && result.action==expected[i]);
+    }
     // An unavailable token removes a previously published catalog.
     snprintf(catalog_json,sizeof(catalog_json),"{\"bindingVersion\":\"%s\",\"items\":[]}",binding);tick(true);assert(shop_take_catalog(&catalog) && catalog.available);
     shop_network_tick("",true,true);assert(shop_take_catalog(&catalog) && !catalog.available);

@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #define ACTION(a) &husky_##a##_01,&husky_##a##_02,&husky_##a##_03,&husky_##a##_04
-static const lv_img_dsc_t *frames[] = {ACTION(idle),ACTION(eat),ACTION(happy),ACTION(sleep),ACTION(hungry),ACTION(thirsty),ACTION(drink),ACTION(sleepy),ACTION(lonely),ACTION(pet)};
+static const lv_img_dsc_t *frames[] = {ACTION(idle),ACTION(eat),ACTION(happy),ACTION(sleep),ACTION(hungry),ACTION(thirsty),ACTION(drink),ACTION(sleepy),ACTION(lonely),ACTION(pet),ACTION(play),ACTION(bath),ACTION(treat),ACTION(dress),ACTION(achievement),ACTION(stretch)};
 static lv_color_t pixels[240*320];
 static lv_color_t draw_pixels[240*20], previous[240*320];
 static void flush(lv_disp_drv_t *driver,const lv_area_t *area,lv_color_t *data) {
@@ -39,7 +39,7 @@ int main(int argc,char **argv) {
     lv_disp_drv_t driver;lv_disp_drv_init(&driver);driver.hor_res=240;driver.ver_res=320;driver.draw_buf=&buffer;driver.flush_cb=flush;lv_disp_drv_register(&driver);
     lv_obj_t *screen=lv_scr_act();lv_obj_set_style_bg_color(screen,lv_color_hex(0xfff7e7),0);
     lv_obj_t *image=lv_img_create(screen);lv_obj_set_pos(image,50,102);
-    for(unsigned i=0;i<40;i++) {
+    for(unsigned i=0;i<sizeof(frames)/sizeof(frames[0]);i++) {
         lv_img_decoder_dsc_t decoded;
         if(lv_img_decoder_open(&decoded,frames[i],lv_color_black(),0)!=LV_RES_OK || !decoded.img_data) { fprintf(stderr,"Frame %u cannot be decoded\n",i);return 1; }
         lv_img_decoder_close(&decoded);
@@ -55,8 +55,8 @@ int main(int argc,char **argv) {
         }
         fclose(file);
     }
-    printf("All 40 PNG frames decoded and rendered through LVGL; 739200 RGB565 pixels matched.\n");
-    for(unsigned i=0;i<40;i++) {
+    printf("All 64 frames decoded and rendered through LVGL; 1182720 RGB565 pixels matched.\n");
+    for(unsigned i=0;i<sizeof(frames)/sizeof(frames[0]);i++) {
         lv_img_set_src(image,frames[i]);lv_refr_now(NULL);
         for(unsigned toggle=0;toggle<4;toggle++) {
             pet_image_set_menu_open(image,toggle%2==0);
@@ -69,5 +69,5 @@ int main(int argc,char **argv) {
             }
         }
     }
-    printf("160 menu zoom transitions match full-screen redraw; no stale pet pixels.\n");return 0;
+    printf("256 menu zoom transitions match full-screen redraw; no stale pet pixels.\n");return 0;
 }

@@ -4,7 +4,7 @@ export function shopInput(body: unknown): { name: string; price: number; action:
   const item = body as Record<string, unknown> | null;
   if (typeof item?.name !== 'string' || !/^[A-Za-z0-9\u4e00-\u9fff _.-]{1,12}$/u.test(item.name.trim()) ||
       !Number.isInteger(item.price) || Number(item.price) < 1 || Number(item.price) > 10000 ||
-      !['eat', 'drink', 'pet', 'happy'].includes(String(item.action))) {
+      !['eat', 'drink', 'pet', 'happy', 'play', 'bath', 'treat', 'dress'].includes(String(item.action))) {
     throw new ApiError(400, '名称限 1–12 个汉字、英文、数字或空格；价格限 1–10000 整数金币；请选择互动动画');
   }
   return { name: item.name.trim(), price: Number(item.price), action: String(item.action) };

@@ -10,7 +10,7 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-ACTIONS = ('idle','eat','happy','sleep','hungry','thirsty','drink','sleepy','lonely','pet')
+ACTIONS = ('idle','eat','happy','sleep','hungry','thirsty','drink','sleepy','lonely','pet','play','bath','treat','dress','achievement','stretch')
 
 def embed(frame_dir=ROOT/'preview/frames', output=ROOT/'main/husky_frames.c'):
     records=[]; parts=['#include "lvgl.h"\n#include "husky_frames.h"\n']

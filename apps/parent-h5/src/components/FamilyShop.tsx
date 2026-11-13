@@ -5,7 +5,7 @@ import { Dialog, Popup, Toast } from 'antd-mobile';
 import { familyApi, FamilyApiError } from '../services/familyApi';
 
 export type ShopProduct = { id: string; name: string; price: number; action: string; builtin_key: string | null; updated_at: string };
-const actions = [{ value: 'eat', label: '吃东西' }, { value: 'drink', label: '喝水' }, { value: 'pet', label: '陪伴玩耍' }, { value: 'happy', label: '开心庆祝' }];
+const actions = [{ value: 'eat', label: '吃东西' }, { value: 'drink', label: '喝水' }, { value: 'pet', label: '陪伴玩耍' }, { value: 'happy', label: '开心庆祝' }, { value: 'play', label: '玩球' }, { value: 'bath', label: '洗澡' }, { value: 'treat', label: '吃零食' }, { value: 'dress', label: '试穿衣服' }];
 
 export function FamilyShop() {
   const [items, setItems] = useState<ShopProduct[]>([]);
@@ -62,7 +62,7 @@ export function FamilyShop() {
         <p className="text-sm text-[#6B7280]">和宝贝一起想一个名字，再为它选择价格和互动动画。</p>
         <label htmlFor="shop-name" className="block text-sm">商品名称</label><input id="shop-name" className="kid-input" required maxLength={12} value={name} disabled={busy || !!editing?.builtin_key} onChange={event => setName(event.target.value)} placeholder="例如：月亮饼干、快乐魔法" />
         <label htmlFor="shop-price" className="block text-sm">价格（credit）</label><input id="shop-price" className="kid-input" type="number" inputMode="numeric" min={1} max={10000} step={1} required value={price} disabled={busy} onChange={event => setPrice(event.target.value)} />
-        <label htmlFor="shop-action" className="block text-sm">兑换后小狗的动作</label><select id="shop-action" className="kid-input" value={action} disabled={busy || !!editing?.builtin_key} onChange={event => setAction(event.target.value)}>{actions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
+        {action === 'dress' && <p className="text-xs text-[#6B7280]">试穿动画结束后会恢复原来的样子。</p>}<label htmlFor="shop-action" className="block text-sm">兑换后小狗的动作</label><select id="shop-action" className="kid-input" value={action} disabled={busy || !!editing?.builtin_key} onChange={event => setAction(event.target.value)}>{actions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
         {editing?.builtin_key && <p className="text-xs text-[#6B7280]">内置商品保留名称和动作，可以调整价格。</p>}
         {formError && <p role="alert" className="text-sm text-[#B45309]">{formError}</p>}
         <div className="flex gap-2 pt-2"><button type="button" className="kid-btn kid-btn-ghost flex-1" disabled={busy} onClick={() => setVisible(false)}>取消</button><button type="submit" className="kid-btn kid-btn-primary flex-1" disabled={busy}>{busy ? '正在保存…' : '保存商品'}</button></div>

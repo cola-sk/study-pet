@@ -238,5 +238,149 @@
     "format": "png",
     "encoded_bytes": 10172,
     "rgb565_bytes": 36960
+  },
+  {
+    "name": "play_01",
+    "format": "png",
+    "encoded_bytes": 9479,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "play_02",
+    "format": "png",
+    "encoded_bytes": 9058,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "play_03",
+    "format": "png",
+    "encoded_bytes": 9036,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "play_04",
+    "format": "png",
+    "encoded_bytes": 8886,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "bath_01",
+    "format": "png",
+    "encoded_bytes": 8324,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "bath_02",
+    "format": "png",
+    "encoded_bytes": 8179,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "bath_03",
+    "format": "png",
+    "encoded_bytes": 8382,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "bath_04",
+    "format": "png",
+    "encoded_bytes": 8392,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "treat_01",
+    "format": "png",
+    "encoded_bytes": 10449,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "treat_02",
+    "format": "png",
+    "encoded_bytes": 9931,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "treat_03",
+    "format": "png",
+    "encoded_bytes": 9738,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "treat_04",
+    "format": "png",
+    "encoded_bytes": 9724,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "dress_01",
+    "format": "png",
+    "encoded_bytes": 8544,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "dress_02",
+    "format": "png",
+    "encoded_bytes": 8209,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "dress_03",
+    "format": "png",
+    "encoded_bytes": 8160,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "dress_04",
+    "format": "png",
+    "encoded_bytes": 8101,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "achievement_01",
+    "format": "png",
+    "encoded_bytes": 9336,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "achievement_02",
+    "format": "png",
+    "encoded_bytes": 9163,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "achievement_03",
+    "format": "png",
+    "encoded_bytes": 9124,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "achievement_04",
+    "format": "png",
+    "encoded_bytes": 8888,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "stretch_01",
+    "format": "png",
+    "encoded_bytes": 9722,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "stretch_02",
+    "format": "png",
+    "encoded_bytes": 8472,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "stretch_03",
+    "format": "png",
+    "encoded_bytes": 8121,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "stretch_04",
+    "format": "png",
+    "encoded_bytes": 8475,
+    "rgb565_bytes": 36960
   }
 ]
