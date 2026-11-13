@@ -23,7 +23,7 @@
 #define CONNECTED_BIT BIT0
 static const char *TAG = "pet_net";
 static EventGroupHandle_t network_events;
-static QueueHandle_t wallet_updates, pair_requests, pair_results;
+static QueueHandle_t wallet_updates, pair_requests, pair_results, refresh_requests;
 static char device_token[65];
 static bool paired;
 static const char *active_token(void) { return paired ? device_token : CONFIG_STUDY_PET_DEVICE_TOKEN; }
@@ -71,11 +71,17 @@ static esp_err_t http_event(esp_http_client_event_t *event)
     return ESP_OK;
 }
 // Return the next polling interval. Network failures back off separately below.
-static unsigned sync_wallet(void)
+static unsigned sync_wallet(bool manual)
 {
     const char *token = active_token();
-    if (!token[0]) return 60;
-    if (strlen(token) != 64) { ESP_LOGW(TAG, "Invalid device credential configuration"); return 60; }
+    if (strlen(token) != 64) {
+        if (manual) {
+            network_wallet_update_t update = { .state = WALLET_UNAUTHORIZED, .manual = true };
+            xQueueOverwrite(wallet_updates, &update);
+        }
+        if (token[0]) ESP_LOGW(TAG, "Invalid device credential configuration");
+        return 60;
+    }
     response_buffer_t response = {0};
     esp_http_client_config_t cfg = {
         .url = "https://keep.1203.fyi/api/v1/wallet", .crt_bundle_attach = esp_crt_bundle_attach,
@@ -93,7 +99,7 @@ static unsigned sync_wallet(void)
         cJSON *json = cJSON_Parse(response.data);
         const cJSON *balance = cJSON_GetObjectItemCaseSensitive(json, "credits");
         if (cJSON_IsNumber(balance) && balance->valuedouble >= 0 && balance->valuedouble <= 2147483647 && balance->valuedouble == balance->valueint) {
-            network_wallet_update_t update = { .state = WALLET_READY, .credits = (unsigned)balance->valueint };
+            network_wallet_update_t update = { .state = WALLET_READY, .credits = (unsigned)balance->valueint, .manual = manual };
             xQueueOverwrite(wallet_updates, &update);
             interval = 5;
             ESP_LOGD(TAG, "Wallet synchronized");
@@ -103,13 +109,13 @@ static unsigned sync_wallet(void)
         cJSON *json = cJSON_Parse(response.data);
         const cJSON *state = cJSON_GetObjectItemCaseSensitive(json, "state");
         if (cJSON_IsString(state) && strcmp(state->valuestring, "awaiting_child") == 0) {
-            network_wallet_update_t update = { .state = WALLET_WAITING_FOR_CHILD };
+            network_wallet_update_t update = { .state = WALLET_WAITING_FOR_CHILD, .manual = manual };
             xQueueOverwrite(wallet_updates, &update);
             interval = 3;
         }
         cJSON_Delete(json);
     } else if (result == ESP_OK && (status == 401 || status == 403)) {
-        network_wallet_update_t update = { .state = WALLET_UNAUTHORIZED };
+        network_wallet_update_t update = { .state = WALLET_UNAUTHORIZED, .manual = manual };
         xQueueOverwrite(wallet_updates, &update);
         interval = 60;
         ESP_LOGW(TAG, "Wallet authorization unavailable: HTTP %d", status);
@@ -119,6 +125,12 @@ static unsigned sync_wallet(void)
 }
 bool network_take_wallet(network_wallet_update_t *update) { return wallet_updates && xQueueReceive(wallet_updates, update, 0) == pdTRUE; }
 bool network_business_enabled(void) { return paired || CONFIG_STUDY_PET_DEVICE_TOKEN[0] != '\0'; }
+bool network_refresh_wallet(void)
+{
+    if (!refresh_requests || !network_events || !network_business_enabled()) return false;
+    uint8_t request = 1;
+    return xQueueSend(refresh_requests, &request, 0) == pdTRUE;
+}
 
 static void perform_pair(const char *code)
 {
@@ -198,12 +210,22 @@ static void network_task(void *arg)
         bool waiting = xQueueReceive(pair_requests, code, pdMS_TO_TICKS(1000)) == pdTRUE;
         bool online = (xEventGroupGetBits(network_events) & CONNECTED_BIT) != 0;
         bool clock_ready = time(NULL) >= 1704067200;
+        uint8_t refresh_request;
+        bool manual = xQueueReceive(refresh_requests, &refresh_request, 0) == pdTRUE;
         if (waiting) {
             if (online && clock_ready && !paired) { perform_pair(code); next_sync = 0; }
             else { int result = 3; xQueueOverwrite(pair_results, &result); }
         }
-        if (online && clock_ready && esp_timer_get_time() >= next_sync) {
-            unsigned interval = sync_wallet();
+        if (manual && (!online || !clock_ready)) {
+            network_wallet_update_t update = { .state = WALLET_SYNC_FAILED, .manual = true };
+            xQueueOverwrite(wallet_updates, &update);
+        }
+        if (online && clock_ready && (manual || esp_timer_get_time() >= next_sync)) {
+            unsigned interval = sync_wallet(manual);
+            if (!interval && manual) {
+                network_wallet_update_t update = { .state = WALLET_SYNC_FAILED, .manual = true };
+                xQueueOverwrite(wallet_updates, &update);
+            }
             if (!interval) { interval = retry_seconds; retry_seconds = retry_seconds < 30 ? retry_seconds * 2 : 60; }
             else retry_seconds = 10;
             next_sync = esp_timer_get_time() + (int64_t)interval * 1000000LL;
@@ -215,5 +237,6 @@ void network_start(void) {
     wallet_updates = xQueueCreate(1, sizeof(network_wallet_update_t));
     pair_requests = xQueueCreate(1, 7);
     pair_results = xQueueCreate(1, sizeof(int));
-    if (wallet_updates && pair_requests && pair_results) xTaskCreate(network_task, "pet_network", 8192, NULL, 5, NULL);
+    refresh_requests = xQueueCreate(1, sizeof(uint8_t));
+    if (wallet_updates && pair_requests && pair_results && refresh_requests) xTaskCreate(network_task, "pet_network", 8192, NULL, 5, NULL);
 }

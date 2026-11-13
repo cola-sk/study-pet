@@ -16,6 +16,9 @@ static pet_action_t action = IDLE;
 static unsigned coins = 30, frame = 0, cycles = 0, need_ticks = 0;
 static int last_need = -1;
 static bool wallet_notice = false;
+static bool refresh_pending = false, refresh_feedback = false;
+static uint32_t refresh_feedback_at;
+static lv_obj_t *balance_button, *refresh_hint;
 static lv_obj_t *balance, *pet_image, *buttons[4], *notice, *sleep_label, *pair_button, *pair_screen, *pair_input;
 
 static void set_action(pet_action_t next)
@@ -137,6 +140,20 @@ static void open_pairing(lv_event_t *event)
     lv_keyboard_set_mode(keyboard, LV_KEYBOARD_MODE_NUMBER);
     lv_obj_add_event_cb(keyboard, pair_keyboard_event, LV_EVENT_ALL, NULL);
 }
+static void refresh_wallet(lv_event_t *event)
+{
+    (void)event;
+    if (refresh_pending) return;
+    if (!network_business_enabled()) { open_pairing(NULL); return; }
+    if (!network_refresh_wallet()) {
+        lv_label_set_text(refresh_hint, "Try again");
+        refresh_feedback = true; refresh_feedback_at = lv_tick_get();
+        return;
+    }
+    refresh_pending = true; refresh_feedback = false;
+    lv_obj_add_state(balance_button, LV_STATE_DISABLED);
+    lv_label_set_text(refresh_hint, "Syncing...");
+}
 void app_main(void)
 {
     I2C_Init(); LCD_Init(); LVGL_Init();
@@ -144,10 +161,21 @@ void app_main(void)
     lv_obj_t *screen = lv_scr_act();
     lv_obj_set_style_bg_color(screen, lv_color_hex(0xfff7e7), 0);
     lv_obj_t *title = lv_label_create(screen); lv_label_set_text(title, "Keep going!"); lv_obj_align(title, LV_ALIGN_TOP_LEFT, 8, 12);
-    balance = lv_label_create(screen);
+    balance_button = lv_btn_create(screen);
+    lv_obj_set_size(balance_button, 112, 36); lv_obj_align(balance_button, LV_ALIGN_TOP_RIGHT, -4, 2);
+    lv_obj_set_style_bg_opa(balance_button, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_set_style_shadow_width(balance_button, 0, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(balance_button, 0, LV_PART_MAIN);
+    lv_obj_set_style_text_color(balance_button, lv_color_hex(0x433c32), LV_PART_MAIN);
+    lv_obj_add_event_cb(balance_button, refresh_wallet, LV_EVENT_CLICKED, NULL);
+    balance = lv_label_create(balance_button);
+    lv_obj_set_width(balance, 108); lv_label_set_long_mode(balance, LV_LABEL_LONG_SCROLL_CIRCULAR);
+    lv_obj_set_style_text_align(balance, LV_TEXT_ALIGN_RIGHT, 0);
     if (network_business_enabled()) { coins = 0; lv_label_set_text(balance, "-- credits"); }
     else { lv_label_set_text_fmt(balance, "%u credits", coins); }
-    lv_obj_align(balance, LV_ALIGN_TOP_RIGHT, -8, 12);
+    lv_obj_align(balance, LV_ALIGN_TOP_RIGHT, -4, 0);
+    refresh_hint = lv_label_create(balance_button); lv_label_set_text(refresh_hint, "Tap to sync");
+    lv_obj_align(refresh_hint, LV_ALIGN_BOTTOM_RIGHT, -4, -1);
     pet_image = lv_img_create(screen); lv_img_set_src(pet_image, frames[IDLE][0]); lv_obj_align(pet_image, LV_ALIGN_CENTER, 0, 8);
     lv_obj_add_flag(pet_image, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(pet_image, show_menu, LV_EVENT_CLICKED, NULL);
@@ -182,12 +210,20 @@ void app_main(void)
             if (updated.state == WALLET_READY) {
                 coins = updated.credits; lv_label_set_text_fmt(balance, "%u credits", coins);
                 if (wallet_notice) { lv_obj_add_flag(notice, LV_OBJ_FLAG_HIDDEN); wallet_notice = false; }
-            } else {
+            } else if (updated.state != WALLET_SYNC_FAILED) {
                 wallet_notice = true;
                 lv_label_set_text(balance, "-- credits");
                 lv_label_set_text(notice, updated.state == WALLET_WAITING_FOR_CHILD ? "Select child in app" : "Check device in app");
                 lv_obj_clear_flag(notice, LV_OBJ_FLAG_HIDDEN);
             }
+            if (updated.manual) {
+                refresh_pending = false; refresh_feedback = true; refresh_feedback_at = lv_tick_get();
+                lv_obj_clear_state(balance_button, LV_STATE_DISABLED);
+                lv_label_set_text(refresh_hint, updated.state == WALLET_READY ? "Synced" : updated.state == WALLET_WAITING_FOR_CHILD ? "Pick child" : updated.state == WALLET_UNAUTHORIZED ? "Check pairing" : "Retry sync");
+            }
+        }
+        if (refresh_feedback && lv_tick_elaps(refresh_feedback_at) >= 2500) {
+            refresh_feedback = false; lv_label_set_text(refresh_hint, "Tap to sync");
         }
         vTaskDelay(pdMS_TO_TICKS(10)); lv_timer_handler();
     }
