@@ -1,0 +1,242 @@
+[
+  {
+    "name": "idle_01",
+    "format": "png",
+    "encoded_bytes": 9951,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "idle_02",
+    "format": "png",
+    "encoded_bytes": 10053,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "idle_03",
+    "format": "png",
+    "encoded_bytes": 10003,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "idle_04",
+    "format": "png",
+    "encoded_bytes": 9838,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "eat_01",
+    "format": "png",
+    "encoded_bytes": 11286,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "eat_02",
+    "format": "png",
+    "encoded_bytes": 9939,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "eat_03",
+    "format": "png",
+    "encoded_bytes": 10781,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "eat_04",
+    "format": "png",
+    "encoded_bytes": 10663,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "happy_01",
+    "format": "png",
+    "encoded_bytes": 10417,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "happy_02",
+    "format": "png",
+    "encoded_bytes": 10133,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "happy_03",
+    "format": "png",
+    "encoded_bytes": 10665,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "happy_04",
+    "format": "png",
+    "encoded_bytes": 10551,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "sleep_01",
+    "format": "png",
+    "encoded_bytes": 7658,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "sleep_02",
+    "format": "png",
+    "encoded_bytes": 7790,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "sleep_03",
+    "format": "png",
+    "encoded_bytes": 7960,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "sleep_04",
+    "format": "png",
+    "encoded_bytes": 8108,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "hungry_01",
+    "format": "png",
+    "encoded_bytes": 9755,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "hungry_02",
+    "format": "png",
+    "encoded_bytes": 9559,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "hungry_03",
+    "format": "png",
+    "encoded_bytes": 10060,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "hungry_04",
+    "format": "png",
+    "encoded_bytes": 9797,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "thirsty_01",
+    "format": "png",
+    "encoded_bytes": 9234,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "thirsty_02",
+    "format": "png",
+    "encoded_bytes": 9023,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "thirsty_03",
+    "format": "png",
+    "encoded_bytes": 9348,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "thirsty_04",
+    "format": "png",
+    "encoded_bytes": 9355,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "drink_01",
+    "format": "png",
+    "encoded_bytes": 9684,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "drink_02",
+    "format": "png",
+    "encoded_bytes": 9247,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "drink_03",
+    "format": "png",
+    "encoded_bytes": 8991,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "drink_04",
+    "format": "png",
+    "encoded_bytes": 9386,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "sleepy_01",
+    "format": "png",
+    "encoded_bytes": 8833,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "sleepy_02",
+    "format": "png",
+    "encoded_bytes": 10561,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "sleepy_03",
+    "format": "png",
+    "encoded_bytes": 9140,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "sleepy_04",
+    "format": "png",
+    "encoded_bytes": 8283,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "lonely_01",
+    "format": "png",
+    "encoded_bytes": 12123,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "lonely_02",
+    "format": "png",
+    "encoded_bytes": 11823,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "lonely_03",
+    "format": "png",
+    "encoded_bytes": 11777,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "lonely_04",
+    "format": "png",
+    "encoded_bytes": 8918,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "pet_01",
+    "format": "png",
+    "encoded_bytes": 9848,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "pet_02",
+    "format": "png",
+    "encoded_bytes": 10031,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "pet_03",
+    "format": "png",
+    "encoded_bytes": 10873,
+    "rgb565_bytes": 36960
+  },
+  {
+    "name": "pet_04",
+    "format": "png",
+    "encoded_bytes": 10172,
+    "rgb565_bytes": 36960
+  }
+]

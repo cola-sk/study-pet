@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.16)
+project(check_pet_png C)
+set(LV_CONF_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lv_conf.h" CACHE STRING "" FORCE)
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../../managed_components/lvgl__lvgl" lvgl)
+add_executable(check_pet_png check.c ../../main/husky_frames.c)
+target_include_directories(check_pet_png PRIVATE ../../main)
+target_link_libraries(check_pet_png PRIVATE lvgl m)

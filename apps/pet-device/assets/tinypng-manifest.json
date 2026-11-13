@@ -1,0 +1,325 @@
+{
+  "provider": "TinyPNG / Tinify API",
+  "frames": {
+    "idle_01.png": {
+      "input_sha256": "1a26ee604ca311b53c81b05f441add39834d9c754890e3049a58d6de316a2657",
+      "output_sha256": "760450ac448900d8c4ddca2ffe0174f3294aa0b7a94b04a601ad4270cdbfe183",
+      "input_bytes": 23652,
+      "output_bytes": 9951,
+      "width": 140,
+      "height": 132
+    },
+    "idle_02.png": {
+      "input_sha256": "85e3b3582f028649566f8c0e09b3510441696b7f2cf384901c8c1d62c23c3193",
+      "output_sha256": "b0a361fae737c1ed01567e9193d8bf5a8b9b7101fe42988d577af91f2ebcd3d5",
+      "input_bytes": 22896,
+      "output_bytes": 10053,
+      "width": 140,
+      "height": 132
+    },
+    "idle_03.png": {
+      "input_sha256": "21dbbda6e185473fd915ceaa6b02fb64c41a42646849f5e418e740657374b712",
+      "output_sha256": "6581d032c076f2eae32ef9a2f812965f2791b1c0d5de608443d21d1125cb05a4",
+      "input_bytes": 23205,
+      "output_bytes": 10003,
+      "width": 140,
+      "height": 132
+    },
+    "idle_04.png": {
+      "input_sha256": "6ef6f76143d8adb0dc8af77c7ace05b1e2ae545b8ba3264e10487f89733eda5a",
+      "output_sha256": "1c0f2a3e1cdb9a5143626dbbc11f12fb6ff84dd5afa5bd0b28f683551f1608f8",
+      "input_bytes": 23201,
+      "output_bytes": 9838,
+      "width": 140,
+      "height": 132
+    },
+    "eat_01.png": {
+      "input_sha256": "3f5fc9717dc0aa6e2f09ca58e39376cc3433a4b15ad0b9d284ce22be716755c6",
+      "output_sha256": "3e97d487bbab5da48415440c1283adcd3c7d3a21ddcb5e754686a361199e94e2",
+      "input_bytes": 27313,
+      "output_bytes": 11286,
+      "width": 140,
+      "height": 132
+    },
+    "eat_02.png": {
+      "input_sha256": "4b22c2279c57215d2275fb6711cebaa63d41442417f46a13501f8071ce6dc4ca",
+      "output_sha256": "d1473fcbe257cc527e2ec8b8dff2e04dee14437195ed51c236f9223e0ed50b5e",
+      "input_bytes": 23045,
+      "output_bytes": 9939,
+      "width": 140,
+      "height": 132
+    },
+    "eat_03.png": {
+      "input_sha256": "79ff11eea210cf5cf3b9af051a2214ebdde1934cbb96950e0aa376d01be97373",
+      "output_sha256": "325b7d41d163966f3607e619f30c65fe13f52a065a0fd3fe142609a413fb3904",
+      "input_bytes": 25917,
+      "output_bytes": 10781,
+      "width": 140,
+      "height": 132
+    },
+    "eat_04.png": {
+      "input_sha256": "6a1d1d04686f0c7c4bd7640dbce02ddf966cd665ee81605598f776093c398345",
+      "output_sha256": "ec0ba44088d430d98d27c7c71439a1c3dc90d802ef096575184cc4fccc08d5c9",
+      "input_bytes": 26509,
+      "output_bytes": 10663,
+      "width": 140,
+      "height": 132
+    },
+    "happy_01.png": {
+      "input_sha256": "6d83d8e9b353ce1e0897cbc26a3184b9a5782b607bcd2f3a8f826fd13fff0cbd",
+      "output_sha256": "de26574066a57c50707abd416aae15412c66ae7c8cb3fd07e8bc2a1c586351ff",
+      "input_bytes": 24703,
+      "output_bytes": 10417,
+      "width": 140,
+      "height": 132
+    },
+    "happy_02.png": {
+      "input_sha256": "b559c3f2e36cadf7eb410ba2e4d20542ed75d21a11f3e18133c21cfdb70d2c2a",
+      "output_sha256": "dc01336a3010694154b77b2ef068fb02bd488a9781c7ef75ab039cc4cd287e4f",
+      "input_bytes": 23857,
+      "output_bytes": 10133,
+      "width": 140,
+      "height": 132
+    },
+    "happy_03.png": {
+      "input_sha256": "433bfc0fae99cadca6393baba87bfe2b29a8f687052f2da2bcdbe7b1c7fc3ad3",
+      "output_sha256": "c6bf649f036513280a57949e7dd8652e6d17874ffcdf017d89429279978f3f6e",
+      "input_bytes": 25040,
+      "output_bytes": 10665,
+      "width": 140,
+      "height": 132
+    },
+    "happy_04.png": {
+      "input_sha256": "5a96d4059bfd7e61b30493700f42d711a0ca9c37df167f270c2ccbc931fb3724",
+      "output_sha256": "deef2e4e13e547de0e2830098a3570bce21fd3270c2fa00282c19b48cc2b2311",
+      "input_bytes": 24917,
+      "output_bytes": 10551,
+      "width": 140,
+      "height": 132
+    },
+    "sleep_01.png": {
+      "input_sha256": "ae924133b45dde10d99b4f405357a1d35d849b3470114fbe1dbe368b3bae4bc7",
+      "output_sha256": "6da1489f3f9cfbce8d8ed14aeffa47b832fbee1e9f472964dcb44a8dc3469fea",
+      "input_bytes": 16915,
+      "output_bytes": 7658,
+      "width": 140,
+      "height": 132
+    },
+    "sleep_02.png": {
+      "input_sha256": "b5502a61d353b6b2d9b5c82b4f238569163ac02f49378fc58312b17b62f68281",
+      "output_sha256": "65218cc3819cd5981434ed58e239ade299a545125279b28071ddc420776003b6",
+      "input_bytes": 17644,
+      "output_bytes": 7790,
+      "width": 140,
+      "height": 132
+    },
+    "sleep_03.png": {
+      "input_sha256": "b77244017a341e10e2369fc554cdef273240821f2477beba50baa86c17feef03",
+      "output_sha256": "987fd897d6307c348bae1c190585dcb4e346d6b19ddd1e28133b970e0858700f",
+      "input_bytes": 18311,
+      "output_bytes": 7960,
+      "width": 140,
+      "height": 132
+    },
+    "sleep_04.png": {
+      "input_sha256": "2c4f8537d56acc602037bf28d7eaa0a1a85ed962d82fbfa9b0641a0b06644b63",
+      "output_sha256": "b7615cc9645d6aae97a40ccec952bf13650093769353f93db3de057950b0476b",
+      "input_bytes": 19048,
+      "output_bytes": 8108,
+      "width": 140,
+      "height": 132
+    },
+    "hungry_01.png": {
+      "input_sha256": "f4594bc71370cc2243f0d9fb37307f9f21e452b97429b6647fa3825ef9edbd5f",
+      "output_sha256": "ff41e8b8bc5bd86a91aeed437bea1be8768dd1c23cb1711967b1715058a9455e",
+      "input_bytes": 24221,
+      "output_bytes": 9755,
+      "width": 140,
+      "height": 132
+    },
+    "hungry_02.png": {
+      "input_sha256": "f167114d4bc1bbcd4637c3fb506a6566b3f012514f0134804879fb3e860c3abd",
+      "output_sha256": "22c4f9a0f3c4ad498fa028d8a389421fc489eebc14482aad970ff5bf63e20e61",
+      "input_bytes": 23439,
+      "output_bytes": 9559,
+      "width": 140,
+      "height": 132
+    },
+    "hungry_03.png": {
+      "input_sha256": "07e7859d3eaa1046ea2f7bc46fc9232151689a7bad2f276315d037158cd9ba86",
+      "output_sha256": "4f062065446a6476fc68ff7dda8755ea21e5dc59797647f96d6aa886b879055e",
+      "input_bytes": 25039,
+      "output_bytes": 10060,
+      "width": 140,
+      "height": 132
+    },
+    "hungry_04.png": {
+      "input_sha256": "c81f48105b6cad462f422729890379c6e3693933c18ef0a82e580f052d0da574",
+      "output_sha256": "172389060d3d0592ec42cbd7fa675a62385ebcfa5b421dc8a90b6cf3ca3100c6",
+      "input_bytes": 24855,
+      "output_bytes": 9797,
+      "width": 140,
+      "height": 132
+    },
+    "thirsty_01.png": {
+      "input_sha256": "886cad9727664f635052c0e83155a773c33e591e327bc75731d5f17a1438a8f8",
+      "output_sha256": "5e93685b088e7f54fc4f335cec087fbb0938088c0034c0e0b6c7712893cdcbf7",
+      "input_bytes": 23100,
+      "output_bytes": 9234,
+      "width": 140,
+      "height": 132
+    },
+    "thirsty_02.png": {
+      "input_sha256": "48cc67bd503fc16d41cd5fbce5e7a51c0e463687a1878cdcb38550ae75bf9a8b",
+      "output_sha256": "43ba4ef94b5b915c411dc4ef5176323653574d0ea69fb59cf44abab5fecb63ce",
+      "input_bytes": 22448,
+      "output_bytes": 9023,
+      "width": 140,
+      "height": 132
+    },
+    "thirsty_03.png": {
+      "input_sha256": "91964f74de7204e1c924339b537f7d98efe68f16be5c31107388d122b51376ba",
+      "output_sha256": "1bbebfbcba5f12d8ae695ec344ec905bdfd73181b956ac04ef0e6e17ad477832",
+      "input_bytes": 23700,
+      "output_bytes": 9348,
+      "width": 140,
+      "height": 132
+    },
+    "thirsty_04.png": {
+      "input_sha256": "ddd4d914d3226e8ccc3fe3fe48bfc60aa65bed9b4470bdf95a7c78d2cf75b1ce",
+      "output_sha256": "7a0dc786bdefbcdcc88886e518856f8531c455a63acc417a73398aeb8a199948",
+      "input_bytes": 24298,
+      "output_bytes": 9355,
+      "width": 140,
+      "height": 132
+    },
+    "drink_01.png": {
+      "input_sha256": "50a1ae3d6bccdda23c58b7c917aa204a7ace81d31e78f5a35ff985bd691b4647",
+      "output_sha256": "2af5670f39686bd0939a28b6f7eb02f58cab422efc3be3f968dea1bc5c68c0ff",
+      "input_bytes": 23883,
+      "output_bytes": 9684,
+      "width": 140,
+      "height": 132
+    },
+    "drink_02.png": {
+      "input_sha256": "d4e86ca573a23cdaf31787d86d851f0f5d6f581fc93009e515f1f20b0de74300",
+      "output_sha256": "43a01a22de9e3b5a359efbfe1ecbec232813746afdd1f7b85b791d66c815c4df",
+      "input_bytes": 22561,
+      "output_bytes": 9247,
+      "width": 140,
+      "height": 132
+    },
+    "drink_03.png": {
+      "input_sha256": "c6a0889424a29899baf8d3cfe0023fbcc89bd984504d55bc7d86bbb614a6233d",
+      "output_sha256": "6962d2cc3f564e162a13aedb1bdd99fe569b4a6db2f6552d3c8700f9e0d389d5",
+      "input_bytes": 22138,
+      "output_bytes": 8991,
+      "width": 140,
+      "height": 132
+    },
+    "drink_04.png": {
+      "input_sha256": "95f22fe428cee0d9f463e44ab76ca6e47bc4b1c621770c39b3de40a447753512",
+      "output_sha256": "c51f59ef63739610573496cd93332b055ff7e1b396c16efb5071c01ec99f0abd",
+      "input_bytes": 24025,
+      "output_bytes": 9386,
+      "width": 140,
+      "height": 132
+    },
+    "sleepy_01.png": {
+      "input_sha256": "f626bc239626d6318bdf1f227dbdc376c33dab2311f0f91cec534d020cf4cf49",
+      "output_sha256": "0a1dec46c972621a1b5f835bbff42d2233b10e6e8bdf066a870aadd9a9f4654f",
+      "input_bytes": 21020,
+      "output_bytes": 8833,
+      "width": 140,
+      "height": 132
+    },
+    "sleepy_02.png": {
+      "input_sha256": "57b344d46b40a931e02a2ed1798acb4b3f15a4b274517c20b6286fee41b7d331",
+      "output_sha256": "b291f2db82ad453fb797c5050fd47baede2bd1675762f6ed244f5f2496dbe575",
+      "input_bytes": 24578,
+      "output_bytes": 10561,
+      "width": 140,
+      "height": 132
+    },
+    "sleepy_03.png": {
+      "input_sha256": "3e84f241db5c81b217908ba2cf40d7ae7af0e2dd6416f105055a56b72efbf1b7",
+      "output_sha256": "a894b28fc41207a5e785f26e4cded175a5dcc17afba8cae575e2734583cbc0a4",
+      "input_bytes": 20347,
+      "output_bytes": 9140,
+      "width": 140,
+      "height": 132
+    },
+    "sleepy_04.png": {
+      "input_sha256": "cd2e6142f60bc44677dbc684709aa60043e7b6021ec4d3e4428761cd9e127850",
+      "output_sha256": "a9ec278dec188b9bb4f72dbf7f3f48957790fe8c1614e11963f1bd04b220cf50",
+      "input_bytes": 18434,
+      "output_bytes": 8283,
+      "width": 140,
+      "height": 132
+    },
+    "lonely_01.png": {
+      "input_sha256": "9af07fc2b507504c3c1b56dc08471e1f3519baf01fa0af45e328688508c9a4f6",
+      "output_sha256": "90643566daed4319c69bdb986e066ca7bb3ac18c1d12000c8f2be2037120c58b",
+      "input_bytes": 29492,
+      "output_bytes": 12123,
+      "width": 140,
+      "height": 132
+    },
+    "lonely_02.png": {
+      "input_sha256": "3f3a7acb5fb6be214cf0eb1186531a0aa7248526821653b53c6989a536403037",
+      "output_sha256": "428157f8372d92313f1d4c0a4c54d5b41452600fb368638e4c189539b240c0dc",
+      "input_bytes": 28042,
+      "output_bytes": 11823,
+      "width": 140,
+      "height": 132
+    },
+    "lonely_03.png": {
+      "input_sha256": "200f43f59f35cf81f892748e81f2717f20094dd67c7313f8d2895cbf18d489d2",
+      "output_sha256": "66938b9506f012bacf03629184b709252d3eb92150b06016debe335b63548d27",
+      "input_bytes": 28158,
+      "output_bytes": 11777,
+      "width": 140,
+      "height": 132
+    },
+    "lonely_04.png": {
+      "input_sha256": "7c8d7f3d85b9444075cf2d8ad947ab64f6465e6ac8af1f8fe247abfd498ecf73",
+      "output_sha256": "2ea0bcf50d629e06964f8d11eea3aaab715b92278f0068d46ea7d3c314492151",
+      "input_bytes": 21546,
+      "output_bytes": 8918,
+      "width": 140,
+      "height": 132
+    },
+    "pet_01.png": {
+      "input_sha256": "8d3261962688d0f83eb59bdb8332b378770f5f171b071831267456d43cc9e6da",
+      "output_sha256": "1ae23d77cbe1ea783ecfd69ac7b38867b768b5e42e04a49591a4803de4f345a9",
+      "input_bytes": 23061,
+      "output_bytes": 9848,
+      "width": 140,
+      "height": 132
+    },
+    "pet_02.png": {
+      "input_sha256": "20bf11adf1b2845ac92a96df1647791d589d80cd9cb2fe16e4d0d1bb596a40c7",
+      "output_sha256": "b42295f52604ea16c435c9e6adc535ec925caa75d14a8c69e4c93690d4b3cb4e",
+      "input_bytes": 23999,
+      "output_bytes": 10031,
+      "width": 140,
+      "height": 132
+    },
+    "pet_03.png": {
+      "input_sha256": "db26a62bf6ff1aba379b7a0272cafab7e19299118d517c1f5ce11b9ee8fe2ce9",
+      "output_sha256": "63ec502ab0c013ee079107e720d41496e3fa0337adb9c85705da0a98358ff8d8",
+      "input_bytes": 26079,
+      "output_bytes": 10873,
+      "width": 140,
+      "height": 132
+    },
+    "pet_04.png": {
+      "input_sha256": "f6925c6d48cf14bc72c1f5488b2c659a00481a5c729d5624f7e564ca45127df2",
+      "output_sha256": "1adc2709a8d9f93570e9e2b4ddeeba069d520e49ffad36c7e0477cd27fb81fe5",
+      "input_bytes": 24572,
+      "output_bytes": 10172,
+      "width": 140,
+      "height": 132
+    }
+  }
+}
