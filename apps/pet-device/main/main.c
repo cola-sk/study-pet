@@ -13,7 +13,9 @@
 #include "esp_app_desc.h"
 #include "esp_mac.h"
 #include "esp_random.h"
+#include "nvs.h"
 #include <stdio.h>
+#include <string.h>
 LV_FONT_DECLARE(shop_cjk_font);
 
 #define FRAMES(name) {&husky_##name##_01, &husky_##name##_02, &husky_##name##_03, &husky_##name##_04}
@@ -24,8 +26,9 @@ static const lv_img_dsc_t *const frames[][4] = {
     FRAMES(play), FRAMES(bath), FRAMES(treat), FRAMES(dress), FRAMES(achievement), FRAMES(stretch)
 };
 static pet_action_t action = IDLE;
-static unsigned coins = 0, frame = 0, cycles = 0, expression_ticks = 0;
-static bool wallet_notice = false;
+static unsigned coins = 0, server_credits = 0, frame = 0, cycles = 0, expression_ticks = 0, happy_target_cycles = 2;
+static bool wallet_notice = false, wallet_known = false;
+static char wallet_child[37];
 static lv_obj_t *balance_button;
 static lv_obj_t *balance, *pet_image, *buttons[12], *labels[12], *prices[12], *notice, *sleep_label, *pair_screen, *pair_input;
 
@@ -34,6 +37,58 @@ static unsigned menu_count = 2;
 static bool menu_visible;
 static bool menu_waiting_for_catalog;
 static void render_menu(void);
+
+typedef struct {
+    uint32_t version;
+    uint8_t known;
+    char child_id[37];
+    uint32_t server_credits;
+    shop_catalog_t catalog;
+} wallet_cache_t;
+
+static void save_wallet_cache(void)
+{
+    nvs_handle_t handle;
+    if (nvs_open("pet_wallet", NVS_READWRITE, &handle) != ESP_OK) return;
+    esp_err_t err;
+    if (!wallet_known) {
+        err = nvs_erase_key(handle, "cache");
+        if (err == ESP_ERR_NVS_NOT_FOUND) err = ESP_OK;
+    } else {
+        wallet_cache_t cache = { .version = 1, .known = 1, .server_credits = server_credits, .catalog = latest_catalog };
+        strlcpy(cache.child_id, wallet_child, sizeof(cache.child_id));
+        err = nvs_set_blob(handle, "cache", &cache, sizeof(cache));
+    }
+    if (err == ESP_OK) nvs_commit(handle);
+    nvs_close(handle);
+}
+
+static void load_wallet_cache(void)
+{
+    nvs_handle_t handle;
+    if (nvs_open("pet_wallet", NVS_READONLY, &handle) != ESP_OK) return;
+    wallet_cache_t cache = {0};
+    size_t size = sizeof(cache);
+    if (nvs_get_blob(handle, "cache", &cache, &size) == ESP_OK && size == sizeof(cache) &&
+        cache.version == 1 && cache.known == 1 && cache.child_id[36] == 0) {
+        wallet_known = true;
+        server_credits = cache.server_credits;
+        strlcpy(wallet_child, cache.child_id, sizeof(wallet_child));
+        if (cache.catalog.available && cache.catalog.count <= SHOP_LIMIT) latest_catalog = cache.catalog;
+        if (wallet_child[0]) pet_behavior_bind_child(wallet_child);
+    }
+    nvs_close(handle);
+}
+
+static void update_balance_ui(void)
+{
+    unsigned pending = shop_pending_spend();
+    coins = server_credits > pending ? server_credits - pending : 0;
+    if (balance) {
+        if (wallet_known) lv_label_set_text_fmt(balance, "%u cr", coins);
+        else lv_label_set_text(balance, "-- cr");
+    }
+}
 
 static void set_action(pet_action_t next)
 {
@@ -77,9 +132,10 @@ static void animate_pet(lv_timer_t *timer)
     if (!is_need(action)) frame = (frame + 1) % 4;
     if (!is_need(action) && frame == 0) {
         cycles++;
-        if ((action == EAT || action == DRINK || action == PET || action == PLAY || action == BATH || action == TREAT) && cycles >= 2) { set_action(HAPPY); return; }
-        if ((action == DRESS || action == ACHIEVEMENT || action == STRETCH) && cycles >= 1) { set_action(current_pet_action()); return; }
-        if (action == HAPPY && cycles >= 2) { set_action(current_pet_action()); return; }
+        if ((action == EAT || action == DRINK || action == PET || action == PLAY || action == BATH || action == TREAT) && cycles >= 4) { happy_target_cycles = 2; set_action(HAPPY); return; }
+        if (action == DRESS && cycles >= 4) { set_action(current_pet_action()); return; }
+        if ((action == ACHIEVEMENT || action == STRETCH) && cycles >= 1) { set_action(current_pet_action()); return; }
+        if (action == HAPPY && cycles >= happy_target_cycles) { happy_target_cycles = 2; set_action(current_pet_action()); return; }
     }
     static unsigned idle_ticks, next_stretch = 180;
     if (action == IDLE && ++idle_ticks >= next_stretch) {
@@ -124,12 +180,37 @@ static void menu_action(lv_event_t *event)
     if (index == menu_catalog.count) { toggle_sleep(event); return; }
     if (index == menu_catalog.count + 1) { play_pet(event); return; }
     if (index >= menu_catalog.count) return;
-    if (shop_purchase_pending()) {
-        lv_label_set_text(notice, "Checking purchase..."); shop_refresh();
-    } else if (shop_request_purchase(&menu_catalog.items[index])) {
-        set_menu(false); lv_label_set_text(notice, "Purchasing...");
-    } else lv_label_set_text(notice, "Try again");
-    lv_obj_clear_flag(notice, LV_OBJ_FLAG_HIDDEN);
+    const shop_item_t *item = &menu_catalog.items[index];
+    if (!wallet_known) {
+        lv_label_set_text(notice, wallet_notice ? "Check device in app" : "Syncing balance...");
+        lv_obj_clear_flag(notice, LV_OBJ_FLAG_HIDDEN);
+        network_refresh_wallet();
+        return;
+    }
+    update_balance_ui();
+    if (coins < item->price) {
+        lv_label_set_text(notice, "Not enough credits");
+        lv_obj_clear_flag(notice, LV_OBJ_FLAG_HIDDEN);
+        return;
+    }
+    if (!shop_request_purchase(item)) {
+        lv_label_set_text(notice, "Syncing purchases...");
+        lv_obj_clear_flag(notice, LV_OBJ_FLAG_HIDDEN);
+        shop_refresh();
+        return;
+    }
+    update_balance_ui();
+    network_wallet_update_t wallet = {.state = WALLET_READY, .credits = coins};
+    settings_ui_wallet_update(&wallet);
+    wallet_notice = false;
+    set_menu(false);
+    lv_obj_add_flag(notice, LV_OBJ_FLAG_HIDDEN);
+    if (item->action == SHOP_EAT) pet_behavior_care(PET_CARE_FOOD);
+    else if (item->action == SHOP_DRINK) pet_behavior_care(PET_CARE_WATER);
+    else if (item->action == SHOP_PET || item->action == SHOP_PLAY) pet_behavior_care(PET_CARE_COMPANY);
+    pet_action_t animations[] = {EAT,DRINK,PET,HAPPY,PLAY,BATH,TREAT,DRESS};
+    if (item->action == SHOP_HAPPY) happy_target_cycles = 4;
+    set_action(animations[item->action]);
 }
 static void render_menu(void)
 {
@@ -245,21 +326,39 @@ void app_main(void)
     lv_obj_set_width(notice, 160); lv_obj_set_style_text_align(notice, LV_TEXT_ALIGN_LEFT, 0);
     lv_obj_align(notice, LV_ALIGN_BOTTOM_LEFT, 6, -7);
     set_menu(false);
-    if (shop_purchase_pending()) { lv_label_set_text(notice,"Confirming purchase..."); lv_obj_clear_flag(notice,LV_OBJ_FLAG_HIDDEN); }
+    load_wallet_cache();
+    update_balance_ui();
     uint8_t mac[6]; esp_read_mac(mac, ESP_MAC_WIFI_STA);
     char name[24]; snprintf(name, sizeof(name), "PET-%02X%02X%02X", mac[3], mac[4], mac[5]);
     tasks_ui_init(screen);
     settings_ui_init(screen, name, esp_app_get_description()->version, settings_pair);
+    if (wallet_known) {
+        network_wallet_update_t cached = {.state = WALLET_READY, .credits = coins};
+        strlcpy(cached.child_id, wallet_child, sizeof(cached.child_id));
+        settings_ui_wallet_update(&cached);
+    }
     lv_timer_create(animate_pet, 300, NULL);
+    network_refresh_wallet();
+    task_refresh(0);
+    bool was_asleep = false, was_in_subpage = false;
     while (1) {
         pet_behavior_tick();
         display_power_tick();
+        bool asleep = display_power_is_asleep();
+        bool in_subpage = settings_ui_is_open() || tasks_ui_is_open();
+        if ((was_asleep && !asleep) || (was_in_subpage && !in_subpage)) {
+            network_refresh_wallet();
+            task_refresh(0);
+        }
+        was_asleep = asleep;
+        was_in_subpage = in_subpage;
         network_wallet_update_t updated;
         int pairing = network_take_pair_result();
         if (pairing) settings_ui_pair_result(pairing);
         if (pairing == 1) {
-            wallet_notice = true;
-            coins = 0; lv_label_set_text(balance, "-- cr");
+            wallet_notice = true; wallet_known = false; server_credits = 0; wallet_child[0] = 0;
+            memset(&latest_catalog, 0, sizeof(latest_catalog));
+            shop_clear_pending(); save_wallet_cache(); update_balance_ui();
             lv_label_set_text(notice, "Select child in app");
             lv_obj_clear_flag(notice, LV_OBJ_FLAG_HIDDEN);
         } else if (pairing == 2 || pairing == 3) {
@@ -268,18 +367,25 @@ void app_main(void)
         }
         if (network_take_wallet(&updated)) {
             if (updated.state == WALLET_READY) {
-                static char wallet_child[37];
                 if (updated.child_id[0]) {
-                    if (strcmp(wallet_child,updated.child_id)) { set_menu(false); memset(&latest_catalog,0,sizeof(latest_catalog)); }
-                    strlcpy(wallet_child,updated.child_id,sizeof(wallet_child));
+                    if (strcmp(wallet_child, updated.child_id)) {
+                        set_menu(false);
+                        memset(&latest_catalog, 0, sizeof(latest_catalog));
+                        if (wallet_child[0]) shop_clear_pending();
+                    }
+                    strlcpy(wallet_child, updated.child_id, sizeof(wallet_child));
                     pet_behavior_bind_child(updated.child_id);
                 }
-                coins = updated.credits; lv_label_set_text_fmt(balance, "%u cr", coins);
+                wallet_known = true;
+                server_credits = updated.credits;
+                update_balance_ui();
+                save_wallet_cache();
+                updated.credits = coins;
                 if (wallet_notice) { lv_obj_add_flag(notice, LV_OBJ_FLAG_HIDDEN); wallet_notice = false; }
             } else if (updated.state != WALLET_SYNC_FAILED) {
-                set_menu(false); memset(&latest_catalog,0,sizeof(latest_catalog));
-                wallet_notice = true;
-                lv_label_set_text(balance, "-- cr");
+                set_menu(false); memset(&latest_catalog, 0, sizeof(latest_catalog));
+                wallet_notice = true; wallet_known = false; server_credits = 0; wallet_child[0] = 0;
+                shop_clear_pending(); save_wallet_cache(); update_balance_ui();
                 lv_label_set_text(notice, updated.state == WALLET_WAITING_FOR_CHILD ? "Select child in app" : "Check device in app");
                 lv_obj_clear_flag(notice, LV_OBJ_FLAG_HIDDEN);
             }
@@ -287,9 +393,13 @@ void app_main(void)
         }
         shop_catalog_t catalog_update;
         if (shop_take_catalog(&catalog_update)) {
-            latest_catalog = catalog_update;
-            // An existing product menu keeps its snapshot while a finger selects.
-            // An initially empty/loading menu is filled once the first catalog arrives.
+            if (catalog_update.available) {
+                latest_catalog = catalog_update;
+                if (wallet_known) save_wallet_cache();
+            } else if (!wallet_known) {
+                latest_catalog = catalog_update;
+            }
+            // Keep cached catalog when temporarily offline if wallet is still known.
         }
         if (menu_open() && menu_waiting_for_catalog && latest_catalog.available) {
             bool touching = false;
@@ -311,7 +421,8 @@ void app_main(void)
         if (!touching_tasks && task_take_checkin(&checkin)) {
             tasks_ui_result(&checkin);
             if (checkin.state == CHECKIN_OK) {
-                coins = checkin.credits; lv_label_set_text_fmt(balance, "%u cr", coins);
+                wallet_known = true; server_credits = checkin.credits;
+                update_balance_ui(); save_wallet_cache();
                 network_wallet_update_t wallet = {.state = WALLET_READY, .credits = coins};
                 settings_ui_wallet_update(&wallet); network_refresh_wallet();
                 if (checkin.status == TASK_COMPLETED && checkin.awarded && pet_behavior_mood() != PET_SLEEPING) set_action(ACHIEVEMENT);
@@ -320,16 +431,19 @@ void app_main(void)
         purchase_result_t purchase;
         if (shop_take_result(&purchase)) {
             if (purchase.state == PURCHASE_OK) {
-                coins = purchase.credits; lv_label_set_text_fmt(balance, "%u cr", coins);
+                wallet_known = true; server_credits = purchase.credits;
+                update_balance_ui(); save_wallet_cache();
                 network_wallet_update_t wallet = {.state = WALLET_READY, .credits = coins};
                 settings_ui_wallet_update(&wallet);
-                wallet_notice = false; set_menu(false);
-                if (purchase.action == SHOP_EAT) pet_behavior_care(PET_CARE_FOOD);
-                else if (purchase.action == SHOP_DRINK) pet_behavior_care(PET_CARE_WATER);
-                else if (purchase.action == SHOP_PET || purchase.action == SHOP_PLAY) pet_behavior_care(PET_CARE_COMPANY);
-                pet_action_t animations[] = {EAT,DRINK,PET,HAPPY,PLAY,BATH,TREAT,DRESS};
-                set_action(animations[purchase.action]);
+                wallet_notice = false;
             } else {
+                update_balance_ui();
+                if (wallet_known) {
+                    network_wallet_update_t wallet = {.state = WALLET_READY, .credits = coins};
+                    settings_ui_wallet_update(&wallet);
+                }
+                if (purchase.state == PURCHASE_INSUFFICIENT) network_refresh_wallet();
+                else if (purchase.state == PURCHASE_CHANGED || purchase.state == PURCHASE_UNAVAILABLE) shop_refresh();
                 const char *messages[] = {"", "Confirming; see Settings", "Not enough credits", "Item changed; reopen", "Item removed; reopen", "Check pairing in app", "Save failed; try again", "Purchase needs review"};
                 lv_label_set_text(notice,messages[purchase.state]); lv_obj_clear_flag(notice,LV_OBJ_FLAG_HIDDEN);
             }

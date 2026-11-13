@@ -5,12 +5,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-struct queue { unsigned size; bool filled; char data[]; };
-QueueHandle_t xQueueCreate(unsigned count,unsigned size) {(void)count;struct queue *q=calloc(1,sizeof(*q)+size);q->size=size;return q;}
-int xQueueSend(QueueHandle_t q,const void *p,int timeout) {(void)timeout;if(q->filled)return 0;memcpy(q->data,p,q->size);q->filled=true;return 1;}
-int xQueueReceive(QueueHandle_t q,void *p,int timeout) {(void)timeout;if(!q->filled)return 0;memcpy(p,q->data,q->size);q->filled=false;return 1;}
-int xQueueOverwrite(QueueHandle_t q,const void *p) {q->filled=false;return xQueueSend(q,p,0);}
-static char stored[256];static size_t stored_size;static bool fail_store,fail_erase;
+struct queue { unsigned count, size, head, tail, len; char data[]; };
+QueueHandle_t xQueueCreate(unsigned count,unsigned size) {struct queue *q=calloc(1,sizeof(*q)+count*size);q->count=count;q->size=size;return q;}
+int xQueueSend(QueueHandle_t q,const void *p,int timeout) {(void)timeout;if(q->len>=q->count)return 0;memcpy(q->data+q->tail*q->size,p,q->size);q->tail=(q->tail+1)%q->count;q->len++;return 1;}
+int xQueueReceive(QueueHandle_t q,void *p,int timeout) {(void)timeout;if(q->len==0)return 0;memcpy(p,q->data+q->head*q->size,q->size);q->head=(q->head+1)%q->count;q->len--;return 1;}
+int xQueueOverwrite(QueueHandle_t q,const void *p) {q->head=q->tail=q->len=0;return xQueueSend(q,p,0);}
+static char stored[2048];static size_t stored_size;static bool fail_store,fail_erase;
 esp_err_t nvs_open(const char *name,int mode,nvs_handle_t *h) {(void)name;(void)mode;*h=1;return ESP_OK;}
 esp_err_t nvs_get_blob(nvs_handle_t h,const char *key,void *data,size_t *size) {(void)h;(void)key;if(!stored_size)return ESP_ERR_NVS_NOT_FOUND;if(*size<stored_size)return ESP_FAIL;memcpy(data,stored,stored_size);*size=stored_size;return ESP_OK;}
 esp_err_t nvs_set_blob(nvs_handle_t h,const char *key,const void *data,size_t size) {(void)h;(void)key;if(fail_store)return ESP_FAIL;assert(size<=sizeof(stored));memcpy(stored,data,size);stored_size=size;return ESP_OK;}
@@ -78,6 +78,17 @@ int main(void) {
         assert(shop_request_purchase(&catalog.items[0]));tick(true);
         assert(shop_take_result(&result) && result.state==PURCHASE_OK && result.action==expected[i]);
     }
+    // Multiple offline purchases queue in NVS, survive reboot, and replay in FIFO order.
+    purchases=0;purchase_http=200;purchase_response="{\"credits\":8,\"action\":\"drink\"}";
+    snprintf(catalog_json,sizeof(catalog_json),"{\"bindingVersion\":\"%s\",\"items\":[{\"id\":\"22222222-2222-4222-8222-222222222222\",\"name\":\"Water\",\"price\":2,\"action\":\"drink\",\"updated_at\":\"2026-11-13T00:00:00Z\"}]}",binding);
+    shop_refresh();tick(true);assert(shop_take_catalog(&catalog) && catalog.available);
+    assert(shop_request_purchase(&catalog.items[0]));
+    assert(shop_request_purchase(&catalog.items[0]));
+    assert(shop_pending_spend()==4);
+    tick(false);assert(stored_size && purchases==0 && shop_pending_spend()==4);
+    shop_network_init();assert(shop_pending_spend()==4);
+    tick(true);assert(purchases==1 && shop_pending_spend()==2 && shop_take_result(&result) && result.state==PURCHASE_OK);
+    tick(true);assert(purchases==2 && shop_pending_spend()==0 && !stored_size && shop_take_result(&result) && result.state==PURCHASE_OK);
     // An unavailable token removes a previously published catalog.
     snprintf(catalog_json,sizeof(catalog_json),"{\"bindingVersion\":\"%s\",\"items\":[]}",binding);tick(true);assert(shop_take_catalog(&catalog) && catalog.available);
     shop_network_tick("",true,true);assert(shop_take_catalog(&catalog) && !catalog.available);
