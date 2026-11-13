@@ -3,8 +3,9 @@ config STUDY_PET_WIFI_SSID
     string "2.4 GHz Wi-Fi SSID"
     default ""
     help
-        Network credentials are stored in the local ignored sdkconfig and compiled
-        into the firmware. Use a development network and do not share the binary.
+        Optional development fallback. Settings on the device can scan and save
+        Wi-Fi credentials in NVS; those take precedence over this fallback.
+        Keep sdkconfig and firmware private when using a compiled fallback.
 config STUDY_PET_WIFI_PASSWORD
     string "Wi-Fi password"
     default ""

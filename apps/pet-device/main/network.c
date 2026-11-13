@@ -1,15 +1,12 @@
 #include "network.h"
 #include "shop_network.h"
+#include "wifi_manager.h"
 #include "sdkconfig.h"
 #include "esp_crt_bundle.h"
-#include "esp_event.h"
 #include "esp_http_client.h"
 #include "esp_log.h"
-#include "esp_netif.h"
 #include "esp_sntp.h"
-#include "esp_wifi.h"
 #include "freertos/FreeRTOS.h"
-#include "freertos/event_groups.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include "cJSON.h"
@@ -21,9 +18,7 @@
 #include <string.h>
 #include <time.h>
 
-#define CONNECTED_BIT BIT0
 static const char *TAG = "pet_net";
-static EventGroupHandle_t network_events;
 static QueueHandle_t wallet_updates, pair_requests, pair_results, refresh_requests;
 static char device_token[65];
 static bool paired;
@@ -128,7 +123,7 @@ bool network_take_wallet(network_wallet_update_t *update) { return wallet_update
 bool network_business_enabled(void) { return paired || CONFIG_STUDY_PET_DEVICE_TOKEN[0] != '\0'; }
 bool network_refresh_wallet(void)
 {
-    if (!refresh_requests || !network_events || !network_business_enabled()) return false;
+    if (!refresh_requests || !network_business_enabled()) return false;
     uint8_t request = 1;
     return xQueueSend(refresh_requests, &request, 0) == pdTRUE;
 }
@@ -163,54 +158,29 @@ static void perform_pair(const char *code)
 }
 
 
-static void event_handler(void *arg, esp_event_base_t base, int32_t id, void *data)
-{
-    (void)arg; (void)data;
-    if (base == WIFI_EVENT && id == WIFI_EVENT_STA_START) esp_wifi_connect();
-    else if (base == WIFI_EVENT && id == WIFI_EVENT_STA_DISCONNECTED) {
-        xEventGroupClearBits(network_events, CONNECTED_BIT);
-        esp_wifi_connect();
-    } else if (base == IP_EVENT && id == IP_EVENT_STA_GOT_IP) {
-        xEventGroupSetBits(network_events, CONNECTED_BIT);
-    }
-}
 static void network_task(void *arg)
 {
     (void)arg;
-    if (!CONFIG_STUDY_PET_WIFI_SSID[0]) {
-        ESP_LOGW(TAG, "Wi-Fi is not configured; network sync disabled");
-        vTaskDelete(NULL);
-        return;
-    }
-    if (strlen(CONFIG_STUDY_PET_WIFI_SSID) >= sizeof(((wifi_config_t *)0)->sta.ssid) ||
-        strlen(CONFIG_STUDY_PET_WIFI_PASSWORD) >= sizeof(((wifi_config_t *)0)->sta.password)) {
-        ESP_LOGE(TAG, "Wi-Fi configuration exceeds supported length"); vTaskDelete(NULL); return;
-    }
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
-    esp_netif_create_default_wifi_sta();
-    network_events = xEventGroupCreate();
-    if (!network_events) { ESP_LOGE(TAG, "No memory for network event group"); vTaskDelete(NULL); return; }
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-    ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, event_handler, NULL));
-    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, event_handler, NULL));
-    wifi_config_t wifi = {0};
-    strlcpy((char *)wifi.sta.ssid, CONFIG_STUDY_PET_WIFI_SSID, sizeof(wifi.sta.ssid));
-    strlcpy((char *)wifi.sta.password, CONFIG_STUDY_PET_WIFI_PASSWORD, sizeof(wifi.sta.password));
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi));
-    ESP_ERROR_CHECK(esp_wifi_start());
     esp_sntp_setoperatingmode(SNTP_OPMODE_POLL);
-    esp_sntp_setservername(0, "pool.ntp.org");
+    esp_sntp_setservername(0, "ntp.aliyun.com");
+    esp_sntp_setservername(1, "time.cloudflare.com");
+    esp_sntp_setservername(2, "pool.ntp.org");
     esp_sntp_init();
     int64_t next_sync = 0;
     unsigned retry_seconds = 10;
+    int64_t next_clock_notice = 0;
+    bool clock_was_ready = false;
     for (;;) {
         char code[7];
         bool waiting = xQueueReceive(pair_requests, code, pdMS_TO_TICKS(1000)) == pdTRUE;
-        bool online = (xEventGroupGetBits(network_events) & CONNECTED_BIT) != 0;
+        bool online = wifi_manager_online();
         bool clock_ready = time(NULL) >= 1704067200;
+        if (online && !clock_ready && esp_timer_get_time() >= next_clock_notice) {
+            ESP_LOGW(TAG, "Waiting for network time before HTTPS sync");
+            next_clock_notice = esp_timer_get_time() + 30000000LL;
+        }
+        if (clock_ready && !clock_was_ready) ESP_LOGI(TAG, "Network time ready; HTTPS sync enabled");
+        clock_was_ready = clock_ready;
         uint8_t refresh_request;
         bool manual = xQueueReceive(refresh_requests, &refresh_request, 0) == pdTRUE;
         if (waiting) {
@@ -237,6 +207,7 @@ static void network_task(void *arg)
 }
 void network_start(void) {
     if (!load_identity()) { ESP_LOGE(TAG, "NVS unavailable; pairing disabled"); return; }
+    if (!wifi_manager_start()) return;
     shop_network_init();
     wallet_updates = xQueueCreate(1, sizeof(network_wallet_update_t));
     pair_requests = xQueueCreate(1, 7);

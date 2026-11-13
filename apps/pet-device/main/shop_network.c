@@ -3,6 +3,7 @@
 #include "esp_crt_bundle.h"
 #include "esp_random.h"
 #include "esp_timer.h"
+#include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "cJSON.h"
@@ -21,6 +22,8 @@ static bool has_pending, storage_ready;
 static int64_t next_catalog, next_purchase;
 static unsigned retry_seconds = 10;
 static bool published_unavailable;
+static const char *TAG = "pet_shop";
+static unsigned last_catalog_count = UINT_MAX;
 static esp_err_t http_event(esp_http_client_event_t *event) {
     response_t *response = event->user_data;
     if (event->event_id == HTTP_EVENT_ON_DATA && event->data_len > 0) {
@@ -86,9 +89,12 @@ static void sync_catalog(const char *token) {
     }
     cJSON_Delete(json);
     catalog.available = valid;
+    if (valid && (published_unavailable || last_catalog_count != catalog.count)) ESP_LOGI(TAG, "Shop synchronized: %u items", catalog.count);
+    if (valid) last_catalog_count = catalog.count;
+    if (!valid) ESP_LOGW(TAG, "Shop sync failed: HTTP %d, response bytes %u", status, (unsigned)response.length);
     if (valid || !published_unavailable) xQueueOverwrite(catalog_updates, &catalog);
     published_unavailable = !valid;
-    next_catalog = esp_timer_get_time() + (valid ? 10000000LL : 30000000LL);
+    next_catalog = esp_timer_get_time() + (valid ? 10000000LL : 5000000LL);
 }
 static void publish_result(purchase_result_t result) { xQueueOverwrite(purchase_results, &result); }
 static void purchase(const char *token) {

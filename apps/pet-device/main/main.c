@@ -5,7 +5,12 @@
 #include "esp_random.h"
 #include "network.h"
 #include "shop_network.h"
-#include <math.h>
+#include "action_layout.h"
+#include "pet_image_view.h"
+#include "settings_ui.h"
+#include "esp_app_desc.h"
+#include "esp_mac.h"
+#include <stdio.h>
 LV_FONT_DECLARE(shop_cjk_font);
 
 #define FRAMES(name) {&husky_##name##_01, &husky_##name##_02, &husky_##name##_03, &husky_##name##_04}
@@ -19,14 +24,13 @@ static pet_action_t action = IDLE;
 static unsigned coins = 0, frame = 0, cycles = 0, need_ticks = 0;
 static int last_need = -1;
 static bool wallet_notice = false;
-static bool refresh_pending = false, refresh_feedback = false;
-static uint32_t refresh_feedback_at;
-static lv_obj_t *balance_button, *refresh_hint;
-static lv_obj_t *balance, *pet_image, *buttons[12], *labels[12], *prices[12], *notice, *sleep_label, *pair_button, *pair_screen, *pair_input;
+static lv_obj_t *balance_button;
+static lv_obj_t *balance, *pet_image, *buttons[12], *labels[12], *prices[12], *notice, *sleep_label, *pair_screen, *pair_input;
 
 static shop_catalog_t latest_catalog, menu_catalog;
 static unsigned menu_count = 2;
 static bool menu_visible;
+static bool menu_waiting_for_catalog;
 static void render_menu(void);
 
 static void set_action(pet_action_t next)
@@ -39,7 +43,9 @@ static bool is_need(pet_action_t a) { return a == HUNGRY || a == THIRSTY || a ==
 static bool menu_open(void) { return menu_visible; }
 static void set_menu(bool open) {
     menu_visible = open;
+    menu_waiting_for_catalog = open && !latest_catalog.available;
     if (open) render_menu();
+    pet_image_set_menu_open(pet_image, open);
     for (unsigned i = 0; i < 12; i++) {
         if (open && i < menu_count) lv_obj_clear_flag(buttons[i], LV_OBJ_FLAG_HIDDEN);
         else lv_obj_add_flag(buttons[i], LV_OBJ_FLAG_HIDDEN);
@@ -49,7 +55,7 @@ static void set_menu(bool open) {
 static void animate_pet(lv_timer_t *timer)
 {
     (void)timer;
-    if (menu_open()) return;
+    if (menu_open() || settings_ui_is_open()) return;
     if (!is_need(action)) frame = (frame + 1) % 4;
     if (!is_need(action) && frame == 0) {
         cycles++;
@@ -77,7 +83,7 @@ static void show_menu(lv_event_t *event)
     if (busy()) return;
     set_menu(!menu_open());
     if (!latest_catalog.available && menu_open()) {
-        lv_label_set_text(notice, "Shop offline; tap credits"); lv_obj_clear_flag(notice, LV_OBJ_FLAG_HIDDEN);
+        lv_label_set_text(notice, "Loading shop; see Settings"); lv_obj_clear_flag(notice, LV_OBJ_FLAG_HIDDEN);
         shop_refresh();
     }
 }
@@ -114,10 +120,12 @@ static void render_menu(void)
     menu_count = menu_catalog.count + 2;
     sleep_label = labels[menu_catalog.count];
     for (unsigned i = 0; i < menu_count; i++) {
-        float angle = -1.5707963f + 6.2831853f * (float)i / menu_count;
-        int x = 120 + (int)(93 * cosf(angle)) - 23;
-        int y = 175 + (int)(110 * sinf(angle)) - 20;
-        lv_obj_set_pos(buttons[i], x, y);
+        action_bounds_t box = action_bounds(menu_count, i);
+        lv_obj_set_size(buttons[i], box.width, box.height);
+        lv_obj_set_pos(buttons[i], box.x, box.y);
+        lv_obj_set_width(labels[i], box.width - 8);
+        lv_obj_align(labels[i], LV_ALIGN_TOP_MID, 0, menu_count <= 6 ? 9 : 6);
+        lv_obj_align(prices[i], LV_ALIGN_BOTTOM_MID, 0, menu_count <= 6 ? -7 : -5);
         if (i < menu_catalog.count) {
             const shop_item_t *item = &menu_catalog.items[i];
             lv_label_set_text(labels[i], item->name);
@@ -138,7 +146,8 @@ static void pair_keyboard_event(lv_event_t *event)
     if (type != LV_EVENT_READY) return;
     if (!network_pair_request(lv_textarea_get_text(pair_input))) {
         lv_label_set_text(notice, "Invalid code");
-    } else lv_label_set_text(notice, "Connecting...");
+        settings_ui_pair_result(2);
+    } else { lv_label_set_text(notice, "Connecting..."); settings_ui_pair_result(0); }
     lv_obj_del(pair_screen); pair_screen = NULL;
     lv_obj_clear_flag(notice, LV_OBJ_FLAG_HIDDEN);
 }
@@ -164,19 +173,12 @@ static void open_pairing(lv_event_t *event)
     lv_keyboard_set_mode(keyboard, LV_KEYBOARD_MODE_NUMBER);
     lv_obj_add_event_cb(keyboard, pair_keyboard_event, LV_EVENT_ALL, NULL);
 }
-static void refresh_wallet(lv_event_t *event)
+static void settings_pair(void) { open_pairing(NULL); }
+static void open_settings(lv_event_t *event)
 {
     (void)event;
-    if (refresh_pending) return;
-    if (!network_business_enabled()) { open_pairing(NULL); return; }
-    if (!network_refresh_wallet()) {
-        lv_label_set_text(refresh_hint, "Try again");
-        refresh_feedback = true; refresh_feedback_at = lv_tick_get();
-        return;
-    }
-    refresh_pending = true; refresh_feedback = false;
-    lv_obj_add_state(balance_button, LV_STATE_DISABLED);
-    lv_label_set_text(refresh_hint, "Syncing...");
+    set_menu(false);
+    settings_ui_open();
 }
 void app_main(void)
 {
@@ -186,28 +188,30 @@ void app_main(void)
     lv_obj_set_style_bg_color(screen, lv_color_hex(0xfff7e7), 0);
     lv_obj_t *title = lv_label_create(screen); lv_label_set_text(title, "Keep going!"); lv_obj_align(title, LV_ALIGN_TOP_LEFT, 8, 12);
     balance_button = lv_btn_create(screen);
-    lv_obj_set_size(balance_button, 112, 36); lv_obj_align(balance_button, LV_ALIGN_TOP_RIGHT, -4, 2);
+    lv_obj_set_size(balance_button, 112, 40); lv_obj_align(balance_button, LV_ALIGN_TOP_RIGHT, -4, 2);
     lv_obj_set_style_bg_opa(balance_button, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_set_style_shadow_width(balance_button, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(balance_button, 0, LV_PART_MAIN);
     lv_obj_set_style_text_color(balance_button, lv_color_hex(0x433c32), LV_PART_MAIN);
-    lv_obj_add_event_cb(balance_button, refresh_wallet, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(balance_button, open_settings, LV_EVENT_CLICKED, NULL);
     balance = lv_label_create(balance_button);
-    lv_obj_set_width(balance, 108); lv_label_set_long_mode(balance, LV_LABEL_LONG_SCROLL_CIRCULAR);
+    lv_obj_set_width(balance, 82); lv_label_set_long_mode(balance, LV_LABEL_LONG_SCROLL_CIRCULAR);
     lv_obj_set_style_text_align(balance, LV_TEXT_ALIGN_RIGHT, 0);
-    lv_label_set_text(balance, "-- credits");
-    lv_obj_align(balance, LV_ALIGN_TOP_RIGHT, -4, 0);
-    refresh_hint = lv_label_create(balance_button); lv_label_set_text(refresh_hint, "Tap to sync");
-    lv_obj_align(refresh_hint, LV_ALIGN_BOTTOM_RIGHT, -4, -1);
+    lv_label_set_text(balance, "-- cr");
+    lv_obj_align(balance, LV_ALIGN_TOP_RIGHT, -26, 10);
+    lv_obj_t *settings_icon = lv_label_create(balance_button);
+    lv_label_set_text(settings_icon, LV_SYMBOL_SETTINGS);
+    lv_obj_align(settings_icon, LV_ALIGN_TOP_RIGHT, -4, 10);
     pet_image = lv_img_create(screen); lv_img_set_src(pet_image, frames[IDLE][0]); lv_obj_align(pet_image, LV_ALIGN_CENTER, 0, 8);
     lv_obj_add_flag(pet_image, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(pet_image, show_menu, LV_EVENT_CLICKED, NULL);
 
     for (unsigned i = 0; i < 12; i++) {
-        buttons[i] = lv_btn_create(screen); lv_obj_set_size(buttons[i],46,40);
+        buttons[i] = lv_btn_create(screen);
+        lv_obj_clear_flag(buttons[i], LV_OBJ_FLAG_SCROLLABLE);
         lv_obj_set_style_radius(buttons[i],16,0); lv_obj_set_style_pad_all(buttons[i],0,0);
         lv_obj_add_event_cb(buttons[i],menu_action,LV_EVENT_CLICKED,(void *)(uintptr_t)i);
-        labels[i] = lv_label_create(buttons[i]); lv_obj_set_width(labels[i],44);
+        labels[i] = lv_label_create(buttons[i]);
         lv_obj_set_style_text_font(labels[i],&shop_cjk_font,0);
         lv_obj_set_style_text_align(labels[i],LV_TEXT_ALIGN_CENTER,0);
         lv_label_set_long_mode(labels[i],LV_LABEL_LONG_SCROLL_CIRCULAR); lv_obj_set_height(labels[i],14);
@@ -217,64 +221,65 @@ void app_main(void)
         lv_obj_align(prices[i],LV_ALIGN_BOTTOM_MID,0,-3);
     }
     render_menu();
-    pair_button = lv_btn_create(screen);
-    lv_obj_set_size(pair_button, 55, 28); lv_obj_align(pair_button, LV_ALIGN_BOTTOM_RIGHT, -4, -4);
-    lv_obj_add_event_cb(pair_button, open_pairing, LV_EVENT_CLICKED, NULL);
-    lv_obj_t *pair_label = lv_label_create(pair_button); lv_label_set_text(pair_label, "Pair"); lv_obj_center(pair_label);
-    if (network_business_enabled()) lv_obj_add_flag(pair_button, LV_OBJ_FLAG_HIDDEN);
     notice = lv_label_create(screen); lv_label_set_text(notice, "Not enough credits");
     lv_obj_align(notice, LV_ALIGN_BOTTOM_MID, 0, -1);
     set_menu(false);
     if (shop_purchase_pending()) { lv_label_set_text(notice,"Confirming purchase..."); lv_obj_clear_flag(notice,LV_OBJ_FLAG_HIDDEN); }
+    uint8_t mac[6]; esp_read_mac(mac, ESP_MAC_WIFI_STA);
+    char name[24]; snprintf(name, sizeof(name), "PET-%02X%02X%02X", mac[3], mac[4], mac[5]);
+    settings_ui_init(screen, name, esp_app_get_description()->version, settings_pair);
     lv_timer_create(animate_pet, 300, NULL);
     while (1) {
         network_wallet_update_t updated;
         int pairing = network_take_pair_result();
+        if (pairing) settings_ui_pair_result(pairing);
         if (pairing == 1) {
             wallet_notice = true;
-            coins = 0; lv_label_set_text(balance, "-- credits");
+            coins = 0; lv_label_set_text(balance, "-- cr");
             lv_label_set_text(notice, "Select child in app");
             lv_obj_clear_flag(notice, LV_OBJ_FLAG_HIDDEN);
-            lv_obj_add_flag(pair_button, LV_OBJ_FLAG_HIDDEN);
         } else if (pairing == 2 || pairing == 3) {
             lv_label_set_text(notice, pairing == 2 ? "Code not accepted" : "Network error; retry");
             lv_obj_clear_flag(notice, LV_OBJ_FLAG_HIDDEN);
         }
         if (network_take_wallet(&updated)) {
             if (updated.state == WALLET_READY) {
-                coins = updated.credits; lv_label_set_text_fmt(balance, "%u credits", coins);
+                coins = updated.credits; lv_label_set_text_fmt(balance, "%u cr", coins);
                 if (wallet_notice) { lv_obj_add_flag(notice, LV_OBJ_FLAG_HIDDEN); wallet_notice = false; }
             } else if (updated.state != WALLET_SYNC_FAILED) {
                 wallet_notice = true;
-                lv_label_set_text(balance, "-- credits");
+                lv_label_set_text(balance, "-- cr");
                 lv_label_set_text(notice, updated.state == WALLET_WAITING_FOR_CHILD ? "Select child in app" : "Check device in app");
                 lv_obj_clear_flag(notice, LV_OBJ_FLAG_HIDDEN);
             }
-            if (updated.manual) {
-                refresh_pending = false; refresh_feedback = true; refresh_feedback_at = lv_tick_get();
-                lv_obj_clear_state(balance_button, LV_STATE_DISABLED);
-                lv_label_set_text(refresh_hint, updated.state == WALLET_READY ? "Synced" : updated.state == WALLET_WAITING_FOR_CHILD ? "Pick child" : updated.state == WALLET_UNAUTHORIZED ? "Check pairing" : "Retry sync");
-            }
+            settings_ui_wallet_update(&updated);
         }
         shop_catalog_t catalog_update;
         if (shop_take_catalog(&catalog_update)) {
             latest_catalog = catalog_update;
-            // Keep the menu snapshot stable while a finger is selecting a product.
+            // An existing product menu keeps its snapshot while a finger selects.
+            // An initially empty/loading menu is filled once the first catalog arrives.
+        }
+        if (menu_open() && menu_waiting_for_catalog && latest_catalog.available) {
+            bool touching = false;
+            for (lv_indev_t *input = lv_indev_get_next(NULL); input; input = lv_indev_get_next(input)) {
+                if (input->proc.state == LV_INDEV_STATE_PR) touching = true;
+            }
+            if (!touching) set_menu(true);
         }
         purchase_result_t purchase;
         if (shop_take_result(&purchase)) {
             if (purchase.state == PURCHASE_OK) {
-                coins = purchase.credits; lv_label_set_text_fmt(balance, "%u credits", coins);
+                coins = purchase.credits; lv_label_set_text_fmt(balance, "%u cr", coins);
+                network_wallet_update_t wallet = {.state = WALLET_READY, .credits = coins};
+                settings_ui_wallet_update(&wallet);
                 wallet_notice = false; set_menu(false);
                 pet_action_t animations[] = {EAT,DRINK,PET,HAPPY};
                 set_action(animations[purchase.action]); need_ticks = 0;
             } else {
-                const char *messages[] = {"", "Confirming; tap credits", "Not enough credits", "Item changed; reopen", "Item removed; reopen", "Check pairing in app", "Save failed; try again", "Purchase needs review"};
+                const char *messages[] = {"", "Confirming; see Settings", "Not enough credits", "Item changed; reopen", "Item removed; reopen", "Check pairing in app", "Save failed; try again", "Purchase needs review"};
                 lv_label_set_text(notice,messages[purchase.state]); lv_obj_clear_flag(notice,LV_OBJ_FLAG_HIDDEN);
             }
-        }
-        if (refresh_feedback && lv_tick_elaps(refresh_feedback_at) >= 2500) {
-            refresh_feedback = false; lv_label_set_text(refresh_hint, "Tap to sync");
         }
         vTaskDelay(pdMS_TO_TICKS(10)); lv_timer_handler();
     }

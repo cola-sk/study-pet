@@ -5,3 +5,6 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../../managed_components/lvgl__lvg
 add_executable(check_pet_png check.c ../../main/husky_frames.c)
 target_include_directories(check_pet_png PRIVATE ../../main)
 target_link_libraries(check_pet_png PRIVATE lvgl m)
+add_executable(check_settings settings_check.c ../../main/settings_ui.c ../../main/fonts/shop_cjk.c)
+target_include_directories(check_settings PRIVATE ../../main)
+target_link_libraries(check_settings PRIVATE lvgl m)
