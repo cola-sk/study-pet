@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   try {
     const { db, familyId } = await parentContext(request);
-    const { data, error } = await db.from('children').select('id,nickname,coins_balance,avatar_url').eq('family_id', familyId).order('created_at');
+    const { data, error } = await db.from('children').select('id,nickname,pet_name,coins_balance,avatar_url').eq('family_id', familyId).order('created_at');
     if (error) throw new ApiError(503, 'Children unavailable');
     const [pets, devices] = await Promise.all([
       db.from('pet_states').select('child_id,food_count,water_count').eq('family_id', familyId),
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => null);
     if (typeof body?.nickname !== 'string' || !body.nickname.trim() || body.nickname.trim().length > 50) throw new ApiError(400, 'Invalid nickname');
     const { db, familyId } = await parentContext(request);
-    const { data, error } = await db.from('children').insert({ family_id: familyId, nickname: body.nickname.trim() }).select('id,nickname,coins_balance,avatar_url').single();
+    const { data, error } = await db.from('children').insert({ family_id: familyId, nickname: body.nickname.trim() }).select('id,nickname,pet_name,coins_balance,avatar_url').single();
     if (error) throw new ApiError(503, 'Could not create child');
     return reply({ child: data }, 201);
   } catch (error) { return failure(error); }

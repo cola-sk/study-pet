@@ -2,7 +2,7 @@
 #include <stdbool.h>
 void network_start(void);
 typedef enum { WALLET_READY, WALLET_WAITING_FOR_CHILD, WALLET_UNAUTHORIZED, WALLET_SYNC_FAILED } network_wallet_state_t;
-typedef struct { network_wallet_state_t state; unsigned credits; bool manual; } network_wallet_update_t;
+typedef struct { network_wallet_state_t state; unsigned credits; bool manual; char child_id[37], device_alias[151]; } network_wallet_update_t;
 bool network_take_wallet(network_wallet_update_t *update);
 bool network_refresh_wallet(void);
 bool network_business_enabled(void);

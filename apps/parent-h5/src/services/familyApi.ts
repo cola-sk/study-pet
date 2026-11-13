@@ -1,11 +1,11 @@
 import { supabase } from './supabase';
 
 export type FamilyChild = {
-  id: string; nickname: string; coins_balance: number; avatar_url?: string | null;
+  id: string; nickname: string; pet_name?: string; coins_balance: number; avatar_url?: string | null;
   pet?: { food_count: number; water_count: number } | null;
   devices?: { id: string; alias: string }[];
 };
-export type FamilyDevice = { id: string; alias: string; child_id: string | null; status: string; last_seen_at: string | null };
+export type FamilyDevice = { id: string; alias: string; child_id: string | null; status: string; last_seen_at: string | null; updated_at: string };
 export class FamilyApiError extends Error {
   constructor(message: string, public status: number) { super(message); }
 }

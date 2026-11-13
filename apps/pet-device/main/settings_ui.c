@@ -13,7 +13,8 @@ static lv_obj_t *ssid_input, *password_input, *keyboard, *password_button, *conn
 static lv_obj_t *progress_message, *progress_button;
 static page_t page;
 static pet_wifi_snapshot_t view;
-static char selected_ssid[33], device_name[24], firmware_version[32];
+static char selected_ssid[33], device_name[24], firmware_version[32], cloud_alias[151];
+static bool device_page_paired;
 static bool password_required, credits_known, syncing, progress_finished;
 static unsigned credits;
 static uint32_t last_sync, sync_started, waiting_attempt;
@@ -321,9 +322,12 @@ static void pair_device(lv_event_t *event) { (void)event; if (pair_callback) pai
 static void show_device(void)
 {
     begin_page(PAGE_DEVICE, "Device");
-    label(root, device_name, 16, 60, 208);
-    char value[64]; snprintf(value, sizeof(value), "Firmware: %s", firmware_version);
-    label(root, value, 16, 92, 208);
+    device_page_paired=network_business_enabled();
+    lv_obj_t *alias_label=label(root, cloud_alias[0] ? cloud_alias : device_name, 16, 52, 208);
+    lv_obj_set_height(alias_label,36); lv_label_set_long_mode(alias_label,LV_LABEL_LONG_DOT);
+    char identity[64]; snprintf(identity,sizeof(identity),"%s | %s",device_name,firmware_version);
+    label(root, identity, 16, 92, 208);
+
     device_status = label(root, network_business_enabled() ? "Family paired" : "Not paired", 16, 132, 208);
     const char *hint = network_business_enabled() ? "Manage child assignment\nin the parent app." : pairing_feedback == 0 ? "Pairing..." : pairing_feedback == 2 ? "Code not accepted.\nCheck the code and retry." : pairing_feedback == 3 ? "Network error.\nCheck Wi-Fi and retry." : "Connect Wi-Fi, then enter\nyour 6-digit family code.";
     label(root, hint, 16, 166, 208);
@@ -346,7 +350,7 @@ static void ui_tick(lv_timer_t *timer)
         const char *message = view.attempt == PET_WIFI_ATTEMPT_SAVED ? "Connected!\nNetwork saved on device." : view.attempt == PET_WIFI_ATTEMPT_SAVE_FAILED ? "Could not save network.\nPrevious settings kept." : "Connection failed.\nCheck network / password.\nPrevious settings kept.";
         text(progress_message, message);
         button_text(progress_button, view.attempt == PET_WIFI_ATTEMPT_SAVED ? "Back to Settings" : "Try again");
-    } else if (page == PAGE_DEVICE) text(device_status, network_business_enabled() ? "Family paired" : "Not paired");
+    } else if (page == PAGE_DEVICE && device_page_paired != network_business_enabled()) show_device();
 }
 void settings_ui_init(lv_obj_t *screen, const char *name, const char *version, void (*callback)(void))
 {
@@ -361,10 +365,14 @@ bool settings_ui_is_open(void) { return root != NULL; }
 void settings_ui_wallet_update(const network_wallet_update_t *update)
 {
     wallet_state = update->state;
+    bool alias_changed=update->device_alias[0] && strcmp(cloud_alias,update->device_alias);
+    if (alias_changed) strlcpy(cloud_alias,update->device_alias,sizeof(cloud_alias));
+    if (update->state==WALLET_UNAUTHORIZED) cloud_alias[0]=0;
     if (update->state == WALLET_READY) { credits = update->credits; credits_known = true; last_sync = lv_tick_get(); }
     else if (update->state != WALLET_SYNC_FAILED) credits_known = false;
     if (update->manual) syncing = false;
     if (root && page == PAGE_SETTINGS) update_settings();
+    else if (root && page == PAGE_DEVICE && (alias_changed || device_page_paired!=network_business_enabled())) show_device();
 }
 void settings_ui_pair_result(int result)
 {

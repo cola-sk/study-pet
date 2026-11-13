@@ -8,6 +8,6 @@ export async function GET(request: NextRequest) {
     const { data, error } = await db.from('children').select('coins_balance').eq('id', device.child_id).eq('family_id', device.family_id).maybeSingle();
     if (error) throw new ApiError(503, 'Wallet unavailable');
     if (!data) throw new ApiError(403, 'Device child is unavailable');
-    return reply({ credits: data.coins_balance });
+    return reply({ credits: data.coins_balance, childId: device.child_id, deviceAlias: device.alias });
   } catch (error) { return failure(error); }
 }

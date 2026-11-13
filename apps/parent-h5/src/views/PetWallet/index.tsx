@@ -5,6 +5,7 @@ import { Popup, Toast } from 'antd-mobile';
 import { FamilyShop, ShopProduct } from '../../components/FamilyShop';
 import { IconCoin, IconPaw, IconPlus } from '../../components/Icons';
 import { UserProvidedVisual } from '../../components/UserProvidedVisual';
+import { ChildProfileEditor } from './ChildProfileEditor';
 import { familyApi, FamilyApiError, FamilyChild } from '../../services/familyApi';
 
 type Transaction = { id: string; amount: number; balance_after: number; type: string; description: string; created_at: string };
@@ -21,6 +22,7 @@ export const PetWalletPage: React.FC = () => {
   const [walletError, setWalletError] = useState('');
   const [revision, setRevision] = useState(0);
   const [newChild, setNewChild] = useState(false);
+  const [editingChild, setEditingChild] = useState<FamilyChild | null>(null);
   const [nickname, setNickname] = useState('');
   const [creating, setCreating] = useState(false);
   const [rewardOpen, setRewardOpen] = useState(false);
@@ -121,7 +123,8 @@ export const PetWalletPage: React.FC = () => {
         <div className="flex gap-2 overflow-x-auto" role="tablist" aria-label="选择宝贝">{children.map(item => <button type="button" role="tab" aria-selected={childId === item.id} key={item.id} onClick={() => setChildId(item.id)} className={`kid-filter-chip shrink-0 ${childId === item.id ? 'kid-filter-chip-selected' : ''}`}>{item.nickname?.trim() || '宝贝'}</button>)}</div>
         {child && <>
           <section className="kid-card space-y-4">
-            <div className="flex items-center gap-3"><div className="w-14 h-14 rounded-2xl bg-[#F1F4EB] flex items-center justify-center shrink-0">{child.avatar_url ? <UserProvidedVisual value={child.avatar_url} alt="宝贝头像" className="h-14 w-14 rounded-2xl object-cover" /> : <IconPaw className="w-7 h-7 text-[#728E62]" />}</div><div className="min-w-0"><h3 className="text-h2 truncate">{child.nickname?.trim() || '宝贝'}</h3><p className="text-sm text-[#6B7280] mt-1">陪伴宠物 · 小二哈</p></div></div>
+            <div className="flex justify-end"><button type="button" className="kid-btn kid-btn-ghost kid-btn-sm" onClick={() => setEditingChild(child)}>编辑昵称</button></div>
+            <div className="flex items-center gap-3"><div className="w-14 h-14 rounded-2xl bg-[#F1F4EB] flex items-center justify-center shrink-0">{child.avatar_url ? <UserProvidedVisual value={child.avatar_url} alt="宝贝头像" className="h-14 w-14 rounded-2xl object-cover" /> : <IconPaw className="w-7 h-7 text-[#728E62]" />}</div><div className="min-w-0"><h3 className="text-h2 truncate">{child.nickname?.trim() || '宝贝'}</h3><p className="text-sm text-[#6B7280] mt-1">陪伴宠物 · {child.pet_name?.trim() || '小二哈'}</p></div></div>
             <div className="rounded-xl bg-[#FAF5E9] p-4 flex items-center justify-between gap-3"><div><p className="text-xs text-[#78664D]">宝贝的金币 · 用于照顾小宠</p><div className="flex items-center gap-1 mt-1 text-2xl font-bold text-[#9B681C]"><IconCoin className="w-5 h-5" />{wallet?.credits ?? child.coins_balance}</div></div><button type="button" className="kid-btn kid-btn-primary kid-btn-sm shrink-0" onClick={openReward}>奖励金币</button></div>
             <div className="text-xs text-[#6B7280] space-y-2"><p>陪伴设备：{child.devices?.length ? child.devices.map(device => device.alias).join('、') : '尚未绑定，可在“家庭设备”添加'}</p>{child.pet ? <p>已投喂食物 {child.pet.food_count} 次 · 饮水 {child.pet.water_count} 次</p> : <p>在桌面设备上与小二哈一起成长</p>}</div>
           </section>
@@ -134,6 +137,7 @@ export const PetWalletPage: React.FC = () => {
         </>}
       </>}
       {!loading && !error && familyId && <FamilyShop />}
+      {editingChild && <ChildProfileEditor key={editingChild.id} child={editingChild} onClose={() => setEditingChild(null)} onSaved={() => { setEditingChild(null); void refresh(); }} />}
       <Popup visible={newChild} onMaskClick={() => !creating && setNewChild(false)} bodyStyle={{ borderRadius: '20px 20px 0 0' }} destroyOnClose><form className="p-5 pb-8 space-y-4 max-w-xl mx-auto" onSubmit={createChild}><h3 className="text-lg font-bold">添加宝贝与小宠</h3><p className="text-sm text-[#6B7280]">一个昵称，一个专属小二哈；设备可以稍后绑定。</p><label className="block text-sm" htmlFor="child-name">宝贝昵称</label><input id="child-name" className="kid-input" maxLength={50} required disabled={creating} value={nickname} onChange={event => setNickname(event.target.value)} placeholder="输入宝贝昵称" /><div className="flex gap-2"><button type="button" className="kid-btn kid-btn-ghost flex-1" disabled={creating} onClick={() => setNewChild(false)}>取消</button><button type="submit" className="kid-btn kid-btn-primary flex-1" disabled={creating || !nickname.trim()}>{creating ? '正在添加…' : '添加宝贝'}</button></div></form></Popup>
       <Popup visible={rewardOpen} onMaskClick={() => !sending && setRewardOpen(false)} bodyStyle={{ borderRadius: '20px 20px 0 0' }} destroyOnClose><form className="p-5 pb-8 space-y-4 max-w-xl mx-auto" onSubmit={grant}><h3 className="text-lg font-bold">奖励金币给 {child?.nickname?.trim() || '宝贝'}</h3><p className="text-sm text-[#6B7280]">金币存入宝贝账户，用于照顾专属小二哈。设备联网后自动同步。</p><label htmlFor="reward-amount" className="block text-sm">金币数量</label><input id="reward-amount" className="kid-input" type="number" inputMode="numeric" min={1} max={10000} step={1} required disabled={sending || !!pending} value={amount} onChange={event => setAmount(event.target.value)} />{!pending && <div className="flex gap-2">{[10, 20, 50].map(value => <button type="button" key={value} className={`kid-filter-chip ${amount === String(value) ? 'kid-filter-chip-selected' : ''}`} disabled={sending} onClick={() => setAmount(String(value))}>+{value}</button>)}</div>}<label htmlFor="reward-note" className="block text-sm">奖励原因（选填）</label><input id="reward-note" className="kid-input" maxLength={200} disabled={sending || !!pending} value={note} onChange={event => setNote(event.target.value)} placeholder="例如：今天坚持阅读，非常棒" />{rewardError && <p role="alert" className="text-sm text-[#B45309]">{rewardError}</p>}<div className="flex gap-2"><button type="button" className="kid-btn kid-btn-ghost flex-1" disabled={sending} onClick={() => setRewardOpen(false)}>关闭</button><button type="submit" className="kid-btn kid-btn-primary flex-1" disabled={sending || !child}>{sending ? '正在确认…' : pending ? '重试确认' : '确认奖励'}</button></div></form></Popup>
     </div>

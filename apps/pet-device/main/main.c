@@ -257,9 +257,16 @@ void app_main(void)
         }
         if (network_take_wallet(&updated)) {
             if (updated.state == WALLET_READY) {
+                static char wallet_child[37];
+                if (updated.child_id[0]) {
+                    if (strcmp(wallet_child,updated.child_id)) { set_menu(false); memset(&latest_catalog,0,sizeof(latest_catalog)); }
+                    strlcpy(wallet_child,updated.child_id,sizeof(wallet_child));
+                    pet_behavior_bind_child(updated.child_id);
+                }
                 coins = updated.credits; lv_label_set_text_fmt(balance, "%u cr", coins);
                 if (wallet_notice) { lv_obj_add_flag(notice, LV_OBJ_FLAG_HIDDEN); wallet_notice = false; }
             } else if (updated.state != WALLET_SYNC_FAILED) {
+                set_menu(false); memset(&latest_catalog,0,sizeof(latest_catalog));
                 wallet_notice = true;
                 lv_label_set_text(balance, "-- cr");
                 lv_label_set_text(notice, updated.state == WALLET_WAITING_FOR_CHILD ? "Select child in app" : "Check device in app");

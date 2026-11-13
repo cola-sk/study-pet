@@ -2,8 +2,9 @@
 
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
-import { EMAIL_VERIFICATION_PATH } from '../services/supabaseConfig';
+import { EMAIL_VERIFICATION_PATH, PASSWORD_RESET_PATH } from '../services/supabaseConfig';
 import { isEmailVerificationCallback } from '../services/emailVerification';
+import { isPasswordRecoveryCallback } from '../services/passwordRecovery';
 import { IconPaw } from '../components/Icons';
 
 const MainLayout = dynamic(
@@ -28,6 +29,10 @@ export default function HomePage() {
   useEffect(() => {
     // Old registration emails still land on /. Forward them before mounting
     // the normal Auth client, so it cannot adopt the email-link session.
+    if (isPasswordRecoveryCallback(window.location.href)) {
+      window.location.replace(`${PASSWORD_RESET_PATH}${window.location.search}${window.location.hash}`);
+      return;
+    }
     if (isEmailVerificationCallback(window.location.href)) {
       window.location.replace(`${EMAIL_VERIFICATION_PATH}${window.location.search}${window.location.hash}`);
       return;

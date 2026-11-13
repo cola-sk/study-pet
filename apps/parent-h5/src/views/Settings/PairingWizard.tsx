@@ -94,7 +94,7 @@ export function PairingWizard({ visible, onClose, onComplete }: Props) {
           </>}
           {step === 2 && <>
             <h3 className="text-xl font-bold">在设备上输入配对码</h3>
-            <div className="kid-card space-y-3 text-sm leading-6"><p>1. 保持设备开机并连接 Wi-Fi。</p><p>2. 在设备屏幕右下角点击 <strong>Pair</strong>。</p><p>3. 输入 <strong className="font-mono tracking-wider">{code}</strong>，点击键盘上的确认键。</p><p>4. 设备提示选择孩子后，回到这里查找设备。</p></div>
+            <div className="kid-card space-y-3 text-sm leading-6"><p>1. 保持设备开机并连接 Wi-Fi。</p><p>2. 打开设备右上角的 <strong>Settings → Device → Enter family code</strong>。</p><p>3. 输入 <strong className="font-mono tracking-wider">{code}</strong>，点击键盘上的确认键。</p><p>4. 设备提示选择孩子后，回到这里查找设备。</p></div>
             <button type="button" className="kid-btn kid-btn-primary w-full" disabled={busy} onClick={findDevices}>{busy ? '正在查找…' : '我已输入，查找设备'}</button>
             {checked && devices.length === 0 && <p role="status" className="text-sm text-[#6B7280]">还没有找到待分配的设备。请确认设备已提交配对码并联网，然后再查找；已分配孩子的设备会显示在设备列表中。</p>}
             {devices.length > 0 && <fieldset className="kid-card space-y-3"><legend className="font-semibold">选择刚才配对的设备</legend>{devices.map(device => <label key={device.id} className="flex items-center gap-3 py-2"><input type="radio" name="pair-device" checked={deviceId === device.id} onChange={() => setDeviceId(device.id)} /><span>{device.alias} <span className="text-xs text-[#6B7280]">（编号尾号 {device.id.slice(-6)}）</span></span></label>)}</fieldset>}

@@ -1,5 +1,5 @@
 // 学习宠物助手 - 自定义轻量级 Service Worker
-const CACHE_NAME = 'study-pet-pwa-v7';
+const CACHE_NAME = 'study-pet-pwa-v8';
 
 const PRECACHE_URLS = [
   '/',
@@ -41,7 +41,7 @@ self.addEventListener('fetch', event => {
   // Verification callbacks must never fall back to a cached logged-in page.
   if (url.origin === self.location.origin && url.pathname.startsWith('/auth/')) {
     event.respondWith(fetch(event.request).catch(() => new Response(
-      '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>请联网后验证邮箱</title><body><h1>暂时无法验证邮箱</h1><p>请连接网络后刷新此页面。</p></body></html>',
+      '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>请联网后继续</title><body><h1>暂时无法连接服务</h1><p>请连接网络后刷新此页面。</p></body></html>',
       { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } }
     )));
     return;

@@ -1,0 +1,1 @@
+#define CONFIG_STUDY_PET_DEVICE_TOKEN ""

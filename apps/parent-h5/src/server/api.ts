@@ -28,7 +28,7 @@ export async function deviceContext(request: NextRequest, allowUnassigned = fals
   if (!/^[a-f0-9]{64}$/.test(token)) throw new ApiError(401, 'Invalid device credential');
   const db = database();
   const hash = createHash('sha256').update(token).digest('hex');
-  const { data, error } = await db.from('devices').select('id,family_id,child_id,status').eq('api_token_hash', hash).maybeSingle();
+  const { data, error } = await db.from('devices').select('id,family_id,child_id,status,binding_version,alias').eq('api_token_hash', hash).maybeSingle();
   if (error) throw new ApiError(503, 'Device lookup unavailable');
   if (!data || !data.family_id || !['paired', 'unassigned'].includes(data.status)) throw new ApiError(401, 'Device is not paired');
   if (!allowUnassigned && (data.status !== 'paired' || !data.child_id)) throw new ApiError(401, 'Device is not paired');

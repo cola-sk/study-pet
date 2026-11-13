@@ -16,14 +16,20 @@
 #include "esp_random.h"
 #include "esp_timer.h"
 #include <ctype.h>
+#include <stdatomic.h>
 #include <string.h>
 #include <time.h>
 
 static const char *TAG = "pet_net";
 static QueueHandle_t wallet_updates, pair_requests, pair_results, refresh_requests;
 static char device_token[65];
-static bool paired;
-static const char *active_token(void) { return paired ? device_token : CONFIG_STUDY_PET_DEVICE_TOKEN; }
+static atomic_bool paired, rejected, identity_present;
+static char last_child[37];
+static const char *active_token(void) {
+    if (atomic_load(&rejected)) return "";
+    if (atomic_load(&paired)) return device_token;
+    return atomic_load(&identity_present) ? "" : CONFIG_STUDY_PET_DEVICE_TOKEN;
+}
 bool network_pair_request(const char *code)
 {
     if (!pair_requests || strlen(code) != 6) return false;
@@ -43,15 +49,18 @@ static bool load_identity(void)
     if (nvs_open("pet_pairing", NVS_READWRITE, &handle) != ESP_OK) return false;
     size_t size = sizeof(device_token); uint8_t state = 0;
     if (nvs_get_str(handle, "token", device_token, &size) != ESP_OK) device_token[0] = 0;
-    if (nvs_get_u8(handle, "paired", &state) == ESP_OK && state == 1 && strlen(device_token) == 64) paired = true;
+    nvs_get_u8(handle, "paired", &state);
+    atomic_store(&identity_present, strlen(device_token)==64 || state==2);
+    atomic_store(&paired, state==1 && strlen(device_token)==64);
+    atomic_store(&rejected, state==2);
     nvs_close(handle); return true;
 }
-static bool save_identity(bool complete)
+static bool save_identity(uint8_t state)
 {
     nvs_handle_t handle;
     if (nvs_open("pet_pairing", NVS_READWRITE, &handle) != ESP_OK) return false;
     esp_err_t e = nvs_set_str(handle, "token", device_token);
-    if (e == ESP_OK) e = nvs_set_u8(handle, "paired", complete ? 1 : 0);
+    if (e == ESP_OK) e = nvs_set_u8(handle, "paired", state);
     if (e == ESP_OK) e = nvs_commit(handle);
     nvs_close(handle); return e == ESP_OK;
 }
@@ -97,6 +106,12 @@ static unsigned sync_wallet(bool manual)
         const cJSON *balance = cJSON_GetObjectItemCaseSensitive(json, "credits");
         if (cJSON_IsNumber(balance) && balance->valuedouble >= 0 && balance->valuedouble <= 2147483647 && balance->valuedouble == balance->valueint) {
             network_wallet_update_t update = { .state = WALLET_READY, .credits = (unsigned)balance->valueint, .manual = manual };
+            const cJSON *child=cJSON_GetObjectItemCaseSensitive(json,"childId"), *alias=cJSON_GetObjectItemCaseSensitive(json,"deviceAlias");
+            if (cJSON_IsString(child) && strlen(child->valuestring)==36) strlcpy(update.child_id,child->valuestring,sizeof(update.child_id));
+            if (cJSON_IsString(alias)) strlcpy(update.device_alias,alias->valuestring,sizeof(update.device_alias));
+            if (update.child_id[0] && strcmp(last_child,update.child_id)) {
+                strlcpy(last_child,update.child_id,sizeof(last_child)); task_refresh(0); shop_refresh();
+            }
             xQueueOverwrite(wallet_updates, &update);
             interval = 5;
             ESP_LOGD(TAG, "Wallet synchronized");
@@ -112,6 +127,10 @@ static unsigned sync_wallet(bool manual)
         }
         cJSON_Delete(json);
     } else if (result == ESP_OK && (status == 401 || status == 403)) {
+        // Only a definitive server rejection revokes local pairing. Network
+        // failures retain the identity, cached data and offline interactions.
+        atomic_store(&rejected,true); atomic_store(&paired,false);
+        if (!save_identity(2)) ESP_LOGW(TAG,"Could not persist revoked pairing");
         network_wallet_update_t update = { .state = WALLET_UNAUTHORIZED, .manual = manual };
         xQueueOverwrite(wallet_updates, &update);
         interval = 60;
@@ -121,7 +140,7 @@ static unsigned sync_wallet(bool manual)
     return interval;
 }
 bool network_take_wallet(network_wallet_update_t *update) { return wallet_updates && xQueueReceive(wallet_updates, update, 0) == pdTRUE; }
-bool network_business_enabled(void) { return paired || CONFIG_STUDY_PET_DEVICE_TOKEN[0] != '\0'; }
+bool network_business_enabled(void) { return !atomic_load(&rejected) && (atomic_load(&paired) || (!atomic_load(&identity_present) && CONFIG_STUDY_PET_DEVICE_TOKEN[0] != '\0')); }
 bool network_refresh_wallet(void)
 {
     if (!refresh_requests || !network_business_enabled()) return false;
@@ -132,10 +151,11 @@ bool network_refresh_wallet(void)
 static void perform_pair(const char *code)
 {
     int result = 3;
-    if (!device_token[0]) {
+    if (atomic_load(&rejected) || !device_token[0]) {
         unsigned char random[32]; esp_fill_random(random, sizeof(random));
         for (unsigned i = 0; i < sizeof(random); i++) snprintf(device_token + i * 2, 3, "%02x", random[i]);
-        if (!save_identity(false)) { device_token[0] = 0; xQueueOverwrite(pair_results, &result); return; }
+        if (!save_identity(0)) { device_token[0] = 0; xQueueOverwrite(pair_results, &result); return; }
+        atomic_store(&identity_present,true); atomic_store(&rejected,false);
     }
     response_buffer_t response = {0};
     esp_http_client_config_t cfg = { .url = "https://keep.1203.fyi/api/v1/device/pair", .crt_bundle_attach = esp_crt_bundle_attach, .timeout_ms = 10000, .event_handler = http_event, .user_data = &response };
@@ -150,7 +170,7 @@ static void perform_pair(const char *code)
         int status = esp_http_client_get_status_code(client);
         if (err == ESP_OK && status == 200) {
             cJSON *json = cJSON_Parse(response.data);
-            if (cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(json, "paired")) && save_identity(true)) { paired = true; result = 1; }
+            if (cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(json, "paired")) && save_identity(1)) { atomic_store(&paired,true); result = 1; }
             cJSON_Delete(json);
         } else if (err == ESP_OK && (status == 400 || status == 403)) result = 2;
         esp_http_client_cleanup(client);
@@ -185,7 +205,7 @@ static void network_task(void *arg)
         uint8_t refresh_request;
         bool manual = xQueueReceive(refresh_requests, &refresh_request, 0) == pdTRUE;
         if (waiting) {
-            if (online && clock_ready && !paired) { perform_pair(code); next_sync = 0; }
+            if (online && clock_ready && !atomic_load(&paired)) { perform_pair(code); next_sync = 0; shop_refresh(); task_refresh(0); }
             else { int result = 3; xQueueOverwrite(pair_results, &result); }
         }
         if (manual && (!online || !clock_ready)) {

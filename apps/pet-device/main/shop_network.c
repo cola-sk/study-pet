@@ -13,7 +13,8 @@
 #include <string.h>
 #include <limits.h>
 
-typedef struct { uint32_t format; char item_id[37], request_id[37], version[40]; unsigned price; } pending_purchase_t;
+typedef struct { uint32_t format; char item_id[37], request_id[37], version[40]; unsigned price; } legacy_purchase_t;
+typedef struct { uint32_t format; char item_id[37], request_id[37], version[40]; unsigned price; char binding_version[37]; } pending_purchase_t;
 typedef struct { char data[4096]; size_t length; } response_t;
 static QueueHandle_t catalog_updates, purchase_requests, purchase_results, refresh_requests;
 static atomic_bool unsettled;
@@ -75,7 +76,8 @@ static void sync_catalog(const char *token) {
     int status = request(token, "", NULL, &response);
     cJSON *json = status == 200 ? cJSON_Parse(response.data) : NULL;
     const cJSON *items = cJSON_GetObjectItemCaseSensitive(json, "items");
-    bool valid = cJSON_IsArray(items) && cJSON_GetArraySize(items) <= SHOP_LIMIT;
+    char binding[37] = {0};
+    bool valid = copy_string(json, "bindingVersion", binding, sizeof(binding)) && strlen(binding) == 36 && cJSON_IsArray(items) && cJSON_GetArraySize(items) <= SHOP_LIMIT;
     if (valid) {
         const cJSON *entry;
         cJSON_ArrayForEach(entry, items) {
@@ -84,6 +86,7 @@ static void sync_catalog(const char *token) {
             if (!copy_string(entry,"id",item->id,sizeof(item->id)) || !copy_string(entry,"name",item->name,sizeof(item->name)) ||
                 !copy_string(entry,"updated_at",item->version,sizeof(item->version)) || !parse_action(cJSON_GetObjectItemCaseSensitive(entry,"action"), &item->action) ||
                 !cJSON_IsNumber(price) || price->valuedouble < 1 || price->valuedouble > 10000 || price->valuedouble != price->valueint) { valid = false; break; }
+            strlcpy(item->binding_version, binding, sizeof(item->binding_version));
             item->price = (unsigned)price->valueint; catalog.count++;
         }
     }
@@ -98,8 +101,10 @@ static void sync_catalog(const char *token) {
 }
 static void publish_result(purchase_result_t result) { xQueueOverwrite(purchase_results, &result); }
 static void purchase(const char *token) {
-    char body[300]; response_t response = {0};
-    snprintf(body,sizeof(body),"{\"itemId\":\"%s\",\"requestId\":\"%s\",\"expectedPrice\":%u,\"expectedVersion\":\"%s\"}",pending.item_id,pending.request_id,pending.price,pending.version);
+    char body[400], binding[40]; response_t response = {0};
+    if (pending.binding_version[0]) snprintf(binding, sizeof(binding), "\"%s\"", pending.binding_version);
+    else strlcpy(binding, "null", sizeof(binding));
+    snprintf(body,sizeof(body),"{\"itemId\":\"%s\",\"requestId\":\"%s\",\"expectedPrice\":%u,\"expectedVersion\":\"%s\",\"expectedBindingVersion\":%s}",pending.item_id,pending.request_id,pending.price,pending.version,binding);
     int status = request(token,"/purchase",body,&response);
     cJSON *json = cJSON_Parse(response.data);
     purchase_result_t result = { .state = PURCHASE_UNKNOWN };
@@ -133,14 +138,20 @@ void shop_network_init(void) {
     purchase_results=xQueueCreate(1,sizeof(purchase_result_t)); refresh_requests=xQueueCreate(1,sizeof(uint8_t));
     nvs_handle_t handle;
     if (nvs_open("pet_shop",NVS_READWRITE,&handle)!=ESP_OK) { atomic_store(&unsettled,true); return; }
+    memset(&pending, 0, sizeof(pending));
     size_t size=sizeof(pending); esp_err_t error=nvs_get_blob(handle,"pending",&pending,&size); nvs_close(handle);
-    storage_ready=error==ESP_ERR_NVS_NOT_FOUND || (error==ESP_OK && size==sizeof(pending) && pending.format==1 && pending.item_id[36]==0 && pending.request_id[36]==0 && pending.version[39]==0);
+    bool legacy=error==ESP_OK && size==sizeof(legacy_purchase_t) && pending.format==1;
+    // Prefix layout is preserved. Legacy requests may only confirm an already
+    // committed purchase on the server; an empty binding can never debit.
+    if (legacy) { pending.format=2; pending.binding_version[0]=0; }
+    storage_ready=error==ESP_ERR_NVS_NOT_FOUND || (error==ESP_OK && (size==sizeof(pending) || legacy) && pending.format==2 && pending.item_id[36]==0 && pending.request_id[36]==0 && pending.version[39]==0 && pending.binding_version[36]==0);
     has_pending=error==ESP_OK && storage_ready;
     atomic_store(&unsettled,has_pending || !storage_ready);
 }
 bool shop_request_purchase(const shop_item_t *item) {
-    if (!purchase_requests || !storage_ready || atomic_exchange(&unsettled,true)) return false;
-    pending_purchase_t value={.format=1,.price=item->price};
+    if (!item || strlen(item->binding_version)!=36 || !purchase_requests || !storage_ready || atomic_exchange(&unsettled,true)) return false;
+    pending_purchase_t value={.format=2,.price=item->price};
+    strlcpy(value.binding_version,item->binding_version,sizeof(value.binding_version));
     strlcpy(value.item_id,item->id,sizeof(value.item_id)); strlcpy(value.version,item->version,sizeof(value.version));
     uint8_t bytes[16]; esp_fill_random(bytes,sizeof(bytes)); bytes[6]=(bytes[6]&15)|64; bytes[8]=(bytes[8]&63)|128;
     snprintf(value.request_id,sizeof(value.request_id),"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",bytes[0],bytes[1],bytes[2],bytes[3],bytes[4],bytes[5],bytes[6],bytes[7],bytes[8],bytes[9],bytes[10],bytes[11],bytes[12],bytes[13],bytes[14],bytes[15]);
@@ -156,6 +167,9 @@ void shop_network_tick(const char *token,bool online,bool clock_ready) {
     uint8_t refresh;
     if (xQueueReceive(refresh_requests,&refresh,0)==pdTRUE) { next_catalog=0; next_purchase=0; }
     if (!online || !clock_ready || strlen(token)!=64) {
+        if (strlen(token)!=64 && !published_unavailable) {
+            shop_catalog_t empty={0}; xQueueOverwrite(catalog_updates,&empty); published_unavailable=true; next_catalog=0;
+        }
         if (has_pending && esp_timer_get_time()>=next_purchase) { publish_result((purchase_result_t){.state=PURCHASE_UNKNOWN}); next_purchase=esp_timer_get_time()+10000000LL; }
         return;
     }
