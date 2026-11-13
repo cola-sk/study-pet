@@ -37,7 +37,8 @@ static lv_obj_t *find_text(lv_obj_t *parent,const char *value) {
     for(unsigned i=0;i<lv_obj_get_child_cnt(parent);i++) { lv_obj_t *found=find_text(lv_obj_get_child(parent,i),value);if(found)return found; }
     return NULL;
 }
-static lv_obj_t *get_text(const char *value) { lv_obj_t *obj=find_text(lv_scr_act(),value);if(!obj){fprintf(stderr,"Missing UI text: %s\n",value);abort();}return obj; }
+static void dump_text(lv_obj_t *p) { if(lv_obj_check_type(p,&lv_label_class)) fprintf(stderr,"UI: %s\n",lv_label_get_text(p)); for(unsigned i=0;i<lv_obj_get_child_cnt(p);i++)dump_text(lv_obj_get_child(p,i)); }
+static lv_obj_t *get_text(const char *value) { lv_obj_t *obj=find_text(lv_scr_act(),value);if(!obj){fprintf(stderr,"Missing UI text: %s\n",value);dump_text(lv_scr_act());abort();}return obj; }
 static void click(const char *value) { lv_obj_t *obj=lv_obj_get_parent(get_text(value));lv_event_send(obj,LV_EVENT_CLICKED,NULL); }
 static void tick(void) { lv_tick_inc(260);lv_timer_handler();lv_refr_now(NULL); }
 static void capture(const char *name) {
@@ -105,8 +106,10 @@ int main(int argc,char **argv) {
     fail_screen_save=true;click("Never");assert(screen_timeout==300);get_text("Save failed. Please try again.");
     fail_screen_save=false;click("Never");assert(screen_timeout==0);
     click("1 minute");assert(screen_timeout==60);click(LV_SYMBOL_LEFT);get_text("1 minute");
-    click("Device");get_text("Family paired");capture("device");click(LV_SYMBOL_LEFT);
-    paired=false;click("Device");click("Enter family code");assert(pair_calls==1);click(LV_SYMBOL_LEFT);click(LV_SYMBOL_LEFT);assert(!settings_ui_is_open());
+    strcpy(wallet.device_alias,"Desk pet");settings_ui_wallet_update(&wallet);
+    click("Device");get_text("Family paired");get_text("Desk pet");capture("device");
+    // Unlink while this page is already open: the pairing button must appear.
+    paired=false;tick();click("Enter family code");assert(pair_calls==1);click(LV_SYMBOL_LEFT);click(LV_SYMBOL_LEFT);assert(!settings_ui_is_open());
     snapshot.configured=false;snapshot.state=PET_WIFI_UNCONFIGURED;snapshot.ssid[0]=0;
     settings_ui_init(lv_scr_act(),"PET-TEST","1.0-test",pair_callback);assert(settings_ui_is_open());get_text("Wi-Fi / 2.4 GHz");
     printf("Settings UI passed: sync, scan, manual SSID, password visibility/validation, cancel/retry/success, pairing, first-boot Wi-Fi.\n");return 0;

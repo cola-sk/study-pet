@@ -324,7 +324,7 @@ static void show_device(void)
     begin_page(PAGE_DEVICE, "Device");
     device_page_paired=network_business_enabled();
     lv_obj_t *alias_label=label(root, cloud_alias[0] ? cloud_alias : device_name, 16, 52, 208);
-    lv_obj_set_height(alias_label,36); lv_label_set_long_mode(alias_label,LV_LABEL_LONG_DOT);
+    lv_obj_set_height(alias_label,28); lv_label_set_long_mode(alias_label,LV_LABEL_LONG_SCROLL_CIRCULAR);
     char identity[64]; snprintf(identity,sizeof(identity),"%s | %s",device_name,firmware_version);
     label(root, identity, 16, 92, 208);
 
