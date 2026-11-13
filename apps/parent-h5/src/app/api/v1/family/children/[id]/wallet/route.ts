@@ -10,7 +10,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     if (!child.data) throw new ApiError(404, 'Child unavailable');
     const [transactions, items] = await Promise.all([
       db.from('wallet_transactions').select('id,amount,balance_after,type,description,created_at').eq('family_id', familyId).eq('child_id', params.id).order('created_at', { ascending: false }).order('id').limit(50),
-      db.from('shop_items').select('id,name,price,category,icon').order('price'),
+      db.from('family_shop_items').select('id,name,price,action,builtin_key,updated_at').eq('family_id', familyId).eq('archived', false).order('builtin_key', { ascending: false, nullsFirst: false }).order('created_at').order('id'),
     ]);
     if (transactions.error || items.error) throw new ApiError(503, 'Wallet details unavailable');
     return reply({ credits: child.data.coins_balance, transactions: transactions.data, items: items.data });

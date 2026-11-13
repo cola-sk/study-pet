@@ -2,12 +2,13 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Popup, Toast } from 'antd-mobile';
+import { FamilyShop, ShopProduct } from '../../components/FamilyShop';
 import { IconCoin, IconPaw, IconPlus } from '../../components/Icons';
 import { UserProvidedVisual } from '../../components/UserProvidedVisual';
 import { familyApi, FamilyApiError, FamilyChild } from '../../services/familyApi';
 
 type Transaction = { id: string; amount: number; balance_after: number; type: string; description: string; created_at: string };
-type Wallet = { credits: number; transactions: Transaction[]; items: { id: string; name: string; price: number; icon: string | null }[] };
+type Wallet = { credits: number; transactions: Transaction[]; items: ShopProduct[] };
 type Reward = { childId: string; amount: number; note: string; requestId: string };
 
 export const PetWalletPage: React.FC = () => {
@@ -129,13 +130,10 @@ export const PetWalletPage: React.FC = () => {
             {!wallet ? !walletError && <p role="status" className="kid-card text-sm text-[#6B7280]">正在获取真实余额和明细…</p> : <div className="kid-list">{wallet.transactions.length ? wallet.transactions.map(tx => <div className="kid-list-row" key={tx.id}><div className="min-w-0 flex-1"><p className="font-semibold text-sm break-words">{tx.description}</p><p className="text-xs text-[#6B7280] mt-1">{new Date(tx.created_at).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false })} · 余额 {tx.balance_after}</p></div><span className={`font-bold shrink-0 ${tx.amount > 0 ? 'text-[#487A42]' : 'text-[#6B7280]'}`}>{tx.amount > 0 ? '+' : ''}{tx.amount}</span></div>) : <p className="p-5 text-center text-sm text-[#6B7280]">暂无金币记录，给宝贝发放第一笔奖励吧。</p>}</div>}
             {wallet && wallet.transactions.length >= 50 && <p className="text-xs text-[#6B7280]">展示最近 50 条记录</p>}
           </section>
-          {wallet && <section className="space-y-2">
-            <h3 className="text-h2">小宠用品</h3>
-            <p className="text-xs text-[#6B7280]">商品目录 · 设备兑换功能暂未开放</p>
-            {wallet.items.length > 0 ? <div className="grid grid-cols-3 gap-2">{wallet.items.map(item => <div className="kid-card text-center !p-3" key={item.id}><p className="text-sm font-semibold">{item.name}</p><p className="text-xs mt-1 text-[#9B681C]">{item.price} 金币</p></div>)}</div> : <p className="kid-card text-sm text-[#6B7280]">暂无可用商品，喂食与饮水兑换暂未开放。</p>}
-          </section>}
+
         </>}
       </>}
+      {!loading && !error && familyId && <FamilyShop />}
       <Popup visible={newChild} onMaskClick={() => !creating && setNewChild(false)} bodyStyle={{ borderRadius: '20px 20px 0 0' }} destroyOnClose><form className="p-5 pb-8 space-y-4 max-w-xl mx-auto" onSubmit={createChild}><h3 className="text-lg font-bold">添加宝贝与小宠</h3><p className="text-sm text-[#6B7280]">一个昵称，一个专属小二哈；设备可以稍后绑定。</p><label className="block text-sm" htmlFor="child-name">宝贝昵称</label><input id="child-name" className="kid-input" maxLength={50} required disabled={creating} value={nickname} onChange={event => setNickname(event.target.value)} placeholder="输入宝贝昵称" /><div className="flex gap-2"><button type="button" className="kid-btn kid-btn-ghost flex-1" disabled={creating} onClick={() => setNewChild(false)}>取消</button><button type="submit" className="kid-btn kid-btn-primary flex-1" disabled={creating || !nickname.trim()}>{creating ? '正在添加…' : '添加宝贝'}</button></div></form></Popup>
       <Popup visible={rewardOpen} onMaskClick={() => !sending && setRewardOpen(false)} bodyStyle={{ borderRadius: '20px 20px 0 0' }} destroyOnClose><form className="p-5 pb-8 space-y-4 max-w-xl mx-auto" onSubmit={grant}><h3 className="text-lg font-bold">奖励金币给 {child?.nickname?.trim() || '宝贝'}</h3><p className="text-sm text-[#6B7280]">金币存入宝贝账户，用于照顾专属小二哈。设备联网后自动同步。</p><label htmlFor="reward-amount" className="block text-sm">金币数量</label><input id="reward-amount" className="kid-input" type="number" inputMode="numeric" min={1} max={10000} step={1} required disabled={sending || !!pending} value={amount} onChange={event => setAmount(event.target.value)} />{!pending && <div className="flex gap-2">{[10, 20, 50].map(value => <button type="button" key={value} className={`kid-filter-chip ${amount === String(value) ? 'kid-filter-chip-selected' : ''}`} disabled={sending} onClick={() => setAmount(String(value))}>+{value}</button>)}</div>}<label htmlFor="reward-note" className="block text-sm">奖励原因（选填）</label><input id="reward-note" className="kid-input" maxLength={200} disabled={sending || !!pending} value={note} onChange={event => setNote(event.target.value)} placeholder="例如：今天坚持阅读，非常棒" />{rewardError && <p role="alert" className="text-sm text-[#B45309]">{rewardError}</p>}<div className="flex gap-2"><button type="button" className="kid-btn kid-btn-ghost flex-1" disabled={sending} onClick={() => setRewardOpen(false)}>关闭</button><button type="submit" className="kid-btn kid-btn-primary flex-1" disabled={sending || !child}>{sending ? '正在确认…' : pending ? '重试确认' : '确认奖励'}</button></div></form></Popup>
     </div>

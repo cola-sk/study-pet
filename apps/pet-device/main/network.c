@@ -1,4 +1,5 @@
 #include "network.h"
+#include "shop_network.h"
 #include "sdkconfig.h"
 #include "esp_crt_bundle.h"
 #include "esp_event.h"
@@ -220,6 +221,7 @@ static void network_task(void *arg)
             network_wallet_update_t update = { .state = WALLET_SYNC_FAILED, .manual = true };
             xQueueOverwrite(wallet_updates, &update);
         }
+        if (manual) shop_refresh();
         if (online && clock_ready && (manual || esp_timer_get_time() >= next_sync)) {
             unsigned interval = sync_wallet(manual);
             if (!interval && manual) {
@@ -230,13 +232,15 @@ static void network_task(void *arg)
             else retry_seconds = 10;
             next_sync = esp_timer_get_time() + (int64_t)interval * 1000000LL;
         }
+        shop_network_tick(active_token(), online, clock_ready);
     }
 }
 void network_start(void) {
     if (!load_identity()) { ESP_LOGE(TAG, "NVS unavailable; pairing disabled"); return; }
+    shop_network_init();
     wallet_updates = xQueueCreate(1, sizeof(network_wallet_update_t));
     pair_requests = xQueueCreate(1, 7);
     pair_results = xQueueCreate(1, sizeof(int));
     refresh_requests = xQueueCreate(1, sizeof(uint8_t));
-    if (wallet_updates && pair_requests && pair_results && refresh_requests) xTaskCreate(network_task, "pet_network", 8192, NULL, 5, NULL);
+    if (wallet_updates && pair_requests && pair_results && refresh_requests) xTaskCreate(network_task, "pet_network", 16384, NULL, 5, NULL);
 }

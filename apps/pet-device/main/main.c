@@ -4,6 +4,9 @@
 #include "husky_frames.h"
 #include "esp_random.h"
 #include "network.h"
+#include "shop_network.h"
+#include <math.h>
+LV_FONT_DECLARE(shop_cjk_font);
 
 #define FRAMES(name) {&husky_##name##_01, &husky_##name##_02, &husky_##name##_03, &husky_##name##_04}
 typedef enum { IDLE, EAT, HAPPY, SLEEP, HUNGRY, THIRSTY, DRINK, SLEEPY, LONELY, PET } pet_action_t;
@@ -13,25 +16,32 @@ static const lv_img_dsc_t *const frames[][4] = {
 };
 static const pet_action_t needs[] = { HUNGRY, THIRSTY, SLEEPY, LONELY };
 static pet_action_t action = IDLE;
-static unsigned coins = 30, frame = 0, cycles = 0, need_ticks = 0;
+static unsigned coins = 0, frame = 0, cycles = 0, need_ticks = 0;
 static int last_need = -1;
 static bool wallet_notice = false;
 static bool refresh_pending = false, refresh_feedback = false;
 static uint32_t refresh_feedback_at;
 static lv_obj_t *balance_button, *refresh_hint;
-static lv_obj_t *balance, *pet_image, *buttons[4], *notice, *sleep_label, *pair_button, *pair_screen, *pair_input;
+static lv_obj_t *balance, *pet_image, *buttons[12], *labels[12], *prices[12], *notice, *sleep_label, *pair_button, *pair_screen, *pair_input;
+
+static shop_catalog_t latest_catalog, menu_catalog;
+static unsigned menu_count = 2;
+static bool menu_visible;
+static void render_menu(void);
 
 static void set_action(pet_action_t next)
 {
     action = next; frame = next == SLEEPY ? 1 : 0; cycles = 0;
     lv_img_set_src(pet_image, frames[action][frame]);
-    lv_label_set_text(sleep_label, action == SLEEP ? "Wake\nFREE" : "Sleep\nFREE");
+    if (sleep_label) lv_label_set_text(sleep_label, action == SLEEP ? "Wake" : "Sleep");
 }
 static bool is_need(pet_action_t a) { return a == HUNGRY || a == THIRSTY || a == SLEEPY || a == LONELY; }
-static bool menu_open(void) { return !lv_obj_has_flag(buttons[0], LV_OBJ_FLAG_HIDDEN); }
+static bool menu_open(void) { return menu_visible; }
 static void set_menu(bool open) {
-    for (unsigned i = 0; i < 4; i++) {
-        if (open) lv_obj_clear_flag(buttons[i], LV_OBJ_FLAG_HIDDEN);
+    menu_visible = open;
+    if (open) render_menu();
+    for (unsigned i = 0; i < 12; i++) {
+        if (open && i < menu_count) lv_obj_clear_flag(buttons[i], LV_OBJ_FLAG_HIDDEN);
         else lv_obj_add_flag(buttons[i], LV_OBJ_FLAG_HIDDEN);
     }
     if (!wallet_notice) lv_obj_add_flag(notice, LV_OBJ_FLAG_HIDDEN);
@@ -66,18 +76,10 @@ static void show_menu(lv_event_t *event)
     (void)event;
     if (busy()) return;
     set_menu(!menu_open());
-}
-static void spend(lv_event_t *event)
-{
-    if (network_business_enabled()) { lv_label_set_text(notice, "Shop unavailable"); lv_obj_clear_flag(notice, LV_OBJ_FLAG_HIDDEN); return; }
-    bool water = (bool)(uintptr_t)lv_event_get_user_data(event);
-    unsigned cost = water ? 5 : 10;
-    if (coins < cost) { lv_obj_clear_flag(notice, LV_OBJ_FLAG_HIDDEN); return; }
-    coins -= cost;
-    lv_label_set_text_fmt(balance, "%u credits", coins);
-    set_menu(false);
-    set_action(water ? DRINK : EAT);
-    ESP_LOGI("PET", "%s, credits=%u", water ? "Drink" : "Feed", coins);
+    if (!latest_catalog.available && menu_open()) {
+        lv_label_set_text(notice, "Shop offline; tap credits"); lv_obj_clear_flag(notice, LV_OBJ_FLAG_HIDDEN);
+        shop_refresh();
+    }
 }
 static void toggle_sleep(lv_event_t *event)
 {
@@ -92,20 +94,42 @@ static void play_pet(lv_event_t *event)
     set_menu(false);
     set_action(PET);
 }
-static lv_obj_t *button(lv_obj_t *parent, int x, int y, const char *text, uint32_t color, lv_event_cb_t cb, void *data, lv_obj_t **out_button)
+static void menu_action(lv_event_t *event)
 {
-    lv_obj_t *btn = lv_btn_create(parent);
-    lv_obj_set_size(btn, 64, 64); lv_obj_set_pos(btn, x, y);
-    lv_obj_set_style_radius(btn, LV_RADIUS_CIRCLE, 0);
-    lv_obj_set_style_pad_all(btn, 0, 0);
-    lv_obj_set_style_bg_color(btn, lv_color_hex(color), 0);
-    lv_obj_add_event_cb(btn, cb, LV_EVENT_CLICKED, data);
-    lv_obj_t *label = lv_label_create(btn);
-    lv_label_set_text(label, text);
-    lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_center(label);
-    *out_button = btn;
-    return label;
+    unsigned index = (unsigned)(uintptr_t)lv_event_get_user_data(event);
+    if (index == menu_catalog.count) { toggle_sleep(event); return; }
+    if (index == menu_catalog.count + 1) { play_pet(event); return; }
+    if (index >= menu_catalog.count) return;
+    if (shop_purchase_pending()) {
+        lv_label_set_text(notice, "Checking purchase..."); shop_refresh();
+    } else if (shop_request_purchase(&menu_catalog.items[index])) {
+        set_menu(false); lv_label_set_text(notice, "Purchasing...");
+    } else lv_label_set_text(notice, "Try again");
+    lv_obj_clear_flag(notice, LV_OBJ_FLAG_HIDDEN);
+}
+static void render_menu(void)
+{
+    menu_catalog = latest_catalog;
+    if (!menu_catalog.available) menu_catalog.count = 0;
+    menu_count = menu_catalog.count + 2;
+    sleep_label = labels[menu_catalog.count];
+    for (unsigned i = 0; i < menu_count; i++) {
+        float angle = -1.5707963f + 6.2831853f * (float)i / menu_count;
+        int x = 120 + (int)(93 * cosf(angle)) - 23;
+        int y = 175 + (int)(110 * sinf(angle)) - 20;
+        lv_obj_set_pos(buttons[i], x, y);
+        if (i < menu_catalog.count) {
+            const shop_item_t *item = &menu_catalog.items[i];
+            lv_label_set_text(labels[i], item->name);
+            lv_label_set_text_fmt(prices[i], "%u cr", item->price);
+            uint32_t colors[] = {0x728e62,0x658faa,0xc58574,0xb88843};
+            lv_obj_set_style_bg_color(buttons[i],lv_color_hex(colors[item->action]),0);
+        } else {
+            lv_label_set_text(labels[i], i == menu_catalog.count ? (action == SLEEP ? "Wake" : "Sleep") : "Pet");
+            lv_label_set_text(prices[i], "FREE");
+            lv_obj_set_style_bg_color(buttons[i],lv_color_hex(i == menu_catalog.count ? 0x8797ac : 0xc58574),0);
+        }
+    }
 }
 static void pair_keyboard_event(lv_event_t *event)
 {
@@ -171,8 +195,7 @@ void app_main(void)
     balance = lv_label_create(balance_button);
     lv_obj_set_width(balance, 108); lv_label_set_long_mode(balance, LV_LABEL_LONG_SCROLL_CIRCULAR);
     lv_obj_set_style_text_align(balance, LV_TEXT_ALIGN_RIGHT, 0);
-    if (network_business_enabled()) { coins = 0; lv_label_set_text(balance, "-- credits"); }
-    else { lv_label_set_text_fmt(balance, "%u credits", coins); }
+    lv_label_set_text(balance, "-- credits");
     lv_obj_align(balance, LV_ALIGN_TOP_RIGHT, -4, 0);
     refresh_hint = lv_label_create(balance_button); lv_label_set_text(refresh_hint, "Tap to sync");
     lv_obj_align(refresh_hint, LV_ALIGN_BOTTOM_RIGHT, -4, -1);
@@ -180,10 +203,20 @@ void app_main(void)
     lv_obj_add_flag(pet_image, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(pet_image, show_menu, LV_EVENT_CLICKED, NULL);
 
-    button(screen, 88, 39, "Feed\n10 cr", 0x728e62, spend, (void *)(uintptr_t)0, &buttons[0]);
-    button(screen, 5, 136, "Water\n5 cr", 0x658faa, spend, (void *)(uintptr_t)1, &buttons[1]);
-    sleep_label = button(screen, 171, 136, "Sleep\nFREE", 0x8797ac, toggle_sleep, NULL, &buttons[2]);
-    button(screen, 88, 237, "Pet\nFREE", 0xc58574, play_pet, NULL, &buttons[3]);
+    for (unsigned i = 0; i < 12; i++) {
+        buttons[i] = lv_btn_create(screen); lv_obj_set_size(buttons[i],46,40);
+        lv_obj_set_style_radius(buttons[i],16,0); lv_obj_set_style_pad_all(buttons[i],0,0);
+        lv_obj_add_event_cb(buttons[i],menu_action,LV_EVENT_CLICKED,(void *)(uintptr_t)i);
+        labels[i] = lv_label_create(buttons[i]); lv_obj_set_width(labels[i],44);
+        lv_obj_set_style_text_font(labels[i],&shop_cjk_font,0);
+        lv_obj_set_style_text_align(labels[i],LV_TEXT_ALIGN_CENTER,0);
+        lv_label_set_long_mode(labels[i],LV_LABEL_LONG_SCROLL_CIRCULAR); lv_obj_set_height(labels[i],14);
+        lv_obj_align(labels[i],LV_ALIGN_TOP_MID,0,4);
+        prices[i] = lv_label_create(buttons[i]);
+        lv_obj_set_style_text_font(prices[i],&lv_font_montserrat_10,0);
+        lv_obj_align(prices[i],LV_ALIGN_BOTTOM_MID,0,-3);
+    }
+    render_menu();
     pair_button = lv_btn_create(screen);
     lv_obj_set_size(pair_button, 55, 28); lv_obj_align(pair_button, LV_ALIGN_BOTTOM_RIGHT, -4, -4);
     lv_obj_add_event_cb(pair_button, open_pairing, LV_EVENT_CLICKED, NULL);
@@ -192,6 +225,7 @@ void app_main(void)
     notice = lv_label_create(screen); lv_label_set_text(notice, "Not enough credits");
     lv_obj_align(notice, LV_ALIGN_BOTTOM_MID, 0, -1);
     set_menu(false);
+    if (shop_purchase_pending()) { lv_label_set_text(notice,"Confirming purchase..."); lv_obj_clear_flag(notice,LV_OBJ_FLAG_HIDDEN); }
     lv_timer_create(animate_pet, 300, NULL);
     while (1) {
         network_wallet_update_t updated;
@@ -220,6 +254,23 @@ void app_main(void)
                 refresh_pending = false; refresh_feedback = true; refresh_feedback_at = lv_tick_get();
                 lv_obj_clear_state(balance_button, LV_STATE_DISABLED);
                 lv_label_set_text(refresh_hint, updated.state == WALLET_READY ? "Synced" : updated.state == WALLET_WAITING_FOR_CHILD ? "Pick child" : updated.state == WALLET_UNAUTHORIZED ? "Check pairing" : "Retry sync");
+            }
+        }
+        shop_catalog_t catalog_update;
+        if (shop_take_catalog(&catalog_update)) {
+            latest_catalog = catalog_update;
+            // Keep the menu snapshot stable while a finger is selecting a product.
+        }
+        purchase_result_t purchase;
+        if (shop_take_result(&purchase)) {
+            if (purchase.state == PURCHASE_OK) {
+                coins = purchase.credits; lv_label_set_text_fmt(balance, "%u credits", coins);
+                wallet_notice = false; set_menu(false);
+                pet_action_t animations[] = {EAT,DRINK,PET,HAPPY};
+                set_action(animations[purchase.action]); need_ticks = 0;
+            } else {
+                const char *messages[] = {"", "Confirming; tap credits", "Not enough credits", "Item changed; reopen", "Item removed; reopen", "Check pairing in app", "Save failed; try again", "Purchase needs review"};
+                lv_label_set_text(notice,messages[purchase.state]); lv_obj_clear_flag(notice,LV_OBJ_FLAG_HIDDEN);
             }
         }
         if (refresh_feedback && lv_tick_elaps(refresh_feedback_at) >= 2500) {
