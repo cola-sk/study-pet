@@ -11,7 +11,24 @@ static const char *state_text(task_status_t s) {
     const char *names[]={"To do","Waiting for parent","Completed","Try again"};return names[s];
 }
 static lv_obj_t *text(lv_obj_t *parent,const char *value,int width) {
-    lv_obj_t *label=lv_label_create(parent);lv_label_set_text(label,value);lv_obj_set_width(label,width);
+    // The bundled CJK font omits common full-width punctuation. Replace it
+    // with readable ASCII equivalents without changing the stored task text.
+    static const struct { const char *from, *to; } punctuation[] = {
+        {"，", ","}, {"。", "."}, {"！", "!"}, {"？", "?"}, {"：", ":"},
+        {"；", ";"}, {"、", ","}, {"（", "("}, {"）", ")"}, {"“", "\""}, {"”", "\""},
+        {"‘", "'"}, {"’", "'"}, {"【", "["}, {"】", "]"}, {"～", "~"}, {"　", " "}
+    };
+    char normalized[TASK_DESCRIPTION_BYTES];size_t n=0;
+    while(*value && n<sizeof(normalized)-1) {
+        bool mapped=false;
+        for(unsigned i=0;i<sizeof(punctuation)/sizeof(punctuation[0]);i++) {
+            size_t len=strlen(punctuation[i].from);
+            if(!strncmp(value,punctuation[i].from,len)) {normalized[n++]=punctuation[i].to[0];value+=len;mapped=true;break;}
+        }
+        if(!mapped) normalized[n++]=*value++;
+    }
+    normalized[n]=0;
+    lv_obj_t *label=lv_label_create(parent);lv_label_set_text(label,normalized);lv_obj_set_width(label,width);
     lv_obj_set_style_text_font(label,&shop_cjk_font,0);lv_obj_set_style_text_color(label,lv_color_hex(0x433c32),0);
     return label;
 }

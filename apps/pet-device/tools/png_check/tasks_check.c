@@ -42,7 +42,7 @@ int main(int argc,char **argv) {
     page.state=TASKS_READY;page.items[0].status=TASK_SUBMITTED;pending=false;tasks_ui_page(&page);
     result.state=CHECKIN_OK;result.status=TASK_SUBMITTED;tasks_ui_result(&result);get("Waiting for parent");capture("tasks-waiting");
     page.items[0].status=TASK_COMPLETED;page.completed=2;tasks_ui_page(&page);get("Completed");capture("tasks-completed");
-    click(LV_SYMBOL_LEFT);click("+3 cr  Try again");get("Try again / Complete");get(page.items[2].reason);capture("tasks-rejected");
+    click(LV_SYMBOL_LEFT);click("+3 cr  Try again");get("Try again / Complete");get("加油!再整理一下就好啦!");capture("tasks-rejected");
     click(LV_SYMBOL_LEFT);click(LV_SYMBOL_RIGHT);assert(offset==10);get("Loading tasks...");
     page.offset=10;page.count=0;page.total=10;tasks_ui_page(&page);lv_event_send(lv_obj_get_child(lv_obj_get_child(lv_scr_act(),-1),5),LV_EVENT_CLICKED,NULL);assert(offset==0);
     page.offset=0;page.count=0;page.total=0;page.completed=0;tasks_ui_page(&page);get("No tasks today.\nAsk your parent to add one.");capture("tasks-empty");
