@@ -93,8 +93,8 @@ export const Layout: React.FC = () => {
         <div className="w-full max-w-sm space-y-5">
           <div className="text-center space-y-2">
             <div className="parent-app-mark flex items-center justify-center mx-auto"><IconPaw className="w-5 h-5" /></div>
-            <h1 className="text-xl font-bold">学习宠物助手</h1>
-            <p className="text-sm text-gray-600">登录或注册家长账号，管理孩子与桌面宠物。</p>
+            <h1 className="text-xl font-bold">哈小伴</h1>
+            <p className="text-sm text-gray-600">登录或注册家长账号，管理孩子与哈小伴桌面宠物。</p>
           </div>
           {authState === 'loading' ? <p className="text-center" role="status">正在检查登录状态…</p> :
             authState === 'unconfigured' ? <p className="kid-card text-sm" role="alert">登录服务尚未配置，请检查 Supabase 环境变量。</p> : <AccountPairingPanel />}
@@ -118,7 +118,7 @@ export const Layout: React.FC = () => {
               <IconPaw className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="parent-app-title leading-none">学习宠物助手</h1>
+              <h1 className="parent-app-title leading-none">哈小伴</h1>
               <div className="parent-app-subtitle">家庭成长空间</div>
             </div>
           </div>

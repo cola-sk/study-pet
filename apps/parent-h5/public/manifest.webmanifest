@@ -1,7 +1,7 @@
 {
-  "name": "学习宠物助手 - 家长端",
-  "short_name": "学习宠物",
-  "description": "培养孩子好习惯与学习任务的养成宠物管理平台",
+  "name": "哈小伴 - 家长端",
+  "short_name": "哈小伴",
+  "description": "哈小伴：培养孩子好习惯与学习任务的养成宠物管理平台",
   "id": "/?source=pwa",
   "start_url": "/?source=pwa",
   "scope": "/",

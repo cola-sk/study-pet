@@ -34,7 +34,7 @@ export const IosInstallGuideModal: React.FC<Props> = ({ installState }) => {
         </div>
         
         <h3 className="text-base font-bold text-gray-800 mb-1">
-          将“学习宠物”添加到主屏幕
+          将“哈小伴”添加到主屏幕
         </h3>
         <p className="text-xs text-gray-500 mb-4 max-w-xs">
           安装后即可在手机桌面像原生 App 一样直接启动，全屏无地址栏，随时查看任务！

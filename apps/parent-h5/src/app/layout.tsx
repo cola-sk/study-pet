@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: '学习宠物助手 - KidLearn 家长端',
-  description: '好习惯与学习任务桌面养成宠物管理系统 - 家长端',
+  title: '哈小伴 - 家长端',
+  description: '哈小伴：好习惯与学习任务桌面养成宠物管理系统 - 家长端',
   manifest: '/manifest.webmanifest',
   icons: {
     icon: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: '学习宠物',
+    title: '哈小伴',
   },
 };
 

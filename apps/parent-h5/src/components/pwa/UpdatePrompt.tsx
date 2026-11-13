@@ -16,7 +16,7 @@ export const UpdatePrompt: React.FC = () => {
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
             Dialog.confirm({
               title: '发现新版本',
-              content: '学习宠物助手有新功能发布，是否立即刷新应用？',
+              content: '哈小伴有新功能发布，是否立即刷新应用？',
               confirmText: '立即更新',
               cancelText: '稍后',
               onConfirm: () => {

@@ -17,7 +17,7 @@ const MainLayout = dynamic(
           <IconPaw className="w-8 h-8" />
         </div>
         <div className="text-body font-bold text-[#1F2937]">
-          正在进入学习宠物乐园...
+          正在进入哈小伴乐园...
         </div>
       </div>
     ),

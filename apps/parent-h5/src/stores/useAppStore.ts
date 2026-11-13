@@ -53,7 +53,7 @@ export const useAppStore = create<AppState>()(persist((set, get) => ({
         const data = await familyApi<any>('/api/v1/family/tasks');
         if (currentEpoch !== epoch) return;
         const children: Child[] = data.children.map((c: any) => ({ id: c.id, familyId: c.family_id, nickname: c.nickname, coinsBalance: c.coins_balance, avatarUrl: c.avatar_url }));
-        const devices: Device[] = data.devices.map((d: any) => ({ id: d.id, familyId: d.family_id, childId: d.child_id, alias: d.alias || '桌面宠物', status: d.status, deviceModel: d.device_model, firmwareVersion: d.firmware_version, lastSeenAt: d.last_seen_at }));
+        const devices: Device[] = data.devices.map((d: any) => ({ id: d.id, familyId: d.family_id, childId: d.child_id, alias: d.alias || '哈小伴', status: d.status, deviceModel: d.device_model, firmwareVersion: d.firmware_version, lastSeenAt: d.last_seen_at }));
         set({ family: { id: data.family.id, name: data.family.name, timezone: data.family.timezone, createdAt: data.family.created_at }, children, devices,
           todayDate: data.date, templates: data.templates.map(template), taskError: '',
           selectedChildId: get().selectedChildId === 'all' || children.some(c => c.id === get().selectedChildId) ? get().selectedChildId : 'all',

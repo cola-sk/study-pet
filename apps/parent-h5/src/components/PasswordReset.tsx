@@ -49,7 +49,7 @@ export function PasswordReset() {
   };
   return <main className="parent-app-shell min-h-screen flex items-center justify-center px-5 py-10">
     <div className="w-full max-w-sm space-y-6">
-      <div className="flex justify-center items-center gap-2 text-sm font-semibold"><IconPaw className="w-5 h-5" />学习宠物助手</div>
+      <div className="flex justify-center items-center gap-2 text-sm font-semibold"><IconPaw className="w-5 h-5" />哈小伴</div>
       <section className="kid-card !p-6 space-y-5" aria-live="polite">
         {success ? <><IconCheck className="w-12 h-12 mx-auto text-[#4C7866]" /><h1 className="text-xl font-bold text-center">密码修改成功</h1><p className="text-sm leading-6 text-[#77786F]">请返回家长端，使用新密码登录。</p><a href="/" className="kid-btn kid-btn-primary w-full">前往登录</a></> : <>
           <h1 className="text-xl font-bold">设置新密码</h1>

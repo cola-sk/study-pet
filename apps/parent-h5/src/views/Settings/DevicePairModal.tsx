@@ -136,7 +136,7 @@ export const DevicePairModal: React.FC<Props> = ({ visible, onClose }) => {
             type="text"
             value={alias}
             onChange={e => setAlias(e.target.value)}
-            placeholder="例如：大宝书桌的小宠屏幕"
+            placeholder="例如：大宝书桌的哈小伴"
             className="kid-input"
           />
         </div>

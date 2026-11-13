@@ -34,7 +34,7 @@ export interface Device {
   id: string;
   familyId?: string;
   childId?: string; // 归属的具体孩子 ID
-  alias: string; // 设备别名，如“天天的桌面宠物”、“果果的学习机”
+  alias: string; // 设备别名，如“天天的哈小伴”、“果果的学习机”
   deviceModel: string;
   macAddress?: string;
   pairCode?: string;

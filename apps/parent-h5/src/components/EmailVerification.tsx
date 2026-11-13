@@ -46,7 +46,7 @@ export function EmailVerification() {
   return <main className="parent-app-shell min-h-screen flex items-center justify-center px-5 py-12">
     <div className="w-full max-w-sm space-y-7">
       <div className="flex items-center justify-center gap-2 text-sm font-semibold text-[#77786F]">
-        <IconPaw className="w-5 h-5 text-[#3E493F]" />学习宠物助手
+        <IconPaw className="w-5 h-5 text-[#3E493F]" />哈小伴
       </div>
       <section className="kid-card !px-6 !py-8 text-center space-y-5" aria-live="polite" aria-busy={checking}>
         <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto ${success ? 'bg-[#E9F2EC] text-[#4C7866]' : checking ? 'bg-[#F7EBE5] text-[#B96043]' : 'bg-[#FBF3E2] text-[#A87525]'}`}>

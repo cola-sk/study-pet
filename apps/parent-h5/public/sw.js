@@ -1,4 +1,4 @@
-// 学习宠物助手 - 自定义轻量级 Service Worker
+// 哈小伴 - 自定义轻量级 Service Worker
 const CACHE_NAME = 'study-pet-pwa-v8';
 
 const PRECACHE_URLS = [

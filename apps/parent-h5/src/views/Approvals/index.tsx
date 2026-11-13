@@ -149,7 +149,7 @@ export const ApprovalsPage: React.FC = () => {
                       <div className="flex items-center gap-1.5">
                         <h2 className="text-[15px] font-bold text-[#292B25] truncate">{child.nickname}</h2>
                         <span className="family-pet-name">
-                          {pet?.petName || '伴学小宠'}
+                          {pet?.petName || '哈小伴'}
                         </span>
                       </div>
                       <div className="family-account-meta mt-1 flex items-center gap-2">
