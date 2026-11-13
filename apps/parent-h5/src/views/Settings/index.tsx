@@ -6,18 +6,26 @@ import { PWAInstallState } from '../../hooks/usePWAInstall';
 import { IconDevice, IconPlus } from '../../components/Icons';
 import { supabase } from '../../services/supabase';
 import { familyApi, FamilyChild, FamilyDevice } from '../../services/familyApi';
+import { clearUserCache, readUserCache, writeUserCache } from '../../services/localCache';
+import { useAppStore } from '../../stores/useAppStore';
 import { PairingWizard } from './PairingWizard';
 import { DeviceManagement } from './DeviceManagement';
 import { sendAccountEmail } from '../../services/accountEmails';
 
 interface Props { installState: PWAInstallState; onManageChildren: () => void }
+type CachedSettingsData = { children: FamilyChild[]; devices: FamilyDevice[]; email: string };
+const SETTINGS_CACHE_KEY = 'settings_devices';
 
 export const SettingsPage: React.FC<Props> = ({ installState, onManageChildren }) => {
+  const activeUserId = useAppStore(state => state.activeUserId);
+  const beginBackgroundSync = useAppStore(state => state.beginBackgroundSync);
+  const [initialCache] = useState(() => readUserCache<CachedSettingsData>(activeUserId, SETTINGS_CACHE_KEY));
   const [wizardVisible, setWizardVisible] = useState(false);
-  const [children, setChildren] = useState<FamilyChild[]>([]);
-  const [devices, setDevices] = useState<FamilyDevice[]>([]);
-  const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [children, setChildren] = useState<FamilyChild[]>(() => initialCache?.children || []);
+  const [devices, setDevices] = useState<FamilyDevice[]>(() => initialCache?.devices || []);
+  const [email, setEmail] = useState(() => initialCache?.email || '');
+  const [loading, setLoading] = useState(!initialCache);
+  const [hasCache, setHasCache] = useState(Boolean(initialCache));
   const [error, setError] = useState('');
   const [managedDevice, setManagedDevice] = useState<FamilyDevice | null>(null);
   const [sendingReset, setSendingReset] = useState(false), [resetSeconds, setResetSeconds] = useState(0);
@@ -25,23 +33,34 @@ export const SettingsPage: React.FC<Props> = ({ installState, onManageChildren }
   useEffect(() => { if (!resetSeconds) return; const timer = setTimeout(() => setResetSeconds(value => value - 1), 1000); return () => clearTimeout(timer); }, [resetSeconds]);
   const signOut = async () => {
     if (!supabase || signingOut) return; setSigningOut(true);
-    try { const { error } = await supabase.auth.signOut({ scope: 'local' }); if (error) throw error; }
+    try {
+      const { error } = await supabase.auth.signOut({ scope: 'local' });
+      if (error) throw error;
+      clearUserCache(activeUserId);
+    }
     catch { Toast.show({ content: '退出未完成，请重试' }); }
     finally { setSigningOut(false); }
   };
 
   const refresh = useCallback(async () => {
-    setLoading(true); setError('');
+    const doneSync = beginBackgroundSync();
+    setError('');
     try {
       await familyApi('/api/v1/family/bootstrap', { method: 'POST' });
       const [childResult, deviceResult] = await Promise.all([
         familyApi<{ children: FamilyChild[] }>('/api/v1/family/children'),
         familyApi<{ devices: FamilyDevice[] }>('/api/v1/devices'),
       ]);
-      setChildren(childResult.children); setDevices(deviceResult.devices);
+      setChildren(childResult.children); setDevices(deviceResult.devices); setHasCache(true);
+      setEmail(currentEmail => {
+        writeUserCache<CachedSettingsData>(activeUserId, SETTINGS_CACHE_KEY, {
+          children: childResult.children, devices: deviceResult.devices, email: currentEmail,
+        });
+        return currentEmail;
+      });
     } catch { setError('无法加载家庭和设备信息，请检查网络后重试。'); }
-    finally { setLoading(false); }
-  }, []);
+    finally { setLoading(false); doneSync(); }
+  }, [activeUserId, beginBackgroundSync]);
   const requestPasswordReset = async () => {
     if (!email || sendingReset || resetSeconds > 0) return;
     setSendingReset(true);
@@ -52,10 +71,16 @@ export const SettingsPage: React.FC<Props> = ({ installState, onManageChildren }
 
   useEffect(() => {
     let active = true;
-    supabase?.auth.getSession().then(({ data }) => { if (active) setEmail(data.session?.user.email || ''); });
+    supabase?.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      const nextEmail = data.session?.user.email || '';
+      setEmail(nextEmail);
+      const cached = readUserCache<CachedSettingsData>(activeUserId, SETTINGS_CACHE_KEY);
+      if (cached) writeUserCache<CachedSettingsData>(activeUserId, SETTINGS_CACHE_KEY, { ...cached, email: nextEmail });
+    });
     void refresh();
     return () => { active = false; };
-  }, [refresh]);
+  }, [activeUserId, refresh]);
 
   return (
     <div className="px-3 py-2.5 space-y-4 pb-20 text-[#1F2937]">
@@ -66,7 +91,8 @@ export const SettingsPage: React.FC<Props> = ({ installState, onManageChildren }
             <IconPlus className="w-3 h-3" /><span>添加设备</span>
           </button>
         </div>
-        {loading ? <p className="kid-card text-sm text-[#6B7280]" role="status">正在加载设备…</p> : error ?
+        {error && hasCache && <div className="kid-card bg-[#FFF8E8] flex items-center justify-between gap-2 text-sm" role="alert"><span>{error}</span><button type="button" className="kid-btn kid-btn-ghost kid-btn-sm shrink-0" onClick={refresh}>重试</button></div>}
+        {loading ? <p className="kid-card text-sm text-[#6B7280]" role="status">正在加载设备…</p> : error && !hasCache ?
           <div className="kid-card space-y-2"><p role="alert" className="text-sm">{error}</p><button type="button" className="kid-btn kid-btn-ghost kid-btn-sm" onClick={refresh}>重试</button></div> :
           devices.length === 0 ? <div className="kid-card text-center py-6 text-sm text-[#6B7280]">还没有设备，点击“添加设备”开始配对。</div> :
           <div className="kid-list">{devices.map(device => {

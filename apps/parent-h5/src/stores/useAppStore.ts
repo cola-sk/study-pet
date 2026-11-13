@@ -2,11 +2,17 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Family, Child, Device, TaskTemplate, TaskInstance, PetState } from '../services/types';
 import { familyApi } from '../services/familyApi';
+import { readUserCache, writeUserCache } from '../services/localCache';
 
 export const isRemoteId = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 type Draft = Omit<TaskTemplate, 'id' | 'createdAt'>;
 type ReviewResult = { success: boolean; message: string; coins?: number };
 const emptyFamily: Family = { id: '', name: '', timezone: 'Asia/Shanghai', createdAt: '' };
+const TASKS_CACHE_KEY = 'tasks_state';
+type CachedTasksState = {
+  family: Family; children: Child[]; devices: Device[]; templates: TaskTemplate[];
+  instances: TaskInstance[]; todayDate: string; selectedChildId: string;
+};
 const message = (e: unknown) => e instanceof Error ? e.message : '请求失败，请重试';
 let epoch = 0;
 let refreshing: Promise<void> | null = null;
@@ -16,11 +22,22 @@ function template(t: any): TaskTemplate {
     targetScope: t.target_scope, targetChildIds: t.target_child_ids || [], isActive: t.is_active, startDate: t.start_date, endDate: t.end_date,
     createdAt: t.created_at, updatedAt: t.updated_at };
 }
+function persistTasksCache(userId: string, state: CachedTasksState) {
+  if (!userId || !state.todayDate) return;
+  writeUserCache<CachedTasksState>(userId, TASKS_CACHE_KEY, {
+    family: state.family, children: state.children, devices: state.devices,
+    templates: state.templates, instances: state.instances, todayDate: state.todayDate,
+    selectedChildId: state.selectedChildId,
+  });
+}
 interface AppState {
+  activeUserId: string;
   family: Family; children: Child[]; devices: Device[]; templates: TaskTemplate[]; instances: TaskInstance[];
   pets: Record<string, PetState>; legacyTemplates: TaskTemplate[]; selectedChildId: string; todayDate: string;
-  isSyncing: boolean; taskError: string;
+  isSyncing: boolean; backgroundSyncCount: number; taskError: string;
   setSelectedChildId: (id: string) => void;
+  beginBackgroundSync: () => () => void;
+  hydrateForUser: (userId: string) => void;
   loadTaskData: (force?: boolean) => Promise<void>;
   resetRemoteState: () => void;
   addTemplate: (draft: Draft, requestId: string) => Promise<void>;
@@ -33,12 +50,47 @@ interface AppState {
   pairDevice: (code: string, alias: string, childId: string) => Promise<ReviewResult>;
 }
 export const useAppStore = create<AppState>()(persist((set, get) => ({
+  activeUserId: '',
   family: emptyFamily, children: [], devices: [], templates: [], instances: [], pets: {}, legacyTemplates: [],
-  selectedChildId: 'all', todayDate: '', isSyncing: false, taskError: '',
-  setSelectedChildId: selectedChildId => set({ selectedChildId }),
+  selectedChildId: 'all', todayDate: '', isSyncing: false, backgroundSyncCount: 0, taskError: '',
+  setSelectedChildId: selectedChildId => {
+    set({ selectedChildId });
+    persistTasksCache(get().activeUserId, get());
+  },
+  beginBackgroundSync: () => {
+    let finished = false;
+    set(state => ({ backgroundSyncCount: state.backgroundSyncCount + 1 }));
+    return () => {
+      if (finished) return;
+      finished = true;
+      set(state => ({ backgroundSyncCount: Math.max(0, state.backgroundSyncCount - 1) }));
+    };
+  },
+  hydrateForUser: userId => {
+    if (!userId) { get().resetRemoteState(); return; }
+    if (get().activeUserId === userId) return;
+    epoch++; refreshing = null;
+    const cached = readUserCache<CachedTasksState>(userId, TASKS_CACHE_KEY);
+    if (cached && Array.isArray(cached.children) && Array.isArray(cached.templates) && Array.isArray(cached.instances)) {
+      set({
+        activeUserId: userId,
+        family: cached.family || emptyFamily,
+        children: cached.children,
+        devices: Array.isArray(cached.devices) ? cached.devices : [],
+        templates: cached.templates,
+        instances: cached.instances,
+        todayDate: cached.todayDate || '',
+        selectedChildId: cached.selectedChildId || 'all',
+        taskError: '',
+        isSyncing: false,
+      });
+      return;
+    }
+    set({ activeUserId: userId, family: emptyFamily, children: [], devices: [], templates: [], instances: [], selectedChildId: 'all', todayDate: '', taskError: '', isSyncing: false });
+  },
   resetRemoteState: () => {
     epoch++; refreshing = null;
-    set({ family: emptyFamily, children: [], devices: [], templates: [], instances: [], selectedChildId: 'all', todayDate: '', taskError: '', isSyncing: false });
+    set({ activeUserId: '', family: emptyFamily, children: [], devices: [], templates: [], instances: [], selectedChildId: 'all', todayDate: '', taskError: '', isSyncing: false });
   },
   loadTaskData: async (force = false) => {
     const currentEpoch = epoch;
@@ -63,6 +115,7 @@ export const useAppStore = create<AppState>()(persist((set, get) => ({
             targetDate: i.target_date, title: i.title, description: i.description, rewardCoins: i.reward_coins,
             confirmType: i.confirm_type, status: i.status, submittedAt: i.submitted_at, reviewedAt: i.reviewed_at,
             rejectReason: i.reject_reason, rewardGranted: i.reward_granted, createdAt: i.created_at })) });
+        persistTasksCache(get().activeUserId, get());
       } catch (e) { if (currentEpoch === epoch) set({ taskError: message(e) }); }
       finally { if (currentEpoch === epoch) set({ isSyncing: false }); }
     })();

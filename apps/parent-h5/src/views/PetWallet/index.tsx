@@ -7,18 +7,29 @@ import { IconCoin, IconPaw, IconPlus } from '../../components/Icons';
 import { UserProvidedVisual } from '../../components/UserProvidedVisual';
 import { ChildProfileEditor } from './ChildProfileEditor';
 import { familyApi, FamilyApiError, FamilyChild } from '../../services/familyApi';
+import { readUserCache, writeUserCache } from '../../services/localCache';
+import { useAppStore } from '../../stores/useAppStore';
 
 type Transaction = { id: string; amount: number; balance_after: number; type: string; description: string; created_at: string };
 type Wallet = { credits: number; transactions: Transaction[]; items: ShopProduct[] };
 type Reward = { childId: string; amount: number; note: string; requestId: string };
+type CachedPetWalletOverview = { familyId: string; children: FamilyChild[]; childId: string };
+const PET_WALLET_CACHE_KEY = 'pet_wallet_children';
+const walletCacheKey = (id: string) => `pet_wallet_${id}`;
 
 export const PetWalletPage: React.FC = () => {
-  const [children, setChildren] = useState<FamilyChild[]>([]);
-  const [childId, setChildId] = useState('');
-  const [familyId, setFamilyId] = useState('');
-  const [loading, setLoading] = useState(true);
+  const activeUserId = useAppStore(state => state.activeUserId);
+  const beginBackgroundSync = useAppStore(state => state.beginBackgroundSync);
+  const [initialCache] = useState(() => readUserCache<CachedPetWalletOverview>(activeUserId, PET_WALLET_CACHE_KEY));
+  const initialChildId = initialCache?.childId && initialCache.children?.some(item => item.id === initialCache.childId)
+    ? initialCache.childId
+    : initialCache?.children?.[0]?.id || '';
+  const [children, setChildren] = useState<FamilyChild[]>(() => initialCache?.children || []);
+  const [childId, setChildId] = useState(initialChildId);
+  const [familyId, setFamilyId] = useState(() => initialCache?.familyId || '');
+  const [loading, setLoading] = useState(!initialCache);
   const [error, setError] = useState('');
-  const [wallet, setWallet] = useState<Wallet | null>(null);
+  const [wallet, setWallet] = useState<Wallet | null>(() => initialChildId ? readUserCache<Wallet>(activeUserId, walletCacheKey(initialChildId)) : null);
   const [walletError, setWalletError] = useState('');
   const [revision, setRevision] = useState(0);
   const [newChild, setNewChild] = useState(false);
@@ -35,20 +46,25 @@ export const PetWalletPage: React.FC = () => {
   const child = children.find(item => item.id === childId);
 
   const refresh = useCallback(async () => {
+    const doneSync = beginBackgroundSync();
     setError('');
     try {
       const family = await familyApi<{ familyId: string }>('/api/v1/family/bootstrap', { method: 'POST' });
       const result = await familyApi<{ children: FamilyChild[] }>('/api/v1/family/children');
       setFamilyId(family.familyId); setChildren(result.children);
-      setChildId(current => result.children.some(item => item.id === current) ? current : result.children[0]?.id || '');
+      setChildId(current => {
+        const next = result.children.some(item => item.id === current) ? current : result.children[0]?.id || '';
+        writeUserCache<CachedPetWalletOverview>(activeUserId, PET_WALLET_CACHE_KEY, { familyId: family.familyId, children: result.children, childId: next });
+        return next;
+      });
       const saved = localStorage.getItem(`study_pet_pending_reward_${family.familyId}`);
       if (saved) {
         const reward: Reward = JSON.parse(saved);
         if (typeof reward.childId === 'string' && Number.isInteger(reward.amount) && typeof reward.requestId === 'string' && typeof reward.note === 'string') setPending(reward);
       }
     } catch { setError('无法加载宝贝和宠物信息，请检查网络后重试。'); }
-    finally { setLoading(false); }
-  }, []);
+    finally { setLoading(false); doneSync(); }
+  }, [activeUserId, beginBackgroundSync]);
   useEffect(() => { void refresh(); }, [refresh]);
   useEffect(() => {
     const onFocus = () => { void refresh(); setRevision(value => value + 1); };
@@ -57,20 +73,27 @@ export const PetWalletPage: React.FC = () => {
   }, [refresh]);
 
   useEffect(() => {
-    setWallet(null); setWalletError('');
-    if (!childId) return;
+    setWalletError('');
+    if (!childId) { setWallet(null); return; }
+    setWallet(readUserCache<Wallet>(activeUserId, walletCacheKey(childId)));
     let active = true;
     const controller = new AbortController();
     const load = async () => {
+      const doneSync = beginBackgroundSync();
       try {
         const result = await familyApi<Wallet>(`/api/v1/family/children/${childId}/wallet`, { signal: controller.signal });
-        if (active) { setWallet(result); setWalletError(''); }
+        if (active) {
+          setWallet(result);
+          setWalletError('');
+          writeUserCache(activeUserId, walletCacheKey(childId), result);
+        }
       } catch { if (active) setWalletError('金币明细暂时无法加载，请重试。'); }
+      finally { doneSync(); }
     };
     void load();
     const timer = window.setInterval(() => { if (!document.hidden) void load(); }, 10000);
     return () => { active = false; controller.abort(); window.clearInterval(timer); };
-  }, [childId, revision]);
+  }, [activeUserId, beginBackgroundSync, childId, revision]);
 
   const createChild = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -78,7 +101,12 @@ export const PetWalletPage: React.FC = () => {
     setCreating(true);
     try {
       const result = await familyApi<{ child: FamilyChild }>('/api/v1/family/children', { method: 'POST', body: JSON.stringify({ nickname: nickname.trim() }) });
-      setChildren(current => [...current, result.child]); setChildId(result.child.id); setNickname(''); setNewChild(false);
+      setChildren(current => {
+        const nextChildren = [...current, result.child];
+        writeUserCache<CachedPetWalletOverview>(activeUserId, PET_WALLET_CACHE_KEY, { familyId, children: nextChildren, childId: result.child.id });
+        return nextChildren;
+      });
+      setChildId(result.child.id); setNickname(''); setNewChild(false);
       Toast.show({ content: '已添加宝贝和专属小二哈' });
     } catch { Toast.show({ content: '添加失败，请稍后重试' }); }
     finally { setCreating(false); }
@@ -115,12 +143,18 @@ export const PetWalletPage: React.FC = () => {
     } finally { sendingRef.current = false; setSending(false); }
   };
 
+  const selectChild = (id: string) => {
+    setChildId(id);
+    if (familyId) writeUserCache<CachedPetWalletOverview>(activeUserId, PET_WALLET_CACHE_KEY, { familyId, children, childId: id });
+  };
+
   return (
     <div className="px-3 py-2.5 space-y-4 pb-20 text-[#1F2937]">
       <div className="flex items-center justify-between"><div><h2 className="text-h2">宝贝与小宠</h2><p className="text-xs text-[#6B7280] mt-1">每个宝贝都有专属哈小伴和金币账户</p></div><button type="button" className="kid-btn kid-btn-primary kid-btn-sm" onClick={() => setNewChild(true)}><IconPlus className="w-3 h-3" />添加宝贝</button></div>
-      {loading ? <p className="kid-card text-sm" role="status">正在加载…</p> : error ? <div className="kid-card space-y-2"><p role="alert" className="text-sm">{error}</p><button type="button" className="kid-btn kid-btn-ghost kid-btn-sm" onClick={refresh}>重新加载</button></div> : children.length === 0 ? <div className="kid-card py-8 text-center space-y-3"><IconPaw className="w-9 h-9 mx-auto text-[#728E62]" /><h3 className="font-semibold">先为宝贝建立成长空间</h3><p className="text-sm text-[#6B7280]">添加昵称后，就可以管理专属小宠和奖励金币。</p><button type="button" className="kid-btn kid-btn-primary" onClick={() => setNewChild(true)}>添加第一个宝贝</button></div> : <>
+      {error && familyId && <div className="kid-card bg-[#FFF8E8] flex items-center justify-between gap-2 text-sm" role="alert"><span>{error}</span><button type="button" className="kid-btn kid-btn-ghost kid-btn-sm shrink-0" onClick={refresh}>重试</button></div>}
+      {loading ? <p className="kid-card text-sm" role="status">正在加载…</p> : error && !familyId ? <div className="kid-card space-y-2"><p role="alert" className="text-sm">{error}</p><button type="button" className="kid-btn kid-btn-ghost kid-btn-sm" onClick={refresh}>重新加载</button></div> : children.length === 0 ? <div className="kid-card py-8 text-center space-y-3"><IconPaw className="w-9 h-9 mx-auto text-[#728E62]" /><h3 className="font-semibold">先为宝贝建立成长空间</h3><p className="text-sm text-[#6B7280]">添加昵称后，就可以管理专属小宠和奖励金币。</p><button type="button" className="kid-btn kid-btn-primary" onClick={() => setNewChild(true)}>添加第一个宝贝</button></div> : <>
         {pending && <div className="kid-card space-y-2 bg-[#FFF8E8]" role="status"><p className="text-sm">有一笔 {pending.amount} 金币奖励等待确认，请先确认结果。</p><button type="button" className="kid-btn kid-btn-secondary kid-btn-sm" onClick={openReward}>查看并确认奖励</button></div>}
-        <div className="flex gap-2 overflow-x-auto" role="tablist" aria-label="选择宝贝">{children.map(item => <button type="button" role="tab" aria-selected={childId === item.id} key={item.id} onClick={() => setChildId(item.id)} className={`kid-filter-chip shrink-0 ${childId === item.id ? 'kid-filter-chip-selected' : ''}`}>{item.nickname?.trim() || '宝贝'}</button>)}</div>
+        <div className="flex gap-2 overflow-x-auto" role="tablist" aria-label="选择宝贝">{children.map(item => <button type="button" role="tab" aria-selected={childId === item.id} key={item.id} onClick={() => selectChild(item.id)} className={`kid-filter-chip shrink-0 ${childId === item.id ? 'kid-filter-chip-selected' : ''}`}>{item.nickname?.trim() || '宝贝'}</button>)}</div>
         {child && <>
           <section className="kid-card space-y-4">
             <div className="flex justify-end"><button type="button" className="kid-btn kid-btn-ghost kid-btn-sm" onClick={() => setEditingChild(child)}>编辑昵称</button></div>
@@ -136,7 +170,7 @@ export const PetWalletPage: React.FC = () => {
 
         </>}
       </>}
-      {!loading && !error && familyId && <FamilyShop />}
+      {!loading && familyId && <FamilyShop />}
       {editingChild && <ChildProfileEditor key={editingChild.id} child={editingChild} onClose={() => setEditingChild(null)} onSaved={() => { setEditingChild(null); void refresh(); }} />}
       <Popup visible={newChild} onMaskClick={() => !creating && setNewChild(false)} bodyStyle={{ borderRadius: '20px 20px 0 0' }} destroyOnClose><form className="p-5 pb-8 space-y-4 max-w-xl mx-auto" onSubmit={createChild}><h3 className="text-lg font-bold">添加宝贝与小宠</h3><p className="text-sm text-[#6B7280]">一个昵称，一个专属哈小伴；设备可以稍后绑定。</p><label className="block text-sm" htmlFor="child-name">宝贝昵称</label><input id="child-name" className="kid-input" maxLength={50} required disabled={creating} value={nickname} onChange={event => setNickname(event.target.value)} placeholder="输入宝贝昵称" /><div className="flex gap-2"><button type="button" className="kid-btn kid-btn-ghost flex-1" disabled={creating} onClick={() => setNewChild(false)}>取消</button><button type="submit" className="kid-btn kid-btn-primary flex-1" disabled={creating || !nickname.trim()}>{creating ? '正在添加…' : '添加宝贝'}</button></div></form></Popup>
       <Popup visible={rewardOpen} onMaskClick={() => !sending && setRewardOpen(false)} bodyStyle={{ borderRadius: '20px 20px 0 0' }} destroyOnClose><form className="p-5 pb-8 space-y-4 max-w-xl mx-auto" onSubmit={grant}><h3 className="text-lg font-bold">奖励金币给 {child?.nickname?.trim() || '宝贝'}</h3><p className="text-sm text-[#6B7280]">金币存入宝贝账户，用于照顾专属哈小伴。设备联网后自动同步。</p><label htmlFor="reward-amount" className="block text-sm">金币数量</label><input id="reward-amount" className="kid-input" type="number" inputMode="numeric" min={1} max={10000} step={1} required disabled={sending || !!pending} value={amount} onChange={event => setAmount(event.target.value)} />{!pending && <div className="flex gap-2">{[10, 20, 50].map(value => <button type="button" key={value} className={`kid-filter-chip ${amount === String(value) ? 'kid-filter-chip-selected' : ''}`} disabled={sending} onClick={() => setAmount(String(value))}>+{value}</button>)}</div>}<label htmlFor="reward-note" className="block text-sm">奖励原因（选填）</label><input id="reward-note" className="kid-input" maxLength={200} disabled={sending || !!pending} value={note} onChange={event => setNote(event.target.value)} placeholder="例如：今天坚持阅读，非常棒" />{rewardError && <p role="alert" className="text-sm text-[#B45309]">{rewardError}</p>}<div className="flex gap-2"><button type="button" className="kid-btn kid-btn-ghost flex-1" disabled={sending} onClick={() => setRewardOpen(false)}>关闭</button><button type="submit" className="kid-btn kid-btn-primary flex-1" disabled={sending || !child}>{sending ? '正在确认…' : pending ? '重试确认' : '确认奖励'}</button></div></form></Popup>

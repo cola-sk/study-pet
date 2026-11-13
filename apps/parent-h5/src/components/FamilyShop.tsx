@@ -3,13 +3,20 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Dialog, Popup, Toast } from 'antd-mobile';
 import { familyApi, FamilyApiError } from '../services/familyApi';
+import { readUserCache, writeUserCache } from '../services/localCache';
+import { useAppStore } from '../stores/useAppStore';
 
 export type ShopProduct = { id: string; name: string; price: number; action: string; builtin_key: string | null; updated_at: string };
+const SHOP_CACHE_KEY = 'family_shop';
 const actions = [{ value: 'eat', label: '吃东西' }, { value: 'drink', label: '喝水' }, { value: 'pet', label: '陪伴玩耍' }, { value: 'happy', label: '开心庆祝' }, { value: 'play', label: '玩球' }, { value: 'bath', label: '洗澡' }, { value: 'treat', label: '吃零食' }, { value: 'dress', label: '试穿衣服' }];
 
 export function FamilyShop() {
-  const [items, setItems] = useState<ShopProduct[]>([]);
-  const [loading, setLoading] = useState(true);
+  const activeUserId = useAppStore(state => state.activeUserId);
+  const beginBackgroundSync = useAppStore(state => state.beginBackgroundSync);
+  const [initialItems] = useState(() => readUserCache<ShopProduct[]>(activeUserId, SHOP_CACHE_KEY));
+  const [items, setItems] = useState<ShopProduct[]>(() => initialItems || []);
+  const [loading, setLoading] = useState(!initialItems);
+  const [hasCache, setHasCache] = useState(Boolean(initialItems));
   const [error, setError] = useState('');
   const [visible, setVisible] = useState(false);
   const [editing, setEditing] = useState<ShopProduct | null>(null);
@@ -20,11 +27,17 @@ export function FamilyShop() {
   const [formError, setFormError] = useState('');
   const busyRef = useRef(false);
   const load = useCallback(async () => {
+    const doneSync = beginBackgroundSync();
     setError('');
-    try { const result = await familyApi<{ items: ShopProduct[] }>('/api/v1/family/shop'); setItems(result.items); }
+    try {
+      const result = await familyApi<{ items: ShopProduct[] }>('/api/v1/family/shop');
+      setItems(result.items);
+      setHasCache(true);
+      writeUserCache(activeUserId, SHOP_CACHE_KEY, result.items);
+    }
     catch { setError('商品目录暂时无法加载，请重试。'); }
-    finally { setLoading(false); }
-  }, []);
+    finally { setLoading(false); doneSync(); }
+  }, [activeUserId, beginBackgroundSync]);
   useEffect(() => { void load(); window.addEventListener('focus', load); return () => window.removeEventListener('focus', load); }, [load]);
   const open = (item?: ShopProduct) => {
     setEditing(item || null); setName(item?.name || ''); setPrice(String(item?.price || 1)); setAction(item?.action || 'happy'); setFormError(''); setVisible(true);
@@ -54,7 +67,8 @@ export function FamilyShop() {
   return <section className="space-y-3">
     <div className="flex justify-between items-center gap-2"><div><h3 className="text-h2">小宠商店 <span className="text-sm text-[#6B7280]">{items.length}/10</span></h3><p className="text-xs text-[#6B7280] mt-1">全家共用 · 点击小狗即可兑换</p></div><button type="button" className="kid-btn kid-btn-primary kid-btn-sm" disabled={loading || !!error || items.length >= 10 || busy} onClick={() => open()}>添加商品</button></div>
     <p className="text-xs leading-5 text-[#6B7280]">内置 Water 和 Food，最多再添加 8 个创意商品。抚摸、睡觉免费，不占商品名额。</p>
-    {loading ? <p className="kid-card text-sm" role="status">正在加载商品…</p> : error ? <p className="kid-card text-sm" role="alert">{error}</p> : <div className="kid-list">{items.map(item => <div className="kid-list-row gap-2" key={item.id}><div className="min-w-0 flex-1"><p className="font-semibold text-sm break-words">{item.name} {item.builtin_key && <span className="text-xs font-normal text-[#6B7280]">内置</span>}</p><p className="text-xs text-[#6B7280] mt-1">{item.price} credit{item.price === 1 ? '' : 's'} · {actions.find(option => option.value === item.action)?.label || '互动'}</p></div><button type="button" className="kid-btn kid-btn-ghost kid-btn-sm shrink-0" disabled={busy} onClick={() => open(item)}>编辑</button>{!item.builtin_key && <button type="button" className="kid-btn kid-btn-ghost kid-btn-sm shrink-0" disabled={busy} onClick={() => remove(item)}>删除</button>}</div>)}</div>}
+    {error && hasCache && <p className="kid-card text-sm bg-[#FFF8E8]" role="alert">{error}</p>}
+    {loading ? <p className="kid-card text-sm" role="status">正在加载商品…</p> : error && !hasCache ? <p className="kid-card text-sm" role="alert">{error}</p> : <div className="kid-list">{items.map(item => <div className="kid-list-row gap-2" key={item.id}><div className="min-w-0 flex-1"><p className="font-semibold text-sm break-words">{item.name} {item.builtin_key && <span className="text-xs font-normal text-[#6B7280]">内置</span>}</p><p className="text-xs text-[#6B7280] mt-1">{item.price} credit{item.price === 1 ? '' : 's'} · {actions.find(option => option.value === item.action)?.label || '互动'}</p></div><button type="button" className="kid-btn kid-btn-ghost kid-btn-sm shrink-0" disabled={busy} onClick={() => open(item)}>编辑</button>{!item.builtin_key && <button type="button" className="kid-btn kid-btn-ghost kid-btn-sm shrink-0" disabled={busy} onClick={() => remove(item)}>删除</button>}</div>)}</div>}
     <div className="flex justify-between items-center gap-2"><p className="text-xs text-[#6B7280]">{items.length >= 10 ? '已达 10 个商品，删除自定义商品后可继续添加。' : '名称和价格会同步到设备，购买成功后播放所选动画。'}</p><button type="button" className="kid-btn kid-btn-ghost kid-btn-sm shrink-0" disabled={busy} onClick={load}>刷新目录</button></div>
     <Popup visible={visible} onMaskClick={() => !busy && setVisible(false)} destroyOnClose bodyStyle={{ borderRadius: '20px 20px 0 0', maxHeight: '90vh', overflowY: 'auto' }}>
       <form className="p-5 pb-8 space-y-3 max-w-xl mx-auto" onSubmit={save}>

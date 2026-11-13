@@ -26,22 +26,29 @@ export const Layout: React.FC = () => {
     if (!supabase) { setAuthState('unconfigured'); return; }
     let alive = true;
     let authEventReceived = false;
+    const applySession = (nextUserId: string, signedIn: boolean) => {
+      if (signedIn && nextUserId) useAppStore.getState().hydrateForUser(nextUserId);
+      else useAppStore.getState().resetRemoteState();
+      setAuthState(signedIn ? 'signed-in' : 'signed-out');
+      setUserId(nextUserId);
+    };
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       authEventReceived = true;
-      if (alive) { setAuthState(session ? 'signed-in' : 'signed-out'); setUserId(session?.user.id || ''); }
+      if (alive) applySession(session?.user.id || '', Boolean(session));
     });
     supabase.auth.getSession().then(({ data: current, error }) => {
-      if (alive && !authEventReceived) { setAuthState(!error && current.session ? 'signed-in' : 'signed-out'); setUserId(current.session?.user.id || ''); }
-    }).catch(() => { if (alive && !authEventReceived) setAuthState('signed-out'); });
+      if (alive && !authEventReceived) applySession(current.session?.user.id || '', !error && Boolean(current.session));
+    }).catch(() => { if (alive && !authEventReceived) applySession('', false); });
     return () => { alive = false; data.subscription.unsubscribe(); };
   }, []);
   const installState = usePWAInstall();
-  const { instances, taskError, loadTaskData } = useAppStore();
+  const { instances, taskError, loadTaskData, isSyncing, backgroundSyncCount } = useAppStore();
+  const isBackgroundSyncing = isSyncing || backgroundSyncCount > 0;
   const [bootstrapError, setBootstrapError] = useState('');
   useEffect(() => {
-    useAppStore.getState().resetRemoteState();
     setBootstrapError('');
-    if (!userId) return;
+    if (!userId) { useAppStore.getState().resetRemoteState(); return; }
+    useAppStore.getState().hydrateForUser(userId);
     let alive = true;
     let ready = false;
     const refresh = async () => {
@@ -58,7 +65,7 @@ export const Layout: React.FC = () => {
     void refresh();
     const timer = window.setInterval(refresh, 10000);
     window.addEventListener('focus', refresh); document.addEventListener('visibilitychange', refresh);
-    return () => { alive = false; clearInterval(timer); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); useAppStore.getState().resetRemoteState(); };
+    return () => { alive = false; clearInterval(timer); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); };
   }, [userId]);
 
   const pendingApprovalsCount = instances.filter(i => i.status === 'submitted').length;
@@ -123,9 +130,19 @@ export const Layout: React.FC = () => {
             </div>
           </div>
 
-          <span className="family-summary-chip">
-            家庭空间
-          </span>
+          <div className="flex items-center gap-2">
+            {isBackgroundSyncing && (
+              <span className="inline-flex items-center justify-center text-[#9CA3AF]/75" role="status" aria-label="正在后台更新">
+                <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <circle cx="8" cy="8" r="6" stroke="currentColor" strokeOpacity="0.25" strokeWidth="1.75" />
+                  <path d="M14 8a6 6 0 0 0-6-6" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+                </svg>
+              </span>
+            )}
+            <span className="family-summary-chip">
+              家庭空间
+            </span>
+          </div>
         </div>
       </header>
 
