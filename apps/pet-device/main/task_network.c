@@ -70,9 +70,13 @@ static bool persist(bool clear) {
     nvs_close(h);
     return e==ESP_OK;
 }
-static void publish_error(task_page_state_t state) {
-    // Keep the last snapshot for a retry, but explicitly mark it unavailable.
-    if(current.state!=state) { current.state=state;current.approved=false;xQueueOverwrite(page_updates,&current); }
+static void publish_error(task_page_state_t state, bool force) {
+    // Keep the last snapshot on transient failures. An authorization failure
+    // invalidates it, as the device may no longer belong to the same child.
+    if(current.state!=state || force) {
+        if(state==TASKS_DENIED) memset(&current,0,sizeof(current));
+        current.state=state;current.approved=false;xQueueOverwrite(page_updates,&current);
+    }
 }
 static void load_page(const char *token) {
     char path[80];snprintf(path,sizeof(path),"device/tasks/today?offset=%u",requested_offset);
@@ -112,7 +116,7 @@ static void load_page(const char *token) {
         current=*page;xQueueOverwrite(page_updates,page);
         next_page=esp_timer_get_time()+5000000LL;
     } else {
-        publish_error(http==401 || http==403?TASKS_DENIED:TASKS_FAILED);
+        publish_error(http==401 || http==403?TASKS_DENIED:TASKS_FAILED,true);
         next_page=esp_timer_get_time()+10000000LL;
         ESP_LOGW(TAG,"Tasks unavailable: HTTP %d",http);
     }
@@ -168,9 +172,10 @@ void task_network_tick(const char *token,bool online,bool clock_ready) {
         if(persist(false)) {has_pending=true;next_submit=0;}
         else {atomic_store(&unsettled,false);checkin_result_t result={.state=CHECKIN_SAVE_FAILED};strlcpy(result.task_id,pending.task_id,sizeof(result.task_id));xQueueOverwrite(checkin_results,&result);}
     }
-    unsigned offset;if(xQueueReceive(refresh_requests,&offset,0)==pdTRUE) {requested_offset=offset;next_page=0;next_submit=0;}
+    unsigned offset;bool refresh=xQueueReceive(refresh_requests,&offset,0)==pdTRUE;
+    if(refresh) {requested_offset=offset;next_page=0;next_submit=0;}
     if(!online || !clock_ready || strlen(token)!=64) {
-        publish_error(strlen(token)==64?TASKS_OFFLINE:TASKS_DENIED);
+        publish_error(strlen(token)==64?TASKS_OFFLINE:TASKS_DENIED,refresh);
         if(has_pending && esp_timer_get_time()>=next_submit) {
             checkin_result_t result={.state=CHECKIN_UNKNOWN};strlcpy(result.task_id,pending.task_id,sizeof(result.task_id));xQueueOverwrite(checkin_results,&result);next_submit=esp_timer_get_time()+10000000LL;
         }

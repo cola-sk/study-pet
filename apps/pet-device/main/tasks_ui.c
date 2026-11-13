@@ -2,10 +2,15 @@
 #include <stdio.h>
 #include <string.h>
 LV_FONT_DECLARE(shop_cjk_font);
-static lv_obj_t *host, *root, *home, *home_caption, *content;
+static lv_obj_t *host, *root, *home, *home_progress, *content;
 static task_page_t snapshot;
 static char selected_id[37], feedback[100];
 static bool waiting_page;
+static unsigned requested_page;
+static bool cached_page(void) {
+    return snapshot.date[0] && snapshot.child_id[0] && snapshot.state != TASKS_DENIED &&
+           (!waiting_page || requested_page == snapshot.offset);
+}
 static void render(void);
 static const char *state_text(task_status_t s) {
     const char *names[]={"To do","Waiting for parent","Completed","Try again"};return names[s];
@@ -45,12 +50,12 @@ static void back(lv_event_t *e) {
     else {lv_obj_del(root);root=NULL;content=NULL;}
 }
 static void refresh(lv_event_t *e) {
-    (void)e;waiting_page=true;feedback[0]=0;task_refresh(snapshot.offset);render();
+    (void)e;waiting_page=true;requested_page=snapshot.offset;feedback[0]=0;task_refresh(snapshot.offset);render();
 }
 static void page_change(lv_event_t *e) {
     int delta=(int)(intptr_t)lv_event_get_user_data(e);
     unsigned offset=delta<0?(snapshot.offset>=TASK_PAGE_SIZE?snapshot.offset-TASK_PAGE_SIZE:0):snapshot.offset+TASK_PAGE_SIZE;
-    waiting_page=true;feedback[0]=0;task_refresh(offset);render();
+    waiting_page=true;requested_page=offset;feedback[0]=0;task_refresh(offset);render();
 }
 static void choose(lv_event_t *e) {
     unsigned index=(unsigned)(uintptr_t)lv_event_get_user_data(e);
@@ -59,7 +64,8 @@ static void choose(lv_event_t *e) {
 }
 static void complete(lv_event_t *e) {
     (void)e;
-    if(task_checkin_pending()) {snprintf(feedback,sizeof(feedback),"Confirming previous check-in...");}
+    if(waiting_page || snapshot.state!=TASKS_READY) {snprintf(feedback,sizeof(feedback),"Connect and sync before check-in.");}
+    else if(task_checkin_pending()) {snprintf(feedback,sizeof(feedback),"Confirming previous check-in...");}
     else if(task_request_checkin(selected_id))snprintf(feedback,sizeof(feedback),"Submitting. Waiting for sync...");
     else snprintf(feedback,sizeof(feedback),"Cannot save. Please try again.");
     render();
@@ -75,9 +81,14 @@ static void render(void) {
     lv_obj_t *heading=text(root,selected_id[0]?"Task details":"Today tasks",135);lv_obj_set_pos(heading,50,13);
     button(root,LV_SYMBOL_REFRESH,198,5,36,32,refresh,NULL);
     const char *error=snapshot.state==TASKS_OFFLINE?"Offline / waiting for Wi-Fi":snapshot.state==TASKS_DENIED?"Select child / pair in Settings":snapshot.state==TASKS_FAILED?"Tasks unavailable. Tap refresh.":"Loading tasks...";
-    char summary[80];snprintf(summary,sizeof(summary),"%s    %u/%u done",snapshot.date,snapshot.completed,snapshot.total);
-    lv_obj_t *subtitle=text(root,waiting_page?"Loading tasks...":snapshot.state==TASKS_READY?summary:error,224);lv_obj_set_pos(subtitle,8,43);
-    if(snapshot.state!=TASKS_READY || waiting_page) {
+    bool show_cache=cached_page();
+    char summary[80];
+    if(show_cache && waiting_page) snprintf(summary,sizeof(summary),"%s  Updating...",snapshot.date);
+    else if(show_cache && snapshot.state==TASKS_OFFLINE) snprintf(summary,sizeof(summary),"%s  Offline (cached)",snapshot.date);
+    else if(show_cache && snapshot.state==TASKS_FAILED) snprintf(summary,sizeof(summary),"%s  Sync failed (cached)",snapshot.date);
+    else snprintf(summary,sizeof(summary),"%s    %u/%u done",snapshot.date,snapshot.completed,snapshot.total);
+    lv_obj_t *subtitle=text(root,show_cache?summary:waiting_page?"Loading tasks...":error,224);lv_obj_set_pos(subtitle,8,43);
+    if(!show_cache) {
         if(task_checkin_pending()) {lv_obj_t *m=text(root,"Check-in saved. It will retry\nafter the connection returns.",220);lv_obj_set_pos(m,10,116);}
         return;
     }
@@ -93,9 +104,9 @@ static void render(void) {
         text(content,state_text(t->status),210);
         if(t->status==TASK_REJECTED && t->reason[0])text(content,t->reason,210);
         if(feedback[0])text(content,feedback,210);
-        const char *caption=t->status==TASK_COMPLETED?"Completed":t->status==TASK_SUBMITTED?"Waiting for parent":task_checkin_pending()?"Confirming check-in...":t->status==TASK_REJECTED?"Try again / Complete":"Complete task";
+        const char *caption=t->status==TASK_COMPLETED?"Completed":t->status==TASK_SUBMITTED?"Waiting for parent":task_checkin_pending()?"Confirming check-in...":waiting_page?"Updating...":snapshot.state!=TASKS_READY?"Connect to complete":t->status==TASK_REJECTED?"Try again / Complete":"Complete task";
         lv_obj_t *submit=button(root,caption,10,270,220,40,complete,NULL);
-        if(t->status==TASK_COMPLETED || t->status==TASK_SUBMITTED || task_checkin_pending())lv_obj_add_state(submit,LV_STATE_DISABLED);
+        if(t->status==TASK_COMPLETED || t->status==TASK_SUBMITTED || task_checkin_pending() || waiting_page || snapshot.state!=TASKS_READY)lv_obj_add_state(submit,LV_STATE_DISABLED);
     } else {
         content=lv_obj_create(root);lv_obj_set_pos(content,6,66);lv_obj_set_size(content,228,199);
         lv_obj_set_style_pad_all(content,0,0);lv_obj_set_style_border_width(content,0,0);
@@ -119,13 +130,23 @@ static void render(void) {
 static void open_event(lv_event_t *e) {(void)e;tasks_ui_open();}
 void tasks_ui_init(lv_obj_t *parent) {
     host=parent;snapshot.state=TASKS_LOADING;
-    home=button(host,"Today tasks",30,264,180,34,open_event,NULL);home_caption=lv_obj_get_child(home,0);
+    home=button(host,"Today",0,0,64,64,open_event,NULL);
+    lv_obj_set_style_radius(home,LV_RADIUS_CIRCLE,0);
+    lv_obj_align(home,LV_ALIGN_BOTTOM_RIGHT,-6,-6);
+    lv_obj_align(lv_obj_get_child(home,0),LV_ALIGN_CENTER,0,-9);
+    home_progress=lv_label_create(home);
+    lv_obj_set_width(home_progress,60);
+    lv_obj_set_style_text_font(home_progress,&lv_font_montserrat_10,0);
+    lv_obj_set_style_text_color(home_progress,lv_color_white(),0);
+    lv_obj_set_style_text_align(home_progress,LV_TEXT_ALIGN_CENTER,0);
+    lv_label_set_text(home_progress,"--");
+    lv_obj_align(home_progress,LV_ALIGN_CENTER,0,10);
 }
 void tasks_ui_open(void) {
     if(root)return;
     root=lv_obj_create(host);lv_obj_set_pos(root,0,0);lv_obj_set_size(root,240,320);lv_obj_set_style_pad_all(root,0,0);
     lv_obj_set_style_border_width(root,0,0);lv_obj_set_style_bg_color(root,lv_color_hex(0xfff7e7),0);lv_obj_clear_flag(root,LV_OBJ_FLAG_SCROLLABLE);
-    selected_id[0]=0;feedback[0]=0;waiting_page=true;task_refresh(snapshot.offset);render();
+    selected_id[0]=0;feedback[0]=0;waiting_page=true;requested_page=snapshot.offset;task_refresh(snapshot.offset);render();
 }
 bool tasks_ui_is_open(void) {return root!=NULL;}
 void tasks_ui_home_visible(bool visible) {if(home){if(visible)lv_obj_clear_flag(home,LV_OBJ_FLAG_HIDDEN);else lv_obj_add_flag(home,LV_OBJ_FLAG_HIDDEN);}}
@@ -134,12 +155,21 @@ void tasks_ui_page(const task_page_t *page) {
     bool same=page->offset==snapshot.offset && !strcmp(page->child_id,snapshot.child_id) && !strcmp(page->date,snapshot.date);
     const pet_task_t *before=selected();
     task_status_t old_status=before?before->status:TASK_PENDING;
-    snapshot=*page;waiting_page=false;
+    snapshot=*page;waiting_page=false;requested_page=snapshot.offset;
+    if(snapshot.state==TASKS_DENIED) {
+        memset(&snapshot,0,sizeof(snapshot));snapshot.state=TASKS_DENIED;
+    }
     const pet_task_t *after=selected();
     if(before && after && old_status!=after->status) feedback[0]=0;
     if(!same){selected_id[0]=0;feedback[0]=0;}
-    if(snapshot.state==TASKS_READY)lv_label_set_text_fmt(home_caption,"Today %u/%u",snapshot.completed,snapshot.total);
-    else lv_label_set_text(home_caption,"Today tasks");
+    if(snapshot.state==TASKS_READY) {
+        char done[8],total[8];
+        if(snapshot.completed>999) snprintf(done,sizeof(done),"999+");
+        else snprintf(done,sizeof(done),"%u",snapshot.completed);
+        if(snapshot.total>999) snprintf(total,sizeof(total),"999+");
+        else snprintf(total,sizeof(total),"%u",snapshot.total);
+        lv_label_set_text_fmt(home_progress,"%s/%s",done,total);
+    } else lv_label_set_text(home_progress,"--");
     render();if(content && same)lv_obj_scroll_to_y(content,y,LV_ANIM_OFF);
 }
 void tasks_ui_result(const checkin_result_t *r) {

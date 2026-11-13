@@ -26,7 +26,7 @@ void *esp_crt_bundle_attach;
 struct mock_client {esp_http_client_config_t config;char path[192],body[200];int status;};
 static char last_request[80],prior_request[80];static int submissions;static int submit_http=200;static const char *submit_response="{\"success\":true,\"status\":\"completed\",\"credits\":3,\"awarded\":true}";
 static const char *task_id="22222222-2222-4222-8222-222222222222";
-static char page_json[2048];
+static char page_json[2048];static int page_http=200;
 esp_http_client_handle_t esp_http_client_init(const esp_http_client_config_t *cfg) {struct mock_client *c=calloc(1,sizeof(*c));c->config=*cfg;snprintf(c->path,sizeof(c->path),"%s",cfg->url);return c;}
 void esp_http_client_set_header(esp_http_client_handle_t c,const char *k,const char *v) {(void)c;(void)k;(void)v;}
 void esp_http_client_set_method(esp_http_client_handle_t c,int m) {(void)c;(void)m;}
@@ -37,7 +37,7 @@ esp_err_t esp_http_client_perform(esp_http_client_handle_t c) {
         submissions++;cJSON *j=cJSON_Parse(c->body);assert(j);const cJSON *v=cJSON_GetObjectItemCaseSensitive(j,"requestId");assert(cJSON_IsString(v));
         strcpy(prior_request,last_request);snprintf(last_request,sizeof(last_request),"%s",v->valuestring);cJSON_Delete(j);
         c->status=submit_http;body=submit_response;if(!submit_http)return ESP_FAIL;
-    } else {c->status=200;body=page_json;}
+    } else {c->status=page_http;body=page_json;}
     esp_http_client_event_t e={.event_id=HTTP_EVENT_ON_DATA,.data_len=(int)strlen(body),.data=(void *)body,.user_data=c->config.user_data};
     return c->config.event_handler(&e);
 }
@@ -50,6 +50,8 @@ int main(void) {
     task_network_init();tick(token,true);task_page_t *page=calloc(1,sizeof(*page));assert(task_take_page(page));assert(page->state==TASKS_READY && page->count==1 && !strcmp(page->items[0].title,"阅读"));
     assert(task_request_checkin(task_id));assert(!task_request_checkin(task_id));tick(token,false);assert(stored_size && task_checkin_pending());
     checkin_result_t result;assert(task_take_checkin(&result) && result.state==CHECKIN_UNKNOWN);assert(submissions==0);
+    assert(task_take_page(page) && page->state==TASKS_OFFLINE && page->count==1);
+    task_refresh(0);tick(token,false);assert(task_take_page(page) && page->state==TASKS_OFFLINE && page->count==1);
     // Simulated reboot: NVS survives, while all in-memory queues are recreated.
     task_network_init();assert(task_checkin_pending());submit_http=0;tick(token,true);assert(submissions==1 && stored_size);assert(task_take_checkin(&result) && result.state==CHECKIN_UNKNOWN);
     char first_request[80];strcpy(first_request,last_request);
@@ -61,5 +63,7 @@ int main(void) {
     fail_erase=false;tick(token,true);assert(task_take_checkin(&result) && result.state==CHECKIN_OK);assert(!strcmp(last_request,prior_request) && !stored_size);
     assert(task_request_checkin(task_id));submit_http=409;submit_response="{\"code\":\"not_today\"}";tick(token,true);assert(task_take_checkin(&result) && result.state==CHECKIN_EXPIRED && !task_checkin_pending() && !stored_size);
     assert(task_request_checkin(task_id));submit_response="{\"code\":\"request_conflict\"}";tick(token,true);assert(task_take_checkin(&result) && result.state==CHECKIN_CONFLICT && task_checkin_pending() && stored_size);
+    page_http=401;task_refresh(0);tick(token,true);
+    assert(task_take_page(page) && page->state==TASKS_DENIED && page->count==0 && !page->child_id[0]);
     free(page);puts("Task network passed: parsed response, offline queue, reboot/timeout replay, one pending request, failed NVS write/erase, expired and conflict responses.");
 }

@@ -7,13 +7,19 @@ const previewTasks = [
   { title: '整理学习桌', description: '把书本和文具放回原位。', reward: 2, parent: false, status: 'pending' },
   { title: '喝一杯水', description: '记得慢慢喝水。', reward: 1, parent: false, status: 'pending' },
 ];
-let previewTaskIndex = null, previewOffset = 0;
+let previewTaskIndex = null, previewOffset = 0, previewUpdating = false, previewSyncTimer;
 const previewStatus = { pending: 'To do', submitted: 'Waiting for parent', completed: 'Completed', rejected: 'Try again' };
 function taskElement(tag, text, className) {
   const node = document.createElement(tag); node.textContent = text; if (className) node.className = className; return node;
 }
 function updateTaskHome() {
-  document.querySelector('#tasks-home').textContent = `Today ${previewTasks.filter(t => t.status === 'completed').length}/${previewTasks.length}`;
+  document.querySelector('#tasks-home small').textContent = `${previewTasks.filter(t => t.status === 'completed').length}/${previewTasks.length}`;
+}
+function beginPreviewSync() {
+  clearTimeout(previewSyncTimer);
+  previewUpdating = true;
+  renderTaskPreview();
+  previewSyncTimer = setTimeout(() => { previewUpdating = false; if (!tasksPreview.hidden) renderTaskPreview(); }, 700);
 }
 function renderTaskPreview() {
   tasksPreview.replaceChildren();
@@ -21,9 +27,9 @@ function renderTaskPreview() {
   const header = taskElement('header', '', 'tasks-header');
   const back = taskElement('button', '‹'); back.onclick = () => { if (task) {previewTaskIndex = null; renderTaskPreview();} else tasksPreview.hidden = true; };
   const title = taskElement('span', task ? 'Task details' : 'Today tasks');
-  const refresh = taskElement('button', '↻', 'refresh'); refresh.onclick = renderTaskPreview;
+  const refresh = taskElement('button', '↻', 'refresh'); refresh.onclick = beginPreviewSync;
   header.append(back, title, refresh); tasksPreview.append(header);
-  tasksPreview.append(taskElement('div', `${new Date().toLocaleDateString('en-CA')}    ${previewTasks.filter(t => t.status === 'completed').length}/${previewTasks.length} done`, 'tasks-summary'));
+  tasksPreview.append(taskElement('div', `${new Date().toLocaleDateString('en-CA')}    ${previewUpdating ? 'Updating...' : `${previewTasks.filter(t => t.status === 'completed').length}/${previewTasks.length} done`}`, 'tasks-summary'));
   const content = taskElement('div', '', 'tasks-content'); tasksPreview.append(content);
   if (task) {
     content.classList.add('tasks-detail');
@@ -38,8 +44,8 @@ function renderTaskPreview() {
   }
   const footer = taskElement('footer', '', 'tasks-footer'); tasksPreview.append(footer);
   if (task) {
-    const submit = taskElement('button', task.status === 'completed' ? 'Completed' : task.status === 'submitted' ? 'Waiting for parent' : task.status === 'rejected' ? 'Try again / Complete' : 'Complete task', 'complete');
-    submit.disabled = task.status === 'completed' || task.status === 'submitted';
+    const submit = taskElement('button', task.status === 'completed' ? 'Completed' : task.status === 'submitted' ? 'Waiting for parent' : previewUpdating ? 'Updating...' : task.status === 'rejected' ? 'Try again / Complete' : 'Complete task', 'complete');
+    submit.disabled = previewUpdating || task.status === 'completed' || task.status === 'submitted';
     submit.onclick = () => {task.status = task.parent ? 'submitted' : 'completed'; if (!task.parent) {coins += task.reward; document.querySelector('#credits').textContent = coins + ' credits'; setAction('happy');} updateTaskHome(); renderTaskPreview();}; footer.append(submit);
   } else {
     const prev = taskElement('button', '‹'); prev.disabled = previewOffset === 0; prev.onclick = () => {previewOffset -= 10; renderTaskPreview();};
@@ -47,7 +53,7 @@ function renderTaskPreview() {
     footer.append(prev, taskElement('span', `${Math.floor(previewOffset / 10) + 1} / ${Math.max(1, Math.ceil(previewTasks.length / 10))}`), next);
   }
 }
-document.querySelector('#tasks-home').onclick = () => {setMenu(false); previewTaskIndex = null; tasksPreview.hidden = false; renderTaskPreview();};
+document.querySelector('#tasks-home').onclick = () => {setMenu(false); previewTaskIndex = null; tasksPreview.hidden = false; beginPreviewSync();};
 const approvePreview = document.createElement('button'); approvePreview.textContent = '模拟家长批准待确认任务';
 approvePreview.onclick = () => {const t = previewTasks.find(item => item.status === 'submitted'); if (!t) return; t.status = 'completed'; coins += t.reward; document.querySelector('#credits').textContent = coins + ' credits'; setAction('happy'); updateTaskHome(); if (!tasksPreview.hidden) renderTaskPreview();};
 document.querySelector('.controls').append(approvePreview);

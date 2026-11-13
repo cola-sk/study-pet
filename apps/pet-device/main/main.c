@@ -224,7 +224,8 @@ void app_main(void)
     }
     render_menu();
     notice = lv_label_create(screen); lv_label_set_text(notice, "Not enough credits");
-    lv_obj_align(notice, LV_ALIGN_BOTTOM_MID, 0, -1);
+    lv_obj_set_width(notice, 160); lv_obj_set_style_text_align(notice, LV_TEXT_ALIGN_LEFT, 0);
+    lv_obj_align(notice, LV_ALIGN_BOTTOM_LEFT, 6, -7);
     set_menu(false);
     if (shop_purchase_pending()) { lv_label_set_text(notice,"Confirming purchase..."); lv_obj_clear_flag(notice,LV_OBJ_FLAG_HIDDEN); }
     uint8_t mac[6]; esp_read_mac(mac, ESP_MAC_WIFI_STA);
