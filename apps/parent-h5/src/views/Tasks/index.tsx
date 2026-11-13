@@ -9,7 +9,12 @@ import { TaskFormModal } from './TaskFormModal';
 import { IconPlus, IconCoin } from '../../components/Icons';
 
 export const TasksPage: React.FC = () => {
-  const { templates, children, toggleTemplate, deleteTemplate } = useAppStore();
+  const { templates, children, toggleTemplate, deleteTemplate, legacyTemplates, discardLegacyTemplate, isSyncing, taskError, todayDate } = useAppStore();
+  const [busy, setBusy] = useState('');
+  const mutate = async (id: string, action: () => Promise<void>) => {
+    if (busy) return; setBusy(id);
+    try { await action(); } catch (e) { Toast.show({ icon: 'fail', content: e instanceof Error ? e.message : '操作失败' }); } finally { setBusy(''); }
+  };
   const [modalVisible, setModalVisible] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<TaskTemplate | null>(null);
 
@@ -29,10 +34,7 @@ export const TasksPage: React.FC = () => {
       content: `确定要移除任务「${tpl.title}」吗？今日已生成的记录仍会保留。`,
       confirmText: '移除',
       cancelText: '取消',
-      onConfirm: () => {
-        deleteTemplate(tpl.id);
-        Toast.show({ icon: 'success', content: '已移除任务' });
-      },
+      onConfirm: async () => { await mutate(tpl.id, () => deleteTemplate(tpl.id)); },
     });
   };
 
@@ -64,7 +66,7 @@ export const TasksPage: React.FC = () => {
       <div className="flex items-center justify-between gap-2 px-0.5">
         <div>
           <h2 className="text-h2 text-[#1F2937]">任务模板 ({templates.length})</h2>
-          <p className="text-caption text-[#9CA3AF]">自动按周期分发到宝贝的桌面设备</p>
+          <p className="text-caption text-[#9CA3AF]">按家庭时区生成；每个家庭最多 50 个模板</p>
         </div>
         <button
           type="button"
@@ -76,10 +78,15 @@ export const TasksPage: React.FC = () => {
         </button>
       </div>
 
+      {legacyTemplates.length > 0 && <div className="kid-card space-y-2">
+        <h3>浏览器旧任务 · 待导入</h3><p className="text-xs text-gray-500">这些草稿尚未保存到家庭，请检查后逐个导入。</p>
+        {legacyTemplates.map(t => <div className="flex justify-between gap-2" key={t.id}><span>{t.title}</span><button onClick={() => handleEdit(t)}>检查并导入</button><button onClick={() => discardLegacyTemplate(t.id)}>移除草稿</button></div>)}
+      </div>}
+      <p className="text-xs text-gray-500">今日已生成的任务会保留；修改、停用和移除影响之后的任务。</p>
       {/* 模板列表 */}
       {templates.length === 0 ? (
         <div className="kid-card text-center py-6">
-          <Empty description="暂无任务，点击右上角新建" />
+          <Empty description={taskError ? "任务加载失败，请点击上方重试" : !todayDate || isSyncing ? "正在加载任务…" : "暂无任务，点击右上角新建"} />
         </div>
       ) : (
         <div className="space-y-2">
@@ -103,7 +110,7 @@ export const TasksPage: React.FC = () => {
 
                 <Switch
                   checked={tpl.isActive}
-                  onChange={() => toggleTemplate(tpl.id)}
+                  disabled={Boolean(busy)} onChange={() => mutate(tpl.id, () => toggleTemplate(tpl.id))}
                   style={{
                     '--width': '38px',
                     '--height': '22px',
@@ -127,7 +134,7 @@ export const TasksPage: React.FC = () => {
                 <div className="flex items-center gap-1.5 shrink-0">
                   <button
                     type="button"
-                    onClick={() => handleEdit(tpl)}
+                    disabled={Boolean(busy)} onClick={() => handleEdit(tpl)}
                     className="kid-btn kid-btn-ghost kid-btn-sm !h-6 !min-h-[24px] !px-2 !text-[11px]"
                   >
                     <EditSOutline />
@@ -135,7 +142,7 @@ export const TasksPage: React.FC = () => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleDelete(tpl)}
+                    disabled={Boolean(busy)} onClick={() => handleDelete(tpl)}
                     className="kid-btn kid-btn-danger-ghost kid-btn-sm !h-6 !min-h-[24px] !px-2 !text-[11px]"
                   >
                     <DeleteOutline />

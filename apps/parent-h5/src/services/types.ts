@@ -45,6 +45,7 @@ export interface Device {
 }
 
 export interface TaskTemplate {
+  updatedAt?: string;
   id: string;
   familyId: string;
   title: string;

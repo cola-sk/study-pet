@@ -1,5 +1,6 @@
 #include "network.h"
 #include "shop_network.h"
+#include "task_network.h"
 #include "wifi_manager.h"
 #include "sdkconfig.h"
 #include "esp_crt_bundle.h"
@@ -202,6 +203,7 @@ static void network_task(void *arg)
             else retry_seconds = 10;
             next_sync = esp_timer_get_time() + (int64_t)interval * 1000000LL;
         }
+        task_network_tick(active_token(), online, clock_ready);
         shop_network_tick(active_token(), online, clock_ready);
     }
 }
@@ -209,6 +211,7 @@ void network_start(void) {
     if (!load_identity()) { ESP_LOGE(TAG, "NVS unavailable; pairing disabled"); return; }
     if (!wifi_manager_start()) return;
     shop_network_init();
+    task_network_init();
     wallet_updates = xQueueCreate(1, sizeof(network_wallet_update_t));
     pair_requests = xQueueCreate(1, 7);
     pair_results = xQueueCreate(1, sizeof(int));

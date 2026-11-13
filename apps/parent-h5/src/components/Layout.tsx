@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { familyApi } from '../services/familyApi';
 import { supabase } from '../services/supabase';
 import { AccountPairingPanel } from './AccountPairingPanel';
 import { SafeArea } from 'antd-mobile';
@@ -20,21 +21,45 @@ import { SettingsPage } from '../views/Settings';
 export const Layout: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('approvals');
   const [authState, setAuthState] = useState<'loading' | 'signed-in' | 'signed-out' | 'unconfigured'>('loading');
+  const [userId, setUserId] = useState('');
   useEffect(() => {
     if (!supabase) { setAuthState('unconfigured'); return; }
     let alive = true;
     let authEventReceived = false;
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       authEventReceived = true;
-      if (alive) setAuthState(session ? 'signed-in' : 'signed-out');
+      if (alive) { setAuthState(session ? 'signed-in' : 'signed-out'); setUserId(session?.user.id || ''); }
     });
     supabase.auth.getSession().then(({ data: current, error }) => {
-      if (alive && !authEventReceived) setAuthState(!error && current.session ? 'signed-in' : 'signed-out');
+      if (alive && !authEventReceived) { setAuthState(!error && current.session ? 'signed-in' : 'signed-out'); setUserId(current.session?.user.id || ''); }
     }).catch(() => { if (alive && !authEventReceived) setAuthState('signed-out'); });
     return () => { alive = false; data.subscription.unsubscribe(); };
   }, []);
   const installState = usePWAInstall();
-  const { instances } = useAppStore();
+  const { instances, taskError, loadTaskData } = useAppStore();
+  const [bootstrapError, setBootstrapError] = useState('');
+  useEffect(() => {
+    useAppStore.getState().resetRemoteState();
+    setBootstrapError('');
+    if (!userId) return;
+    let alive = true;
+    let ready = false;
+    const refresh = async () => {
+      if (!alive || document.visibilityState === 'hidden') return;
+      try {
+        if (!ready) {
+          await familyApi('/api/v1/family/bootstrap', { method: 'POST' });
+          if (!alive) return;
+          ready = true; setBootstrapError('');
+        }
+        await useAppStore.getState().loadTaskData();
+      } catch (e) { if (alive) setBootstrapError(e instanceof Error ? e.message : '家庭加载失败'); }
+    };
+    void refresh();
+    const timer = window.setInterval(refresh, 10000);
+    window.addEventListener('focus', refresh); document.addEventListener('visibilitychange', refresh);
+    return () => { alive = false; clearInterval(timer); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); useAppStore.getState().resetRemoteState(); };
+  }, [userId]);
 
   const pendingApprovalsCount = instances.filter(i => i.status === 'submitted').length;
 
@@ -104,6 +129,9 @@ export const Layout: React.FC = () => {
         </div>
       </header>
 
+      {(bootstrapError || taskError) && <div className="max-w-xl w-full mx-auto p-3 text-sm text-red-700" role="alert">
+        {bootstrapError || taskError} <button onClick={() => { if (bootstrapError) window.location.reload(); else void loadTaskData(); }}>重试</button>
+      </div>}
       {/* 主视图内容区 */}
       <main className="flex-1 overflow-x-hidden w-full max-w-xl mx-auto">
         {activeTab === 'approvals' && <ApprovalsPage />}

@@ -17,9 +17,10 @@ export const ApprovalsPage: React.FC = () => {
     selectedChildId, 
     setSelectedChildId, 
     approveTask, 
-    rejectTask 
+    rejectTask, todayDate, family, loadTaskData, taskError, isSyncing
   } = useAppStore();
 
+  const [busy, setBusy] = useState('');
   const [rejectingTask, setRejectingTask] = useState<TaskInstance | null>(null);
   const [rejectReason, setRejectReason] = useState('加油！再检查一下就能拿到奖励啦！');
 
@@ -27,6 +28,7 @@ export const ApprovalsPage: React.FC = () => {
     ? instances
     : instances.filter(i => i.childId === selectedChildId);
 
+  const todayInstances = filteredInstances.filter(i => i.targetDate === todayDate);
   const submittedTasks = filteredInstances.filter(i => i.status === 'submitted');
 
   const triggerRewardConfetti = () => {
@@ -41,32 +43,35 @@ export const ApprovalsPage: React.FC = () => {
   };
 
   const handleApprove = async (task: TaskInstance) => {
-    const res = await approveTask(task.id);
+    if (busy) return; setBusy(task.id);
+    const res = await approveTask(task.id); setBusy('');
     if (res.success) {
-      triggerRewardConfetti();
+      if ((res.coins || 0) > 0) triggerRewardConfetti();
       Toast.show({
         icon: 'success',
         content: res.message,
       });
-    }
+    } else Toast.show({ icon: 'fail', content: res.message });
   };
 
   const handleConfirmReject = async () => {
-    if (!rejectingTask) return;
+    if (!rejectingTask || busy) return;
+    setBusy(rejectingTask.id);
     const res = await rejectTask(rejectingTask.id, rejectReason);
-    setRejectingTask(null);
+    setBusy('');
     if (res.success) {
+      setRejectingTask(null);
       Toast.show({
         icon: 'success',
-        content: '已发送鼓励提示，让宝贝再试一次',
+        content: res.message,
       });
-    }
+    } else Toast.show({ icon: 'fail', content: res.message });
   };
 
   const totalPendingCount = instances.filter(i => i.status === 'submitted').length;
 
   return (
-    <PullToRefresh onRefresh={async () => { await new Promise(r => setTimeout(r, 500)); }}>
+    <PullToRefresh onRefresh={() => loadTaskData(true)}>
       <div className="approval-dashboard px-4 pt-3 space-y-4 pb-24">
         {/* 顶部宝贝筛选 */}
         <div className="flex items-center gap-2 overflow-x-auto" role="tablist" aria-label="选择孩子">
@@ -121,7 +126,7 @@ export const ApprovalsPage: React.FC = () => {
           {(selectedChildId === 'all' ? children : children.filter(c => c.id === selectedChildId)).map(child => {
             const pet = pets[child.id];
             const device = devices.find(d => d.childId === child.id);
-            const childTasks = instances.filter(i => i.childId === child.id);
+            const childTasks = instances.filter(i => i.childId === child.id && i.targetDate === todayDate);
             const childCompleted = childTasks.filter(i => i.status === 'completed').length;
             const childTotal = childTasks.length;
             const progressPct = childTotal > 0 ? Math.round((childCompleted / childTotal) * 100) : 0;
@@ -160,7 +165,7 @@ export const ApprovalsPage: React.FC = () => {
 
                   <div className="text-right shrink-0">
                     {device ? (
-                      <span className="family-device-status is-online">设备在线</span>
+                      <span className="family-device-status is-online">设备已配对</span>
                     ) : (
                       <span className="family-device-status is-offline">未配对</span>
                     )}
@@ -236,7 +241,7 @@ export const ApprovalsPage: React.FC = () => {
                           <span>+{task.rewardCoins}</span>
                         </div>
                         <div className="approval-time">
-                          {task.submittedAt || '刚刚'}
+                          {task.targetDate} {task.submittedAt ? new Date(task.submittedAt).toLocaleTimeString('zh-CN', { timeZone: family.timezone, hour: '2-digit', minute: '2-digit' }) : ''}
                         </div>
                       </div>
                     </div>
@@ -244,14 +249,14 @@ export const ApprovalsPage: React.FC = () => {
                     <div className="approval-card-actions">
                       <button
                         type="button"
-                        onClick={() => setRejectingTask(task)}
+                        disabled={Boolean(busy)} onClick={() => setRejectingTask(task)}
                         className="approval-action approval-action-secondary"
                       >
                         <span>再试一次</span>
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleApprove(task)}
+                        disabled={Boolean(busy)} onClick={() => handleApprove(task)}
                         className="approval-action approval-action-primary inline-flex items-center gap-1.5"
                       >
                         <IconCheck className="w-3.5 h-3.5" />
@@ -269,11 +274,11 @@ export const ApprovalsPage: React.FC = () => {
         <section className="approval-section space-y-2.5">
           <div className="flex items-center justify-between px-0.5">
             <h3 className="approval-section-title">今日任务清单</h3>
-            <span className="text-[11px] text-[#929187]">共 {filteredInstances.length} 项</span>
+            <span className="text-[11px] text-[#929187]">共 {todayInstances.length} 项</span>
           </div>
 
           <div className="today-task-list">
-            {filteredInstances.map(task => {
+            {todayInstances.map(task => {
               const child = children.find(c => c.id === task.childId);
               return (
                 <div key={task.id} className="today-task-row">
@@ -313,9 +318,9 @@ export const ApprovalsPage: React.FC = () => {
               );
             })}
 
-            {filteredInstances.length === 0 && (
+            {todayInstances.length === 0 && (
               <div className="p-4 text-center text-body text-[#9CA3AF]">
-                今天还没有任务记录
+                {taskError ? '任务加载失败，请点击上方重试' : isSyncing || !todayDate ? '正在加载…' : '今天还没有任务记录'}
               </div>
             )}
           </div>
@@ -335,7 +340,7 @@ export const ApprovalsPage: React.FC = () => {
               id="try-again-input"
               className="kid-input"
               rows={2}
-              value={rejectReason}
+              maxLength={120} disabled={Boolean(busy)} value={rejectReason}
               onChange={e => setRejectReason(e.target.value)}
               placeholder="输入鼓励提示语"
             />
@@ -346,7 +351,7 @@ export const ApprovalsPage: React.FC = () => {
             {
               key: 'cancel',
               text: '取消',
-              onClick: () => setRejectingTask(null),
+              onClick: () => { if (!busy) setRejectingTask(null); },
             },
             {
               key: 'confirm',

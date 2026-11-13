@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Popup, Stepper, Toast } from 'antd-mobile';
 import { TaskTemplate, ConfirmType, FrequencyType, TargetScope } from '../../services/types';
-import { useAppStore } from '../../stores/useAppStore';
+import { isRemoteId, useAppStore } from '../../stores/useAppStore';
+import { FamilyApiError } from '../../services/familyApi';
 import { IconCheck, IconCoin } from '../../components/Icons';
 
 interface Props {
@@ -23,7 +24,7 @@ const WEEKDAY_OPTIONS = [
 ];
 
 export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTemplate }) => {
-  const { family, children, addTemplate, updateTemplate } = useAppStore();
+  const { family, children, addTemplate, updateTemplate, discardLegacyTemplate } = useAppStore();
 
   const [title, setTitle] = useState(initialTemplate?.title || '');
   const [description, setDescription] = useState(initialTemplate?.description || '');
@@ -35,7 +36,16 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
   const [targetScope, setTargetScope] = useState<TargetScope>(initialTemplate?.targetScope || 'all');
   const [targetChildIds, setTargetChildIds] = useState<string[]>(initialTemplate?.targetChildIds || (children[0] ? [children[0].id] : []));
 
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const requestId = useRef('');
+  const attemptedPayload = useRef<string>('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   React.useEffect(() => {
+    if (!visible) return;
+    requestId.current = crypto.randomUUID(); attemptedPayload.current = ''; setSaveError('');
+    setStartDate(initialTemplate?.startDate || ''); setEndDate(initialTemplate?.endDate || '');
     if (initialTemplate) {
       setTitle(initialTemplate.title);
       setDescription(initialTemplate.description || '');
@@ -45,7 +55,7 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
       setSelectedDays(initialTemplate.frequencyConfig.days || [1, 3, 5]);
       setIntervalDays(initialTemplate.frequencyConfig.interval || 2);
       setTargetScope(initialTemplate.targetScope || 'all');
-      setTargetChildIds(initialTemplate.targetChildIds || []);
+      setTargetChildIds((initialTemplate.targetChildIds || []).filter(id => children.some(c => c.id === id)));
     } else {
       setTitle('');
       setDescription('');
@@ -57,7 +67,9 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
       setTargetScope('all');
       setTargetChildIds(children.length > 0 ? [children[0].id] : []);
     }
-  }, [initialTemplate, visible, children]);
+  // Only opening the form initializes it; polling must not overwrite edits.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialTemplate, visible]);
 
   const toggleChildSelection = (childId: string) => {
     setTargetChildIds(prev =>
@@ -71,7 +83,8 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
     );
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (saving) return;
     if (!title.trim()) {
       Toast.show({ icon: 'fail', content: '请先给任务起个名字哦！' });
       return;
@@ -96,28 +109,39 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
       frequencyType,
       frequencyConfig: {
         ...(frequencyType === 'weekly_days' ? { days: selectedDays } : {}),
-        ...(frequencyType === 'interval_days' ? { interval: intervalDays } : {}),
+        ...(frequencyType === 'interval_days' ? { interval: intervalDays, baseDate: initialTemplate?.frequencyConfig.baseDate } : {}),
       },
       targetScope,
       targetChildIds: targetScope === 'specific' ? targetChildIds : [],
-      isActive: true,
+      isActive: initialTemplate?.isActive ?? true, startDate: startDate || undefined, endDate: endDate || undefined, updatedAt: initialTemplate?.updatedAt,
     };
 
-    if (initialTemplate) {
-      updateTemplate(initialTemplate.id, payload);
-      Toast.show({ icon: 'success', content: '任务修改好啦！' });
-    } else {
-      addTemplate(payload);
-      Toast.show({ icon: 'success', content: '任务已保存在当前浏览器' });
+    const serialized = JSON.stringify(payload);
+    if (attemptedPayload.current && attemptedPayload.current !== serialized && !isRemoteId(initialTemplate?.id || '')) {
+      setSaveError('上次保存结果尚未确认，请先恢复原内容重试，或关闭后检查任务列表。'); return;
     }
+    attemptedPayload.current = serialized;
+    setSaving(true); setSaveError('');
+    try {
+      if (initialTemplate && isRemoteId(initialTemplate.id)) await updateTemplate(initialTemplate.id, payload);
+      else {
+        await addTemplate(payload, requestId.current);
+        if (initialTemplate) discardLegacyTemplate(initialTemplate.id);
+      }
+      Toast.show({ icon: 'success', content: '任务已保存到家庭，下次同步即可在设备查看' });
+      onClose();
+    } catch (e) {
+      if (e instanceof FamilyApiError && [400, 401, 403, 404].includes(e.status)) attemptedPayload.current = '';
+      setSaveError(e instanceof Error ? e.message : '保存失败，请保持内容不变并重试');
+    }
+    finally { setSaving(false); }
 
-    onClose();
   };
 
   return (
     <Popup
       visible={visible}
-      onMaskClick={onClose}
+      onMaskClick={() => { if (!saving) onClose(); }}
       position="bottom"
       bodyStyle={{
         height: '84vh',
@@ -134,7 +158,7 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
           </h3>
           <button
             type="button"
-            onClick={onClose}
+            disabled={saving} onClick={onClose}
             className="kid-btn kid-btn-ghost kid-btn-sm"
           >
             关闭
@@ -142,7 +166,7 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
         </div>
 
         {/* Content */}
-        <div className="p-4 overflow-y-auto flex-1 min-h-0 space-y-3.5">
+        <fieldset disabled={saving} className="p-4 overflow-y-auto flex-1 min-h-0 space-y-3.5">
           {/* 1. 任务名称与说明 */}
           <div className="kid-card space-y-3">
             <div>
@@ -152,6 +176,7 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
               <input
                 id="task-title-input"
                 type="text"
+                maxLength={40}
                 placeholder="例如：自主阅读绘本 15 分钟"
                 value={title}
                 onChange={e => setTitle(e.target.value)}
@@ -169,7 +194,7 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
                 value={description}
                 onChange={e => setDescription(e.target.value)}
                 rows={2}
-                maxLength={100}
+                maxLength={200}
                 className="kid-input"
               />
             </div>
@@ -181,7 +206,7 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
 
             <div className="space-y-2" role="radiogroup" aria-label="布置范围">
               {[
-                { label: '全部宝贝一起闯关（每台设备各自生成）', value: 'all' as TargetScope },
+                { label: '全部宝贝一起闯关（每位宝贝各自生成）', value: 'all' as TargetScope },
                 { label: '指定宝贝专属任务', value: 'specific' as TargetScope },
               ].map(opt => {
                 const selected = targetScope === opt.value;
@@ -256,8 +281,8 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
                 value={rewardCoins}
                 onChange={v => setRewardCoins(v)}
                 min={1}
-                max={100}
-                step={5}
+                max={10000}
+                step={1}
               />
             </div>
 
@@ -328,22 +353,28 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
                 <Stepper
                   value={intervalDays}
                   onChange={v => setIntervalDays(v)}
-                  min={2}
-                  max={30}
+                  min={1}
+                  max={365}
                 />
               </div>
             )}
           </div>
-        </div>
+          <div className="kid-card space-y-2">
+            <label className="block text-sm">开始日期（留空为今天）<input className="kid-input" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} /></label>
+            <label className="block text-sm">结束日期（可选）<input className="kid-input" type="date" min={startDate} value={endDate} onChange={e => setEndDate(e.target.value)} /></label>
+            <p className="text-xs text-gray-500">今日已生成的任务会保留原内容；修改和停用影响之后的任务。</p>
+          </div>
+        </fieldset>
 
         {/* Footer */}
         <div className="p-4 bg-[#F9FAFB] border-t border-[#E5E7EB] shrink-0">
+          {saveError && <p className="text-sm text-red-700 mb-2" role="alert">{saveError}</p>}
           <button
-            type="button"
+            type="button" disabled={saving}
             onClick={handleSubmit}
             className="w-full kid-btn kid-btn-primary kid-btn-lg"
           >
-            {initialTemplate ? '保存任务修改' : '发布闯关任务！'}
+            {saving ? '正在保存…' : initialTemplate ? '保存任务修改' : '发布闯关任务！'}
           </button>
         </div>
       </div>

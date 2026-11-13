@@ -8,7 +8,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const { db, device } = await deviceContext(request);
     const { data, error } = await db.rpc('device_submit_task', { p_device_id: device.id, p_task_id: params.id, p_request_id: body.requestId });
     if (error) throw new ApiError(503, 'Task submission unavailable');
-    if (!data?.success) throw new ApiError(409, data?.message || 'Task cannot be submitted');
+    if (!data?.success) return reply({ error: 'Task cannot be submitted', code: data?.code || 'task_changed' }, 409);
     return reply(data);
   } catch (error) { return failure(error); }
 }

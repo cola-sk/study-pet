@@ -8,6 +8,7 @@
 #include "action_layout.h"
 #include "pet_image_view.h"
 #include "settings_ui.h"
+#include "tasks_ui.h"
 #include "esp_app_desc.h"
 #include "esp_mac.h"
 #include <stdio.h>
@@ -43,6 +44,7 @@ static bool is_need(pet_action_t a) { return a == HUNGRY || a == THIRSTY || a ==
 static bool menu_open(void) { return menu_visible; }
 static void set_menu(bool open) {
     menu_visible = open;
+    tasks_ui_home_visible(!open);
     menu_waiting_for_catalog = open && !latest_catalog.available;
     if (open) render_menu();
     pet_image_set_menu_open(pet_image, open);
@@ -55,7 +57,7 @@ static void set_menu(bool open) {
 static void animate_pet(lv_timer_t *timer)
 {
     (void)timer;
-    if (menu_open() || settings_ui_is_open()) return;
+    if (menu_open() || settings_ui_is_open() || tasks_ui_is_open()) return;
     if (!is_need(action)) frame = (frame + 1) % 4;
     if (!is_need(action) && frame == 0) {
         cycles++;
@@ -227,6 +229,7 @@ void app_main(void)
     if (shop_purchase_pending()) { lv_label_set_text(notice,"Confirming purchase..."); lv_obj_clear_flag(notice,LV_OBJ_FLAG_HIDDEN); }
     uint8_t mac[6]; esp_read_mac(mac, ESP_MAC_WIFI_STA);
     char name[24]; snprintf(name, sizeof(name), "PET-%02X%02X%02X", mac[3], mac[4], mac[5]);
+    tasks_ui_init(screen);
     settings_ui_init(screen, name, esp_app_get_description()->version, settings_pair);
     lv_timer_create(animate_pet, 300, NULL);
     while (1) {
@@ -266,6 +269,24 @@ void app_main(void)
                 if (input->proc.state == LV_INDEV_STATE_PR) touching = true;
             }
             if (!touching) set_menu(true);
+        }
+        static task_page_t page_update;
+        bool touching_tasks = false;
+        for (lv_indev_t *input = lv_indev_get_next(NULL); input; input = lv_indev_get_next(input))
+            if (input->proc.state == LV_INDEV_STATE_PR) touching_tasks = true;
+        if (!touching_tasks && task_take_page(&page_update)) {
+            tasks_ui_page(&page_update);
+            if (page_update.approved) { set_action(HAPPY); need_ticks = 0; network_refresh_wallet(); }
+        }
+        checkin_result_t checkin;
+        if (!touching_tasks && task_take_checkin(&checkin)) {
+            tasks_ui_result(&checkin);
+            if (checkin.state == CHECKIN_OK) {
+                coins = checkin.credits; lv_label_set_text_fmt(balance, "%u cr", coins);
+                network_wallet_update_t wallet = {.state = WALLET_READY, .credits = coins};
+                settings_ui_wallet_update(&wallet); network_refresh_wallet();
+                if (checkin.status == TASK_COMPLETED && checkin.awarded) { set_action(HAPPY); need_ticks = 0; }
+            }
         }
         purchase_result_t purchase;
         if (shop_take_result(&purchase)) {
