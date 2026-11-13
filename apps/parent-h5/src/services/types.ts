@@ -58,7 +58,7 @@ export interface TaskTemplate {
   targetChildIds: string[]; // 当 targetScope 为 specific 时的目标孩子 ID 列表
   isActive: boolean;
   startDate?: string;
-  endDate?: string;
+  endDate?: string | null;
   createdAt: string;
 }
 

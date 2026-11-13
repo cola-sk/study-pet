@@ -4,10 +4,10 @@
 
 ## 项目当前状态
 
-项目仍处于原型开发阶段，家长端与真实设备之间的完整业务流程尚未打通：
+项目处于原型开发阶段，已接入家庭账号、设备配对、金币、家庭商店及任务打卡闭环：
 
-- `apps/parent-h5`：家长端 Web 原型，使用 Next.js、React、TypeScript 和 pnpm；未配置 Supabase 时可使用本地数据体验页面。
-- `apps/pet-device`：适配微雪 V2 开发板的宠物固件原型，包含喂食交互和浏览器预览。金币为模拟数据，尚未接入联网或家长端。
+- `apps/parent-h5`：家长端 Web 应用，使用 Next.js、React、TypeScript 和 pnpm，通过 Supabase 登录及服务端 API 管理家庭。
+- `apps/pet-device`：适配微雪 V2 开发板的宠物固件，支持配对、联网同步金币、商品购买与任务打卡，并提供独立模拟预览。
 - `apps/firmware/hello_world`：乐鑫官方示例，用于检查 ESP32-S3 编译和串口。
 - `packages/contracts`：共享类型；`supabase/schema.sql`：数据库设计；`docs`：产品和技术文档。
 
@@ -126,11 +126,12 @@ pnpm dev:h5
 
 浏览器打开 [http://localhost:5188](http://localhost:5188)。停止服务按 `Ctrl+C`。构建家长端可运行 `pnpm build:h5`。
 
-默认体验可以不配置 Supabase；浏览器中的本地数据只保存在当前浏览器，不会与设备或其他浏览器同步。真实数据库是可选的，项目提供 `supabase/schema.sql` 和 `apps/parent-h5/.env.example` 作为配置参考；接入前需自行检查权限与安全配置，数据库连接不代表真实设备已接通。
+家长端需要 Supabase 登录和服务端数据库配置，参考 `apps/parent-h5/.env.example`。按顺序应用 `supabase/schema.sql` 与 `supabase/migrations/` 中的迁移，再部署家长端并配置设备。具体流程见 [真实接口实施](docs/真实接口实施.md) 和 [设备打卡与任务闭环](docs/设备打卡与任务闭环.md)。浏览器中的设备预览使用模拟数据。
 
 ## 进一步阅读
 
 - [产品方案](docs/产品方案.md)：任务、金币、设备和整体规划。
 - [ESP32-S3 开发环境安装](docs/开发环境安装.md)：安装及板级示例补充说明。
 - [家长端方案](docs/家长端H5方案.md)：家长端功能设计。
+- [设备打卡与任务闭环](docs/设备打卡与任务闭环.md)：任务创建、打卡、审批和故障处理。
 - [设备原型说明](apps/pet-device/README.md)：原型功能和第三方代码来源。

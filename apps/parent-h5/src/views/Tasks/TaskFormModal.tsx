@@ -24,7 +24,7 @@ const WEEKDAY_OPTIONS = [
 ];
 
 export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTemplate }) => {
-  const { family, children, addTemplate, updateTemplate, discardLegacyTemplate } = useAppStore();
+  const { family, children, addTemplate, updateTemplate, discardLegacyTemplate, todayDate } = useAppStore();
 
   const [title, setTitle] = useState(initialTemplate?.title || '');
   const [description, setDescription] = useState(initialTemplate?.description || '');
@@ -113,7 +113,7 @@ export const TaskFormModal: React.FC<Props> = ({ visible, onClose, initialTempla
       },
       targetScope,
       targetChildIds: targetScope === 'specific' ? targetChildIds : [],
-      isActive: initialTemplate?.isActive ?? true, startDate: startDate || undefined, endDate: endDate || undefined, updatedAt: initialTemplate?.updatedAt,
+      isActive: initialTemplate?.isActive ?? true, startDate: startDate || todayDate || undefined, endDate: endDate || null, updatedAt: initialTemplate?.updatedAt,
     };
 
     const serialized = JSON.stringify(payload);

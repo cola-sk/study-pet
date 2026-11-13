@@ -132,7 +132,11 @@ void tasks_ui_home_visible(bool visible) {if(home){if(visible)lv_obj_clear_flag(
 void tasks_ui_page(const task_page_t *page) {
     lv_coord_t y=content?lv_obj_get_scroll_y(content):0;
     bool same=page->offset==snapshot.offset && !strcmp(page->child_id,snapshot.child_id) && !strcmp(page->date,snapshot.date);
+    const pet_task_t *before=selected();
+    task_status_t old_status=before?before->status:TASK_PENDING;
     snapshot=*page;waiting_page=false;
+    const pet_task_t *after=selected();
+    if(before && after && old_status!=after->status) feedback[0]=0;
     if(!same){selected_id[0]=0;feedback[0]=0;}
     if(snapshot.state==TASKS_READY)lv_label_set_text_fmt(home_caption,"Today %u/%u",snapshot.completed,snapshot.total);
     else lv_label_set_text(home_caption,"Today tasks");
