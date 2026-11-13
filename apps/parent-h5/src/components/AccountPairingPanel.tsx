@@ -10,6 +10,7 @@ export function AccountPairingPanel() {
   const [session, setSession] = useState<Session | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [code, setCode] = useState('');
   const [children, setChildren] = useState<Child[]>([]);
   const [devices, setDevices] = useState<Device[]>([]);
@@ -66,11 +67,13 @@ export function AccountPairingPanel() {
   };
   return <section className="kid-card space-y-3" aria-label="家长账号和设备配对">
     <h2 className="text-h2 font-semibold">家长账号与设备配对</h2>
-    {!session ? <>
-      <input className="kid-input" type="email" autoComplete="email" placeholder="家长邮箱" value={email} onChange={e => setEmail(e.target.value)} />
-      <input className="kid-input" type="password" autoComplete="current-password" placeholder="密码" value={password} onChange={e => setPassword(e.target.value)} />
-      <div className="flex gap-2"><button className="kid-btn kid-btn-primary" disabled={pending} onClick={() => signIn(false)}>登录</button><button className="kid-btn kid-btn-ghost" disabled={pending} onClick={() => signIn(true)}>注册</button></div>
-    </> : <>
+    {!session ? <form className="space-y-3" onSubmit={event => { event.preventDefault(); signIn(false); }}>
+      <label className="block text-sm">家长邮箱<input className="kid-input" type="email" autoComplete="email" required placeholder="请输入邮箱" value={email} onChange={e => setEmail(e.target.value)} /></label>
+      <label className="block text-sm" htmlFor="account-password">密码</label>
+      <div className="flex items-center gap-2"><input id="account-password" className="kid-input" type={showPassword ? 'text' : 'password'} autoComplete="current-password" required placeholder="请输入密码" value={password} onChange={e => setPassword(e.target.value)} /><button className="kid-btn kid-btn-ghost shrink-0" type="button" aria-label={showPassword ? '隐藏密码' : '显示密码'} aria-pressed={showPassword} onClick={() => setShowPassword(value => !value)}>{showPassword ? '隐藏' : '显示'}</button></div>
+      <div className="flex gap-2"><button className="kid-btn kid-btn-primary" type="submit" disabled={pending}>登录</button><button className="kid-btn kid-btn-ghost" type="button" disabled={pending || !email.trim() || !password} onClick={() => signIn(true)}>注册</button></div>
+      <p className="text-sm text-gray-600">首次使用请选择注册；如开启邮箱验证，请先完成邮件验证。</p>
+    </form> : <>
       <p className="text-sm">已登录：{session.user.email}</p>
       <p className="text-sm">设备配对码（请勿分享）</p>
       <p className="font-mono font-bold break-all select-all">{code || '加载中…'}</p>

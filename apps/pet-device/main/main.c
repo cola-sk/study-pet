@@ -123,16 +123,17 @@ static void open_pairing(lv_event_t *event)
     lv_obj_set_size(pair_screen, 240, 320); lv_obj_set_pos(pair_screen, 0, 0);
     lv_obj_set_style_pad_all(pair_screen, 0, 0); lv_obj_clear_flag(pair_screen, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_t *label = lv_label_create(pair_screen);
-    lv_label_set_text(label, "Enter family code (20 chars)");
+    lv_label_set_text(label, "Enter family code (6 digits)");
     lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 10);
     pair_input = lv_textarea_create(pair_screen);
     lv_obj_set_size(pair_input, 220, 42); lv_obj_align(pair_input, LV_ALIGN_TOP_MID, 0, 32);
     lv_textarea_set_one_line(pair_input, true);
-    lv_textarea_set_max_length(pair_input, 20);
-    lv_textarea_set_accepted_chars(pair_input, "0123456789abcdefABCDEF");
+    lv_textarea_set_max_length(pair_input, 6);
+    lv_textarea_set_accepted_chars(pair_input, "0123456789");
     lv_obj_t *keyboard = lv_keyboard_create(pair_screen);
     lv_obj_set_size(keyboard, 240, 180); lv_obj_align(keyboard, LV_ALIGN_BOTTOM_MID, 0, 0);
     lv_keyboard_set_textarea(keyboard, pair_input);
+    lv_keyboard_set_mode(keyboard, LV_KEYBOARD_MODE_NUMBER);
     lv_obj_add_event_cb(keyboard, pair_keyboard_event, LV_EVENT_ALL, NULL);
 }
 void app_main(void)

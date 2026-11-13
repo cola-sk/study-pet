@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { supabase } from '../services/supabase';
+import { AccountPairingPanel } from './AccountPairingPanel';
 import { SafeArea } from 'antd-mobile';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { useAppStore } from '../stores/useAppStore';
@@ -17,6 +19,20 @@ import { SettingsPage } from '../views/Settings';
 
 export const Layout: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('approvals');
+  const [authState, setAuthState] = useState<'loading' | 'signed-in' | 'signed-out' | 'unconfigured'>('loading');
+  useEffect(() => {
+    if (!supabase) { setAuthState('unconfigured'); return; }
+    let alive = true;
+    let authEventReceived = false;
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      authEventReceived = true;
+      if (alive) setAuthState(session ? 'signed-in' : 'signed-out');
+    });
+    supabase.auth.getSession().then(({ data: current, error }) => {
+      if (alive && !authEventReceived) setAuthState(!error && current.session ? 'signed-in' : 'signed-out');
+    }).catch(() => { if (alive && !authEventReceived) setAuthState('signed-out'); });
+    return () => { alive = false; data.subscription.unsubscribe(); };
+  }, []);
   const installState = usePWAInstall();
   const { instances, children, devices } = useAppStore();
 
@@ -45,6 +61,22 @@ export const Layout: React.FC = () => {
       icon: <IconDevice className="w-[18px] h-[18px]" />,
     },
   ];
+
+  if (authState !== 'signed-in') {
+    return (
+      <main className="parent-app-shell min-h-screen flex items-center justify-center px-4 py-10">
+        <div className="w-full max-w-sm space-y-5">
+          <div className="text-center space-y-2">
+            <div className="parent-app-mark flex items-center justify-center mx-auto"><IconPaw className="w-5 h-5" /></div>
+            <h1 className="text-xl font-bold">学习宠物助手</h1>
+            <p className="text-sm text-gray-600">登录或注册家长账号，管理孩子与桌面宠物。</p>
+          </div>
+          {authState === 'loading' ? <p className="text-center" role="status">正在检查登录状态…</p> :
+            authState === 'unconfigured' ? <p className="kid-card text-sm" role="alert">登录服务尚未配置，请检查 Supabase 环境变量。</p> : <AccountPairingPanel />}
+        </div>
+      </main>
+    );
+  }
 
   return (
     <div className="parent-app-shell flex flex-col min-h-screen antialiased">

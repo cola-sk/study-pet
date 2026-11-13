@@ -29,13 +29,13 @@ static bool paired;
 static const char *active_token(void) { return paired ? device_token : CONFIG_STUDY_PET_DEVICE_TOKEN; }
 bool network_pair_request(const char *code)
 {
-    if (!pair_requests || strlen(code) != 20) return false;
-    char normalized[21];
-    for (int i = 0; i < 20; i++) {
-        if (!isxdigit((unsigned char)code[i])) return false;
+    if (!pair_requests || strlen(code) != 6) return false;
+    char normalized[7];
+    for (int i = 0; i < 6; i++) {
+        if (!isdigit((unsigned char)code[i])) return false;
         normalized[i] = (char)tolower((unsigned char)code[i]);
     }
-    normalized[20] = 0;
+    normalized[6] = 0;
     return xQueueSend(pair_requests, normalized, 0) == pdTRUE;
 }
 int network_take_pair_result(void) { int result = 0; if (pair_results) xQueueReceive(pair_results, &result, 0); return result; }
@@ -175,7 +175,7 @@ static void network_task(void *arg)
     esp_sntp_init();
     int64_t next_sync = 0;
     for (;;) {
-        char code[21];
+        char code[7];
         bool waiting = xQueueReceive(pair_requests, code, pdMS_TO_TICKS(1000)) == pdTRUE;
         bool online = (xEventGroupGetBits(network_events) & CONNECTED_BIT) != 0;
         bool clock_ready = time(NULL) >= 1704067200;
@@ -192,7 +192,7 @@ static void network_task(void *arg)
 void network_start(void) {
     if (!load_identity()) { ESP_LOGE(TAG, "NVS unavailable; pairing disabled"); return; }
     wallet_updates = xQueueCreate(1, sizeof(unsigned));
-    pair_requests = xQueueCreate(1, 21);
+    pair_requests = xQueueCreate(1, 7);
     pair_results = xQueueCreate(1, sizeof(int));
     if (wallet_updates && pair_requests && pair_results) xTaskCreate(network_task, "pet_network", 8192, NULL, 5, NULL);
 }
