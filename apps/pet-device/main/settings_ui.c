@@ -1,11 +1,12 @@
 #include "settings_ui.h"
 #include "wifi_manager.h"
 #include "wifi_credentials.h"
+#include "display_power.h"
 #include <stdio.h>
 #include <string.h>
 
 LV_FONT_DECLARE(shop_cjk_font);
-typedef enum { PAGE_SETTINGS, PAGE_WIFI, PAGE_JOIN, PAGE_PROGRESS, PAGE_DEVICE } page_t;
+typedef enum { PAGE_SETTINGS, PAGE_WIFI, PAGE_JOIN, PAGE_PROGRESS, PAGE_DEVICE, PAGE_SCREEN } page_t;
 static lv_obj_t *host, *root, *heading, *credit_value, *sync_status, *sync_button;
 static lv_obj_t *wifi_name, *wifi_status, *device_status, *network_list, *scan_button;
 static lv_obj_t *ssid_input, *password_input, *keyboard, *password_button, *connect_button;
@@ -19,7 +20,11 @@ static uint32_t last_sync, sync_started, waiting_attempt;
 static network_wallet_state_t wallet_state = WALLET_SYNC_FAILED;
 static void (*pair_callback)(void);
 static int pairing_feedback = -1;
+static lv_obj_t *screen_choices[4], *screen_hint;
+static const uint32_t screen_timeouts[] = {60, 120, 300, 0};
+static const char *screen_names[] = {"1 minute", "2 minutes", "5 minutes", "Never"};
 static void show_settings(void), show_wifi(bool scan), show_join(void), show_progress(void), show_device(void);
+static void show_screen(void);
 
 static void text(lv_obj_t *label, const char *value)
 {
@@ -125,27 +130,62 @@ static void sync_now(lv_event_t *event)
 }
 static void open_wifi(lv_event_t *event) { (void)event; show_wifi(true); }
 static void open_device(lv_event_t *event) { (void)event; show_device(); }
+static void open_screen(lv_event_t *event) { (void)event; show_screen(); }
 static void show_settings(void)
 {
     wifi_manager_snapshot(&view);
     begin_page(PAGE_SETTINGS, "Settings");
-    lv_obj_t *credit_card = card(52, 100);
+    lv_obj_t *credit_card = card(52, 88);
     label(credit_card, "Credits", 12, 8, 192);
     credit_value = label(credit_card, "-- credits", 12, 28, 192);
     lv_obj_set_style_text_font(credit_value, &lv_font_montserrat_20, 0);
-    sync_status = label(credit_card, "", 12, 62, 98);
+    sync_status = label(credit_card, "", 12, 56, 98);
     lv_obj_set_style_text_font(sync_status, &lv_font_montserrat_10, 0);
-    sync_button = button(credit_card, "Sync now", 116, 56, 88, 36, sync_now);
-    lv_obj_t *wifi_card = card(160, 76);
+    sync_button = button(credit_card, "Sync now", 116, 46, 88, 36, sync_now);
+    lv_obj_t *wifi_card = card(148, 64);
     lv_obj_add_flag(wifi_card, LV_OBJ_FLAG_CLICKABLE); lv_obj_add_event_cb(wifi_card, open_wifi, LV_EVENT_CLICKED, NULL);
     label(wifi_card, "Wi-Fi", 12, 8, 170); label(wifi_card, LV_SYMBOL_RIGHT, 192, 28, 16);
-    wifi_name = label(wifi_card, "", 12, 29, 172); lv_label_set_long_mode(wifi_name, LV_LABEL_LONG_SCROLL_CIRCULAR);
-    wifi_status = label(wifi_card, "", 12, 52, 192); lv_obj_set_style_text_font(wifi_status, &lv_font_montserrat_10, 0);
-    lv_obj_t *device_card = card(244, 60);
+    wifi_name = label(wifi_card, "", 12, 26, 172); lv_label_set_long_mode(wifi_name, LV_LABEL_LONG_SCROLL_CIRCULAR);
+    wifi_status = label(wifi_card, "", 12, 46, 192); lv_obj_set_style_text_font(wifi_status, &lv_font_montserrat_10, 0);
+    lv_obj_t *device_card = card(220, 42);
     lv_obj_add_flag(device_card, LV_OBJ_FLAG_CLICKABLE); lv_obj_add_event_cb(device_card, open_device, LV_EVENT_CLICKED, NULL);
-    label(device_card, "Device", 12, 8, 170); label(device_card, LV_SYMBOL_RIGHT, 192, 24, 16);
-    device_status = label(device_card, "", 12, 32, 172);
+    label(device_card, "Device", 12, 6, 170); label(device_card, LV_SYMBOL_RIGHT, 192, 14, 16);
+    device_status = label(device_card, "", 12, 25, 172);
+    lv_obj_set_style_text_font(device_status, &lv_font_montserrat_10, 0);
+    lv_obj_t *screen_card = card(270, 42);
+    lv_obj_add_flag(screen_card, LV_OBJ_FLAG_CLICKABLE); lv_obj_add_event_cb(screen_card, open_screen, LV_EVENT_CLICKED, NULL);
+    label(screen_card, "Screen", 12, 6, 170); label(screen_card, LV_SYMBOL_RIGHT, 192, 14, 16);
+    const char *timeout = "2 minutes";
+    for (unsigned i = 0; i < 4; i++) if (screen_timeouts[i] == display_power_timeout()) timeout = screen_names[i];
+    lv_obj_t *screen_status = label(screen_card, timeout, 12, 25, 172);
+    lv_obj_set_style_text_font(screen_status, &lv_font_montserrat_10, 0);
     update_settings();
+}
+static void choose_timeout(lv_event_t *event)
+{
+    unsigned choice = (unsigned)(uintptr_t)lv_event_get_user_data(event);
+    if (choice >= 4) return;
+    if (!display_power_set_timeout(screen_timeouts[choice])) { text(screen_hint, "Save failed. Please try again."); return; }
+    for (unsigned i = 0; i < 4; i++) {
+        if (i == choice) lv_obj_add_state(screen_choices[i], LV_STATE_CHECKED);
+        else lv_obj_clear_state(screen_choices[i], LV_STATE_CHECKED);
+    }
+    text(screen_hint, "Touch to wake. Tap again to act.");
+}
+static void show_screen(void)
+{
+    begin_page(PAGE_SCREEN, "Screen");
+    label(root, "Turn screen off after\nno touch activity:", 16, 52, 208);
+    for (unsigned i = 0; i < 4; i++) {
+        screen_choices[i] = button(root, screen_names[i], 16, 100 + i * 46, 208, 40, NULL);
+        lv_obj_set_style_bg_color(screen_choices[i], lv_color_hex(0x43583a), LV_STATE_CHECKED);
+        lv_obj_set_style_border_width(screen_choices[i], 2, LV_STATE_CHECKED);
+        lv_obj_set_style_border_color(screen_choices[i], lv_color_hex(0xb9cf9e), LV_STATE_CHECKED);
+        lv_obj_add_event_cb(screen_choices[i], choose_timeout, LV_EVENT_CLICKED, (void *)(uintptr_t)i);
+        if (display_power_timeout() == screen_timeouts[i]) lv_obj_add_state(screen_choices[i], LV_STATE_CHECKED);
+    }
+    screen_hint = label(root, "Touch to wake. Tap again to act.", 16, 290, 208);
+    lv_obj_set_style_text_font(screen_hint, &lv_font_montserrat_10, 0);
 }
 static void manual_network(lv_event_t *event)
 {

@@ -28,13 +28,26 @@ function previewCard(name, line, detail, top, height, callback) {
 function showPreviewSettings() {
   setMenu(false); settingsPreview.hidden = false;
   previewPage('Settings', () => { settingsPreview.hidden = true; });
-  const wallet = previewCard('Credits', coins + ' credits', 'Updated just now', 52, 100);
+  const wallet = previewCard('Credits', coins + ' credits', 'Updated just now', 52, 88);
   previewButton(wallet, 'Sync now', () => { wallet.querySelector('small').textContent = 'Synced (preview)'; }).className = 'preview-sync';
-  previewCard('Wi-Fi', previewNetwork, 'Connected  ›', 160, 76, showPreviewWifi);
-  previewCard('Device', 'Family paired  ›', '', 244, 60, () => {
+  previewCard('Wi-Fi', previewNetwork, 'Connected  ›', 148, 64, showPreviewWifi);
+  const device = previewCard('Device', 'Family paired  ›', '', 220, 42, () => {
     previewPage('Device', showPreviewSettings);
     const details = document.createElement('p'); details.className = 'settings-details'; details.textContent = 'PET-PREVIEW\n\nFirmware: browser preview\n\nFamily paired\n\nManage child assignment\nin the parent app.'; settingsPreview.append(details);
   });
+  device.style.fontSize = '12px'; device.querySelector('.settings-value').style.marginTop = '1px';
+  const screen = previewCard('Screen', ({60:'1 minute',120:'2 minutes',300:'5 minutes',0:'Never'})[displayPreview.timeout], '', 270, 42, showPreviewScreen);
+  screen.style.fontSize = '12px'; screen.querySelector('.settings-value').style.marginTop = '1px';
+}
+function showPreviewScreen() {
+  previewPage('Screen', showPreviewSettings);
+  const note = document.createElement('p'); note.className = 'preview-current'; note.textContent = 'Turn screen off after\nno touch activity:'; settingsPreview.append(note);
+  for (const [index, seconds] of [60,120,300,0].entries()) {
+    const name = ({60:'1 minute',120:'2 minutes',300:'5 minutes',0:'Never'})[seconds];
+    const button = previewButton(settingsPreview, name, () => { if(displayPreview.setTimeout(seconds))showPreviewScreen(); });
+    button.style.cssText = `position:absolute;left:16px;top:${100+index*46}px;width:208px;height:40px;${seconds===displayPreview.timeout?'outline:2px solid #b9cf9e;background:#43583a':''}`;
+  }
+  const hint = document.createElement('small');hint.style.cssText='position:absolute;left:16px;top:290px;font-size:10px';hint.textContent='Touch to wake. Tap again to act.';settingsPreview.append(hint);
 }
 function showPreviewWifi() {
   previewPage('Wi-Fi / 2.4 GHz', showPreviewSettings);

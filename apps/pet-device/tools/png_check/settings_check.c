@@ -1,6 +1,7 @@
 #include "settings_ui.h"
 #include "wifi_manager.h"
 #include "wifi_credentials.h"
+#include "display_power.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -9,6 +10,10 @@
 static pet_wifi_snapshot_t snapshot = {.state=PET_WIFI_CONNECTED,.configured=true,.ssid="S26"};
 static unsigned scan_calls, connect_calls, cancel_calls, sync_calls, pair_calls;
 static bool paired=true;
+static uint32_t screen_timeout=120;
+static bool fail_screen_save;
+uint32_t display_power_timeout(void) { return screen_timeout; }
+bool display_power_set_timeout(uint32_t seconds) { if(fail_screen_save)return false; screen_timeout=seconds; return true; }
 static char requested_ssid[33], requested_password[65];
 static lv_color_t pixels[240*320], buffer_pixels[240*20];
 static const char *output;
@@ -94,6 +99,12 @@ int main(int argc,char **argv) {
     click("Manual");lv_textarea_set_text(textarea(0),"Hidden network");lv_textarea_set_text(textarea(1),"new-password");click("Connect");
     assert(!strcmp(requested_ssid,"Hidden network"));snapshot.attempt=PET_WIFI_ATTEMPT_SAVED;tick();get_text("Back to Settings");capture("connected");
     click("Back to Settings");get_text("Settings");
+    click("Screen");get_text("2 minutes");capture("screen");
+    click("5 minutes");assert(screen_timeout==300);
+    assert(lv_obj_has_state(lv_obj_get_parent(get_text("5 minutes")),LV_STATE_CHECKED));
+    fail_screen_save=true;click("Never");assert(screen_timeout==300);get_text("Save failed. Please try again.");
+    fail_screen_save=false;click("Never");assert(screen_timeout==0);
+    click("1 minute");assert(screen_timeout==60);click(LV_SYMBOL_LEFT);get_text("1 minute");
     click("Device");get_text("Family paired");capture("device");click(LV_SYMBOL_LEFT);
     paired=false;click("Device");click("Enter family code");assert(pair_calls==1);click(LV_SYMBOL_LEFT);click(LV_SYMBOL_LEFT);assert(!settings_ui_is_open());
     snapshot.configured=false;snapshot.state=PET_WIFI_UNCONFIGURED;snapshot.ssid[0]=0;

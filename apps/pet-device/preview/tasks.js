@@ -55,5 +55,5 @@ function renderTaskPreview() {
 }
 document.querySelector('#tasks-home').onclick = () => {setMenu(false); previewTaskIndex = null; tasksPreview.hidden = false; beginPreviewSync();};
 const approvePreview = document.createElement('button'); approvePreview.textContent = '模拟家长批准待确认任务';
-approvePreview.onclick = () => {const t = previewTasks.find(item => item.status === 'submitted'); if (!t) return; t.status = 'completed'; coins += t.reward; document.querySelector('#credits').textContent = coins + ' credits'; setAction('happy'); updateTaskHome(); if (!tasksPreview.hidden) renderTaskPreview();};
+approvePreview.onclick = () => {const t = previewTasks.find(item => item.status === 'submitted'); if (!t) return; t.status = 'completed'; coins += t.reward; document.querySelector('#credits').textContent = coins + ' credits'; if (previewPet.mood() !== 'sleep') setAction('happy'); updateTaskHome(); if (!tasksPreview.hidden) renderTaskPreview();};
 document.querySelector('.controls').append(approvePreview);

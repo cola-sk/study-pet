@@ -1,0 +1,19 @@
+{
+  "id": "husky",
+  "name": "Husky",
+  "timezone_offset_minutes": 480,
+  "meals": ["07:30", "18:30"],
+  "minimum_meal_gap_minutes": 360,
+  "unsynced_hunger_minutes": 480,
+  "water_interval_minutes": 120,
+  "companionship_interval_minutes": 240,
+  "sleep_windows": [
+    ["22:00", "07:00"],
+    ["10:30", "11:30"],
+    ["13:00", "15:00"],
+    ["17:00", "18:00"]
+  ],
+  "sleepy_lead_minutes": 10,
+  "manual_nap_minutes": 45,
+  "wake_grace_minutes": 30
+}

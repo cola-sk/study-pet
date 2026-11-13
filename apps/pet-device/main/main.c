@@ -2,7 +2,8 @@
 #include "I2C_Driver.h"
 #include "LVGL_Driver.h"
 #include "husky_frames.h"
-#include "esp_random.h"
+#include "pet_behavior.h"
+#include "display_power.h"
 #include "network.h"
 #include "shop_network.h"
 #include "action_layout.h"
@@ -20,10 +21,8 @@ static const lv_img_dsc_t *const frames[][4] = {
     FRAMES(idle), FRAMES(eat), FRAMES(happy), FRAMES(sleep), FRAMES(hungry),
     FRAMES(thirsty), FRAMES(drink), FRAMES(sleepy), FRAMES(lonely), FRAMES(pet)
 };
-static const pet_action_t needs[] = { HUNGRY, THIRSTY, SLEEPY, LONELY };
 static pet_action_t action = IDLE;
-static unsigned coins = 0, frame = 0, cycles = 0, need_ticks = 0;
-static int last_need = -1;
+static unsigned coins = 0, frame = 0, cycles = 0, expression_ticks = 0;
 static bool wallet_notice = false;
 static lv_obj_t *balance_button;
 static lv_obj_t *balance, *pet_image, *buttons[12], *labels[12], *prices[12], *notice, *sleep_label, *pair_screen, *pair_input;
@@ -36,11 +35,18 @@ static void render_menu(void);
 
 static void set_action(pet_action_t next)
 {
-    action = next; frame = next == SLEEPY ? 1 : 0; cycles = 0;
+    static const char *names[] = {"idle", "eat", "happy", "sleep", "hungry", "thirsty", "drink", "sleepy", "lonely", "pet"};
+    if (action != next) ESP_LOGI("pet_ui", "Pet action: %s", names[next]);
+    action = next; frame = next == SLEEPY ? 1 : 0; cycles = 0; expression_ticks = 0;
     lv_img_set_src(pet_image, frames[action][frame]);
     if (sleep_label) lv_label_set_text(sleep_label, action == SLEEP ? "Wake" : "Sleep");
 }
 static bool is_need(pet_action_t a) { return a == HUNGRY || a == THIRSTY || a == SLEEPY || a == LONELY; }
+static pet_action_t current_pet_action(void)
+{
+    static const pet_action_t actions[] = { IDLE, HUNGRY, THIRSTY, SLEEPY, LONELY, SLEEP };
+    return actions[pet_behavior_mood()];
+}
 static bool menu_open(void) { return menu_visible; }
 static void set_menu(bool open) {
     menu_visible = open;
@@ -57,23 +63,21 @@ static void set_menu(bool open) {
 static void animate_pet(lv_timer_t *timer)
 {
     (void)timer;
-    if (menu_open() || settings_ui_is_open() || tasks_ui_is_open()) return;
+    if (display_power_is_asleep() || menu_open() || settings_ui_is_open() || tasks_ui_is_open()) return;
+    if (action != EAT && action != DRINK && action != PET && action != HAPPY) {
+        pet_action_t next = current_pet_action();
+        if (action != next) set_action(next);
+    }
     if (!is_need(action)) frame = (frame + 1) % 4;
     if (!is_need(action) && frame == 0) {
         cycles++;
         if ((action == EAT || action == DRINK || action == PET) && cycles >= 2) { set_action(HAPPY); return; }
-        if (action == HAPPY && cycles >= 2) { set_action(IDLE); need_ticks = 0; return; }
+        if (action == HAPPY && cycles >= 2) { set_action(current_pet_action()); return; }
     }
     if (action == IDLE || is_need(action)) {
-        if (is_need(action) && need_ticks > 0 && need_ticks % 4 == 0) {
+        if (is_need(action) && ++expression_ticks % 4 == 0) {
             unsigned base = action == SLEEPY ? 1 : 0;
             frame = base + (frame == base ? 1 : 0);
-        }
-        if (++need_ticks >= 100) {
-            unsigned pick = esp_random() % 4;
-            if ((int)pick == last_need) pick = (pick + 1 + esp_random() % 3) % 4;
-            last_need = (int)pick;
-            set_action(needs[pick]); need_ticks = 0; return;
         }
     }
     lv_img_set_src(pet_image, frames[action][frame]);
@@ -92,14 +96,15 @@ static void show_menu(lv_event_t *event)
 static void toggle_sleep(lv_event_t *event)
 {
     (void)event;
-    bool sleeping = action != SLEEP;
     set_menu(false);
-    set_action(sleeping ? SLEEP : IDLE); need_ticks = 0;
+    pet_behavior_toggle_sleep();
+    set_action(current_pet_action());
 }
 static void play_pet(lv_event_t *event)
 {
     (void)event;
     set_menu(false);
+    pet_behavior_care(PET_CARE_COMPANY);
     set_action(PET);
 }
 static void menu_action(lv_event_t *event)
@@ -186,6 +191,8 @@ void app_main(void)
 {
     I2C_Init(); LCD_Init(); LVGL_Init();
     network_start();
+    pet_behavior_init();
+    display_power_init();
     lv_obj_t *screen = lv_scr_act();
     lv_obj_set_style_bg_color(screen, lv_color_hex(0xfff7e7), 0);
     lv_obj_t *title = lv_label_create(screen); lv_label_set_text(title, "Keep going!"); lv_obj_align(title, LV_ALIGN_TOP_LEFT, 8, 12);
@@ -234,6 +241,8 @@ void app_main(void)
     settings_ui_init(screen, name, esp_app_get_description()->version, settings_pair);
     lv_timer_create(animate_pet, 300, NULL);
     while (1) {
+        pet_behavior_tick();
+        display_power_tick();
         network_wallet_update_t updated;
         int pairing = network_take_pair_result();
         if (pairing) settings_ui_pair_result(pairing);
@@ -276,8 +285,9 @@ void app_main(void)
         for (lv_indev_t *input = lv_indev_get_next(NULL); input; input = lv_indev_get_next(input))
             if (input->proc.state == LV_INDEV_STATE_PR) touching_tasks = true;
         if (!touching_tasks && task_take_page(&page_update)) {
+            if (page_update.state == TASKS_READY) pet_behavior_bind_child(page_update.child_id);
             tasks_ui_page(&page_update);
-            if (page_update.approved) { set_action(HAPPY); need_ticks = 0; network_refresh_wallet(); }
+            if (page_update.approved) { if (pet_behavior_mood() != PET_SLEEPING) set_action(HAPPY); network_refresh_wallet(); }
         }
         checkin_result_t checkin;
         if (!touching_tasks && task_take_checkin(&checkin)) {
@@ -286,7 +296,7 @@ void app_main(void)
                 coins = checkin.credits; lv_label_set_text_fmt(balance, "%u cr", coins);
                 network_wallet_update_t wallet = {.state = WALLET_READY, .credits = coins};
                 settings_ui_wallet_update(&wallet); network_refresh_wallet();
-                if (checkin.status == TASK_COMPLETED && checkin.awarded) { set_action(HAPPY); need_ticks = 0; }
+                if (checkin.status == TASK_COMPLETED && checkin.awarded && pet_behavior_mood() != PET_SLEEPING) set_action(HAPPY);
             }
         }
         purchase_result_t purchase;
@@ -296,8 +306,11 @@ void app_main(void)
                 network_wallet_update_t wallet = {.state = WALLET_READY, .credits = coins};
                 settings_ui_wallet_update(&wallet);
                 wallet_notice = false; set_menu(false);
+                if (purchase.action == SHOP_EAT) pet_behavior_care(PET_CARE_FOOD);
+                else if (purchase.action == SHOP_DRINK) pet_behavior_care(PET_CARE_WATER);
+                else if (purchase.action == SHOP_PET) pet_behavior_care(PET_CARE_COMPANY);
                 pet_action_t animations[] = {EAT,DRINK,PET,HAPPY};
-                set_action(animations[purchase.action]); need_ticks = 0;
+                set_action(animations[purchase.action]);
             } else {
                 const char *messages[] = {"", "Confirming; see Settings", "Not enough credits", "Item changed; reopen", "Item removed; reopen", "Check pairing in app", "Save failed; try again", "Purchase needs review"};
                 lv_label_set_text(notice,messages[purchase.state]); lv_obj_clear_flag(notice,LV_OBJ_FLAG_HIDDEN);

@@ -1,4 +1,5 @@
 #include "LVGL_Driver.h"
+#include "display_power.h"
 
 static const char *TAG_LVGL = "LVGL";
 
@@ -63,7 +64,7 @@ void example_touchpad_read( lv_indev_drv_t * drv, lv_indev_data_t * data )
     bool touchpad_pressed = esp_lcd_touch_get_coordinates(drv->user_data, touchpad_x, touchpad_y, NULL, &touchpad_cnt, 5);
 
     // printf("CCCCCCCCCCCCC=%d  \r\n",touchpad_cnt);
-    if (touchpad_pressed && touchpad_cnt > 0) {
+    if (display_power_filter_touch(touchpad_pressed && touchpad_cnt > 0)) {
         data->point.x = touchpad_x[0];
         data->point.y = touchpad_y[0];
         data->state = LV_INDEV_STATE_PR;
